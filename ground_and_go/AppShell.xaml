@@ -3,17 +3,23 @@
     x:Class="ground_and_go.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:pages="clr-namespace:ground_and_go.Pages"
+    xmlns:home="clr-namespace:ground_and_go.Pages.Home"
+    xmlns:profile="clr-namespace:ground_and_go.Pages.Profile"
+    xmlns:workout="clr-namespace:ground_and_go.Pages.Workout"
     xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
     Title="ground_and_go">
 
     <TabBar>
         <Tab Title="Home" Icon="{mi:Material Home}">
-            <ShellContent ContentTemplate="{DataTemplate pages:MainPage}" />
+            <ShellContent ContentTemplate="{DataTemplate home:HomePage}" />
         </Tab>
 
-        <Tab Title="Workout Equipment" Icon="{mi:Material FitnessCenter}">
-            <ShellContent ContentTemplate="{DataTemplate pages:WorkoutEquipmentPage}" />
+        <Tab Title="Workout" Icon="{mi:Material FitnessCenter}">
+            <ShellContent ContentTemplate="{DataTemplate workout:WorkoutPage}" />
+        </Tab>
+
+        <Tab Title="Profile" Icon="{mi:Material AccountCircle}">
+            <ShellContent ContentTemplate="{DataTemplate profile:ProfilePage}" />
         </Tab>
     </TabBar>
 
