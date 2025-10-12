@@ -8,7 +8,8 @@
     xmlns:workout="clr-namespace:ground_and_go.Pages.Workout"
     xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
     Title="ground_and_go">
-
+    
+<!---tab bar -->
     <TabBar>
         <Tab Title="Home" Icon="{mi:Material Home}">
             <ShellContent ContentTemplate="{DataTemplate home:HomePage}" />
