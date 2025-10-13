@@ -6,6 +6,7 @@
     xmlns:home="clr-namespace:ground_and_go.Pages.Home"
     xmlns:profile="clr-namespace:ground_and_go.Pages.Profile"
     xmlns:workout="clr-namespace:ground_and_go.Pages.Workout"
+    xmlns:workoutgen="clr-namespace:ground_and_go.Pages.WorkoutGeneration"
     xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
     Title="ground_and_go">
     
@@ -16,7 +17,7 @@
         </Tab>
 
         <Tab Title="Workout" Icon="{mi:Material FitnessCenter}">
-            <ShellContent ContentTemplate="{DataTemplate workout:WorkoutPage}" />
+            <ShellContent ContentTemplate="{DataTemplate workoutgen:TodaysWorkoutPage}" />
         </Tab>
 
         <Tab Title="Profile" Icon="{mi:Material AccountCircle}">
