@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--journal entry content-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ground_and_go.Pages.WorkoutGeneration.JournalEntryPage"
+             Title="Journal Entry">
+    
+    <Grid RowDefinitions="*, Auto" Padding="20">
+
+        <Editor Grid.Row="0"
+                Placeholder="Write about your day, your workout, or anything on your mind..."
+                FontSize="18"
+                AutoSize="TextChanges"/>
+
+        <Button Grid.Row="1"
+                Text="Submit/Next"
+                CornerRadius="20"
+                Margin="0,10,0,0"
+                BackgroundColor="#2196F3"
+                TextColor="White"
+                Clicked="OnNext_Clicked"/>
+        
+    </Grid>
+</ContentPage>
