@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ground_and_go.Pages.WorkoutGeneration.TodaysWorkoutPage"
+             Title="Today's Workout"
+             BackgroundColor="#F0F0F0">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="12" Padding="20">
+            
+            <!-- Page Header -->
+            <Label 
+                Text="Today's Workout"
+                FontSize="28"
+                FontAttributes="Bold"
+                HorizontalOptions="Center"
+                TextColor="Black"
+                Margin="0,10,0,20"/>
+
+            <!-- Exercise 1: Push-ups -->
+            <Border x:Name="PushUpsBorder"
+                    Stroke="LightGray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    HeightRequest="70">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
+                </Border.Shadow>
+                
+                <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
+                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                        <Label Text="Push-ups" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="3 sets × 12 reps" FontSize="16" TextColor="DarkGray"/>
+                    </VerticalStackLayout>
+                    
+                    <Button Grid.Column="1"
+                            Text="Begin"
+                            BackgroundColor="#2196F3"
+                            TextColor="White"
+                            CornerRadius="15"
+                            WidthRequest="90"
+                            HeightRequest="40"
+                            FontSize="16"
+                            Clicked="OnBeginExerciseClicked"
+                            CommandParameter="Push-ups"/>
+                </Grid>
+            </Border>
+
+            <!-- Exercise 2: Squats -->
+            <Border x:Name="SquatsBorder"
+                    Stroke="LightGray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    HeightRequest="70">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
+                </Border.Shadow>
+                
+                <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
+                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                        <Label Text="Squats" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="3 sets × 15 reps" FontSize="16" TextColor="DarkGray"/>
+                    </VerticalStackLayout>
+                    
+                    <Button Grid.Column="1"
+                            Text="Begin"
+                            BackgroundColor="#2196F3"
+                            TextColor="White"
+                            CornerRadius="15"
+                            WidthRequest="90"
+                            HeightRequest="40"
+                            FontSize="16"
+                            Clicked="OnBeginExerciseClicked"
+                            CommandParameter="Squats"/>
+                </Grid>
+            </Border>
+
+            <!-- Exercise 3: Plank -->
+            <Border x:Name="PlankBorder"
+                    Stroke="LightGray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    HeightRequest="70">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
+                </Border.Shadow>
+                
+                <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
+                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                        <Label Text="Plank" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="3 sets × 30 seconds" FontSize="16" TextColor="DarkGray"/>
+                    </VerticalStackLayout>
+                    
+                    <Button Grid.Column="1"
+                            Text="Begin"
+                            BackgroundColor="#2196F3"
+                            TextColor="White"
+                            CornerRadius="15"
+                            WidthRequest="90"
+                            HeightRequest="40"
+                            FontSize="16"
+                            Clicked="OnBeginExerciseClicked"
+                            CommandParameter="Plank"/>
+                </Grid>
+            </Border>
+
+            <!-- Exercise 4: Jumping Jacks -->
+            <Border x:Name="JumpingJacksBorder"
+                    Stroke="LightGray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    HeightRequest="70">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
+                </Border.Shadow>
+                
+                <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
+                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                        <Label Text="Jumping Jacks" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="2 sets × 20 reps" FontSize="16" TextColor="DarkGray"/>
+                    </VerticalStackLayout>
+                    
+                    <Button Grid.Column="1"
+                            Text="Begin"
+                            BackgroundColor="#2196F3"
+                            TextColor="White"
+                            CornerRadius="15"
+                            WidthRequest="90"
+                            HeightRequest="40"
+                            FontSize="16"
+                            Clicked="OnBeginExerciseClicked"
+                            CommandParameter="Jumping Jacks"/>
+                </Grid>
+            </Border>
+
+            <!-- Exercise 5: Burpees -->
+            <Border x:Name="BurpeesBorder"
+                    Stroke="LightGray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    HeightRequest="70">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
+                </Border.Shadow>
+                
+                <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
+                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                        <Label Text="Burpees" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="2 sets × 8 reps" FontSize="16" TextColor="DarkGray"/>
+                    </VerticalStackLayout>
+                    
+                    <Button Grid.Column="1"
+                            Text="Begin"
+                            BackgroundColor="#2196F3"
+                            TextColor="White"
+                            CornerRadius="15"
+                            WidthRequest="90"
+                            HeightRequest="40"
+                            FontSize="16"
+                            Clicked="OnBeginExerciseClicked"
+                            CommandParameter="Burpees"/>
+                </Grid>
+            </Border>
+
+            <!-- Complete Workout Button -->
+            <Button 
+                Text="Complete Workout"
+                BackgroundColor="#4CAF50"
+                TextColor="White"
+                CornerRadius="20"
+                HeightRequest="50"
+                FontSize="18"
+                FontAttributes="Bold"
+                Margin="0,20,0,10"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
