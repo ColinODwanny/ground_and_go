@@ -1,3 +1,4 @@
+//Aidan Trusky
 using CommunityToolkit.Maui.Views;
 
 namespace ground_and_go.Pages.WorkoutGeneration;
