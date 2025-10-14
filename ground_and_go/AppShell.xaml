@@ -7,6 +7,7 @@
     xmlns:profile="clr-namespace:ground_and_go.Pages.Profile"
     xmlns:workout="clr-namespace:ground_and_go.Pages.Workout"
     xmlns:workoutgen="clr-namespace:ground_and_go.Pages.WorkoutGeneration"
+    xmlns:login="clr-namespace:ground_and_go.Pages.Auth"
     xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
     Title="ground_and_go">
     
@@ -22,6 +23,10 @@
 
         <Tab Title="Profile" Icon="{mi:Material AccountCircle}">
             <ShellContent ContentTemplate="{DataTemplate profile:ProfilePage}" />
+        </Tab>
+
+        <Tab Title="Login" Icon="{mi:Material Login}">
+            <ShellContent ContentTemplate="{DataTemplate login:LoginPage}"/>
         </Tab>
     </TabBar>
 
