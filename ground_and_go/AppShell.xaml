@@ -24,10 +24,6 @@
         <Tab Title="Profile" Icon="{mi:Material AccountCircle}">
             <ShellContent ContentTemplate="{DataTemplate profile:ProfilePage}" />
         </Tab>
-
-        <Tab Title="Login" Icon="{mi:Material Login}">
-            <ShellContent ContentTemplate="{DataTemplate login:LoginPage}"/>
-        </Tab>
     </TabBar>
 
 </Shell>
