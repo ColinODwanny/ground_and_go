@@ -7,4 +7,16 @@ public partial class ProfilePage : ContentPage
 	{
 		InitializeComponent();
 	}
+
+	private async void OnMyWorkoutsTapped(object sender, EventArgs e)
+	{
+		await Navigation.PushAsync(new MyWorkoutsPage());
+	}
+
+	private async void OnMyJournalEntriesTapped(object sender, EventArgs e)
+	{
+		await Navigation.PushAsync(new MyJournalEntriesPage());
+	}
+	
+
 }

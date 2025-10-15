@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--Colin O'Dwanny-->
+<ContentPage
+    x:Class="ground_and_go.Pages.Profile.JournalEntryPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Journal Entry">
+
+    <Label Text="This is a journal entry that was made at some time in the past.  At some point this content will need to be pulled from the supabase, but for now, it is static content"
+       LineBreakMode="WordWrap"
+       FontSize="16"
+       TextColor="Black"
+       HorizontalTextAlignment="Start" />
+
+
+</ContentPage>
