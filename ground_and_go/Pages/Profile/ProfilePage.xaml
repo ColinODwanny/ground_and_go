@@ -19,6 +19,11 @@
                     <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
                 </Border.Shadow>
                 
+                <!-- Because of the block below, if you click on this region, a new page will open -->
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnMyWorkoutsTapped" />
+                </Border.GestureRecognizers>
+
                 <Grid ColumnDefinitions="Auto,*" Padding="20">
                     <Label Grid.Column="0"
                            Text="💪"
@@ -44,6 +49,11 @@
                 <Border.Shadow>
                     <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
                 </Border.Shadow>
+
+                <!-- Because of the block below, if you click on this region, a new page will open -->
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnMyJournalEntriesTapped" />
+                </Border.GestureRecognizers>
                 
                 <Grid ColumnDefinitions="Auto,*" Padding="20">
                     <Label Grid.Column="0"

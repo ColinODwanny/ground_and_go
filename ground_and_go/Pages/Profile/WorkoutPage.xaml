@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--Colin O'Dwanny-->
+<ContentPage
+    x:Class="ground_and_go.Pages.Profile.WorkoutPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="WrktEntry">
+
+    <Grid Padding="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Header Row -->
+        <Label Text="Exercise" Grid.Row="0" Grid.Column="0" FontAttributes="Bold" />
+        <Label Text="Sets" Grid.Row="0" Grid.Column="1" FontAttributes="Bold" />
+        <Label Text="Reps" Grid.Row="0" Grid.Column="2" FontAttributes="Bold" />
+
+        <!-- Row 1 -->
+        <Label Text="Push Ups" Grid.Row="1" Grid.Column="0" />
+        <Label Text="3" Grid.Row="1" Grid.Column="1" />
+        <Label Text="12" Grid.Row="1" Grid.Column="2" />
+
+        <!-- Row 2 -->
+        <Label Text="Squats" Grid.Row="2" Grid.Column="0" />
+        <Label Text="3" Grid.Row="2" Grid.Column="1" />
+        <Label Text="15" Grid.Row="2" Grid.Column="2" />
+
+        <!-- Row 3 -->
+        <Label Text="Plank" Grid.Row="3" Grid.Column="0" />
+        <Label Text="3" Grid.Row="3" Grid.Column="1" />
+        <Label Text="30 sec" Grid.Row="3" Grid.Column="2" />
+
+        <!-- Row 4 -->
+        <Label Text="Jumping Jacks" Grid.Row="4" Grid.Column="0" />
+        <Label Text="2" Grid.Row="4" Grid.Column="1" />
+        <Label Text="20 Seconds" Grid.Row="4" Grid.Column="2" />
+
+        <!-- Row 5 -->
+        <Label Text="Burpees" Grid.Row="5" Grid.Column="0" />
+        <Label Text="2" Grid.Row="5" Grid.Column="1" />
+        <Label Text="8" Grid.Row="5" Grid.Column="2" />
+    </Grid>
+
+
+
+
+</ContentPage>
