@@ -29,6 +29,7 @@
                 CornerRadius="10"
                 HeightRequest="45"
                 FontSize="16"
+                Clicked="OnViewExerciseClicked"
                 HorizontalOptions="FillAndExpand"/>
 
             <Button x:Name="CompleteButton"

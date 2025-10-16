@@ -1,4 +1,5 @@
 //Aidan Trusky
+using System.Collections;
 using CommunityToolkit.Maui.Views;
 
 namespace ground_and_go.Pages.WorkoutGeneration;
@@ -18,4 +19,11 @@ public partial class ExerciseDetailPopup : Popup
     {
         Close(ExerciseName);
     }
+
+    private async void OnViewExerciseClicked(object sender, EventArgs e)
+{
+        await Application.Current.MainPage.Navigation.PushAsync(new ground_and_go.Pages.Workout.VideoPlayer());
+        Close();
+}
+
 }

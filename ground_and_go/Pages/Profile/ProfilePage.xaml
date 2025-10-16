@@ -79,6 +79,11 @@
                 <Border.Shadow>
                     <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
                 </Border.Shadow>
+
+                <!-- Because of the block below, if you click on this region, a new page will open -->
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnLogoutTapped" />
+                </Border.GestureRecognizers>
                 
                 <Grid ColumnDefinitions="Auto,*" Padding="20">
                     <Label Grid.Column="0"
