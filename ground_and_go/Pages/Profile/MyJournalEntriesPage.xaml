@@ -1,10 +1,79 @@
 <?xml version="1.0" encoding="utf-8" ?>
+<!--Colin O'Dwanny-->
+<!--This page will eventually need to have dynamic content on it.  The number of journal entries will
+be variable.  This is just to show the concept of what it will look like.-->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ground_and_go.Pages.Profile.MyJournalEntriesPage"
              Title="My Journal Entries">
-    <Label 
-        Text="My Journal Entries Page" 
-        HorizontalOptions="Center" 
-        VerticalOptions="Center" />
+    <ScrollView>
+        <VerticalStackLayout Spacing="0" Padding="0" VerticalOptions="Start">
+            
+            
+            <Border Stroke="LightGray"
+                    StrokeThickness="1"
+                    BackgroundColor="White"
+                    HeightRequest="80"
+                    Margin="0,0,0,1">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
+                </Border.Shadow>
+                
+                <!-- Because of the block below, if you click on this region, a new page will open -->
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnJournalEntryTapped" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="Auto,*" Padding="20">
+                    <Label Grid.Column="0"
+                           Text="📖"
+                           FontSize="32"
+                           VerticalOptions="Center"/>
+                    
+                    <Label Grid.Column="1"
+                           Text="Oct. 22 2025"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="Black"
+                           VerticalOptions="Center"
+                           Margin="20,0,0,0"/>
+                </Grid>
+            </Border>
+
+            
+            <Border Stroke="LightGray"
+                    StrokeThickness="1"
+                    BackgroundColor="White"
+                    HeightRequest="80"
+                    Margin="0,0,0,1">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
+                </Border.Shadow>
+
+                <!-- Because of the block below, if you click on this region, a new page will open -->
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnJournalEntryTapped" />
+                </Border.GestureRecognizers>
+                
+                <Grid ColumnDefinitions="Auto,*" Padding="20">
+                    <Label Grid.Column="0"
+                           Text="📖"
+                           FontSize="32"
+                           VerticalOptions="Center"/>
+                    
+                    <Label Grid.Column="1"
+                           Text="Oct. 23 2025"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="Black"
+                           VerticalOptions="Center"
+                           Margin="20,0,0,0"/>
+                </Grid>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+
+        
 </ContentPage>
