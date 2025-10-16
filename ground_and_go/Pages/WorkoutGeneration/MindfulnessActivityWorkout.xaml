@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Devlin Delegard -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ground_and_go.Pages.WorkoutGeneration.MindfulnessActivityWorkoutPage"
+             Title="Mindfulness Activity">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto" Padding="20">
+
+        <Label Grid.Row="0"
+                Text="Step 1: Do Something"
+                FontSize="18"
+                Margin="0,10,0,10"/>
+        
+        <Label Grid.Row="1"
+                Text="Step 2: Do Something Else"
+                FontSize="18"
+                Margin="0,10,0,10"/>
+
+        <Label Grid.Row="2"
+                Text="Step 3: Do Another Thing"
+                FontSize="18"
+                Margin="0,10,0,10"/>
+
+        <Button Grid.Row="3"
+                Text="All Done"
+                CornerRadius="20"
+                Margin="0,10,0,0"
+                BackgroundColor="#2196F3"
+                TextColor="White"
+                Clicked="OnNext_Clicked"/>
+        
+    </Grid>
+</ContentPage>
