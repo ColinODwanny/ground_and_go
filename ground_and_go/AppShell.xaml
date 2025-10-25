@@ -10,19 +10,24 @@
     xmlns:login="clr-namespace:ground_and_go.Pages.Auth"
     xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
     Title="ground_and_go">
+
+    <ShellContent
+        Title="Login"
+        ContentTemplate="{DataTemplate login:LoginPage}"
+        Route="login"
+        Shell.TabBarIsVisible="False" />
     
-<!---tab bar -->
-    <TabBar>
+<TabBar Route="main">
         <Tab Title="Home" Icon="{mi:Material Home}">
-            <ShellContent ContentTemplate="{DataTemplate home:HomePage}" />
+            <ShellContent ContentTemplate="{DataTemplate home:HomePage}" Route="home" />
         </Tab>
 
         <Tab Title="Workout" Icon="{mi:Material FitnessCenter}">
-            <ShellContent ContentTemplate="{DataTemplate workoutgen:TodaysWorkoutPage}" />
+            <ShellContent ContentTemplate="{DataTemplate workoutgen:TodaysWorkoutPage}" Route="workout" />
         </Tab>
 
         <Tab Title="Profile" Icon="{mi:Material AccountCircle}">
-            <ShellContent ContentTemplate="{DataTemplate profile:ProfilePage}" />
+            <ShellContent ContentTemplate="{DataTemplate profile:ProfilePage}" Route="profile" />
         </Tab>
     </TabBar>
 
