@@ -9,7 +9,8 @@ public partial class MyJournalEntriesPage : ContentPage
     } 
     
     private async void OnJournalEntryTapped(object sender, EventArgs e)
-	{
-		await Navigation.PushAsync(new JournalEntryPage());
-	}
+    {
+        // use shell navigation with the registered route
+        await Shell.Current.GoToAsync("ProfileJournalEntry");
+    }
 }
