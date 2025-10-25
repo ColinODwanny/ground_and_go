@@ -26,6 +26,9 @@ public partial class LoginPage : ContentPage
         {
             if (sender is not Button button) return;
             //TODO: This will bring the user to the home page
+            
+            // this is the only line that changed:
+            await Shell.Current.GoToAsync("//home");
         }
         catch (Exception ex)
         {
