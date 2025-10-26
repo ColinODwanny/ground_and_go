@@ -24,6 +24,7 @@ public partial class ProfilePage : ContentPage
 	{
 		await Navigation.PushAsync(new Auth.LoginPage());
 	}
+
 	
 
 }

@@ -14,8 +14,9 @@ namespace ground_and_go
     public class Database
     {
         private Supabase.Client? supabaseClient;
-
         private Task waitingForInitialization;
+
+        public List<WorkoutLog>? WorkoutHistory { get; set; }
         public Database()
         {
             waitingForInitialization = InitializeSupabaseSystems();
@@ -47,6 +48,15 @@ namespace ground_and_go
                 memberId = -1;
             }
             return memberId;
+        }
+
+        public async Task LoadWorkoutHistory(int memberId){
+            await EnsureInitializedAsync();
+            var response = await supabaseClient.From<WorkoutLog>().Where(workoutLog => workoutLog.MemberId == memberId).Get();
+            if (response.Models.Any())
+            {
+                WorkoutHistory = response.Models;
+            }
         }
 
 
