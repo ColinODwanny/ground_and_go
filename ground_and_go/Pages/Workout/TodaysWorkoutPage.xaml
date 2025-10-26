@@ -177,7 +177,8 @@
                 HeightRequest="50"
                 FontSize="18"
                 FontAttributes="Bold"
-                Margin="0,20,0,10"/>
+                Margin="0,20,0,10"
+                Clicked="OnCompleteWorkout_Clicked"/>
 
         </VerticalStackLayout>
     </ScrollView>
