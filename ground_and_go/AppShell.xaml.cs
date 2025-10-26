@@ -16,5 +16,9 @@ public partial class AppShell : Shell
         // need unique routes for pages with the same class name
         Routing.RegisterRoute("ProfileJournalEntry", typeof(ground_and_go.Pages.Profile.JournalEntryPage));
         Routing.RegisterRoute("WorkoutJournalEntry", typeof(ground_and_go.Pages.WorkoutGeneration.JournalEntryPage));
+
+        // add these routes for the mindfulness pages
+        Routing.RegisterRoute(nameof(Pages.WorkoutGeneration.MindfulnessActivityWorkoutPage), typeof(Pages.WorkoutGeneration.MindfulnessActivityWorkoutPage));
+        Routing.RegisterRoute(nameof(Pages.WorkoutGeneration.MindfulnessActivityRestPage), typeof(Pages.WorkoutGeneration.MindfulnessActivityRestPage));
     }
 }
