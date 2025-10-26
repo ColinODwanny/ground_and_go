@@ -7,8 +7,11 @@
              BackgroundColor="#F0F0F0">
 
     <ScrollView>
+        
         <VerticalStackLayout Spacing="0" Padding="0" VerticalOptions="Start">
-            
+            <Entry x:Name="EmailEntry" Placeholder="Enter email to lookup" />
+            <Button x:Name="LookupButton" Text="Lookup MemberId" Clicked="OnLookupClicked" />
+            <Label x:Name="MemberIdLabel" Text="MemberId: (not looked up)" />
             <!-- My Workouts -->
             <Border Stroke="LightGray"
                     StrokeThickness="1"

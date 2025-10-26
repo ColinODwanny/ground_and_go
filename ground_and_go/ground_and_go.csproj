@@ -42,6 +42,8 @@
         <PackageReference Include="CommunityToolkit.Maui" Version="11.0.0" />
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.5" />
+        <PackageReference Include="Supabase" Version="1.1.1" />
+        <PackageReference Include="supabase-csharp" Version="0.16.2" />
     </ItemGroup>
 
 </Project>

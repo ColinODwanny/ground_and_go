@@ -1,23 +1,46 @@
-namespace ground_and_go.Models;
+using System;
+using Supabase.Postgrest.Attributes;
+using Supabase.Postgrest.Models;
+using Newtonsoft.Json;
+using System.Reflection.PortableExecutable;
 
-public class Exercise
+namespace ground_and_go.Models
 {
-    public int ExerciseId { get; set; }
-    public string Name { get; set; }
-    public int Sets { get; set; }
-    public int Reps { get; set; }
 
-    public int MinRest { get; set; }
-    public int MaxRest { get; set; }
-    
-    public string LinkToVideo { get; set; }
-
-    public (int min, int max) RestRange
+    [Table("exercises")]
+    public class Exercise : ObservableBaseModel, IEquatable<Exercise>
     {
-        get
-        {
-            return (MinRest, MaxRest);
-        }
-    }
+        int _exerciseId = -1;
 
+        string _name = "";
+
+        string _videoLink = "";
+
+        [PrimaryKey("exercise_id")]
+        public int ExerciseId
+        {
+            get => _exerciseId;
+        }
+
+        [Column("name")]
+        public string Name
+        {
+            get => _name;
+        }
+
+        [Column("video_link")]
+        public string VideoLink
+        {
+            get => _videoLink;
+        }
+
+        public override bool Equals(object? obj)
+            => obj is Exercise other && ExerciseId == other.ExerciseId;
+
+        public bool Equals(Exercise? other)
+            => other is not null && ExerciseId == other.ExerciseId;
+
+        public override int GetHashCode()
+            => ExerciseId.GetHashCode();
+    }
 }
