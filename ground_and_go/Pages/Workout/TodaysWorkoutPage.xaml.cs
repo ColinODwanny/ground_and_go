@@ -33,14 +33,14 @@ public partial class TodaysWorkoutPage : ContentPage
         try
         {
             if (sender is not Button button) return;
-            
+
             var exerciseName = button.CommandParameter?.ToString();
             if (string.IsNullOrEmpty(exerciseName)) return;
-            
+
             // Show the exercise detail popup
             var popup = new ExerciseDetailPopup(exerciseName);
             var result = await this.ShowPopupAsync(popup);
-            
+
             // If exercise was marked as complete, change the border color
             if (result is string completedExercise && exerciseBorders.ContainsKey(completedExercise))
             {
@@ -52,5 +52,11 @@ public partial class TodaysWorkoutPage : ContentPage
         {
             await DisplayAlert("Error", $"Error: {ex.Message}", "OK");
         }
+    }
+
+    private async void OnCompleteWorkout_Clicked(object sender, EventArgs e)
+    {
+        // navigate to the new post-activity journal page
+        await Shell.Current.GoToAsync(nameof(PostActivityJournalEntryPage));
     }
 }
