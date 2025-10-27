@@ -9,7 +9,8 @@ public partial class MyWorkoutsPage : ContentPage
     } 
     
     private async void OnWorkoutTapped(object sender, EventArgs e)
-	{
-		await Navigation.PushAsync(new WorkoutPage());
-	}
+    {
+        // use shell navigation with the registered route
+        await Shell.Current.GoToAsync(nameof(ground_and_go.Pages.Profile.WorkoutPage));
+    }
 }

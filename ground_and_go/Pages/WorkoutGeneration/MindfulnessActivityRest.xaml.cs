@@ -13,9 +13,9 @@ public partial class MindfulnessActivityRestPage : ContentPage
 
     private async void OnNext_Clicked(object sender, EventArgs e)
     {
-        // This button will eventually save the entry and navigate to the home page
-        //TODO: This currently does not function properly, but it will do for now
-        await Navigation.PushAsync(new HomePage());
+        // This button will eventually save the entry and navigate
+        // change this to go to the new post-activity journal page
+        await Shell.Current.GoToAsync(nameof(PostActivityJournalEntryPage));
     }
 
 }

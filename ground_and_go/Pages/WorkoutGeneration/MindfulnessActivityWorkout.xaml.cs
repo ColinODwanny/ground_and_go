@@ -14,9 +14,12 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
 
     private async void OnNext_Clicked(object sender, EventArgs e)
     {
-        // This button will eventually save the entry and navigate to the home page
+        // This button will eventually save the entry and navigate
         var popup = new WorkoutOptionsPopup();
         var result = await this.ShowPopupAsync(popup);
+        
+        // after the popup closes, navigate to the main "workout" tab
+        // the "//" means go to this absolute route
+        await Shell.Current.GoToAsync("//workout");
     }
-
 }
