@@ -9,6 +9,7 @@
     <ScrollView>
         
         <VerticalStackLayout Spacing="0" Padding="0" VerticalOptions="Start">
+
             <!-- My Workouts -->
             <Border Stroke="LightGray"
                     StrokeThickness="1"
