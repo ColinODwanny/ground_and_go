@@ -21,11 +21,11 @@ public partial class TodaysWorkoutPage : ContentPage
         base.OnAppearing();
         
         // Map exercise names to their corresponding borders
-        exerciseBorders["Push-ups"] = PushUpsBorder;
-        exerciseBorders["Squats"] = SquatsBorder;
-        exerciseBorders["Plank"] = PlankBorder;
-        exerciseBorders["Jumping Jacks"] = JumpingJacksBorder;
-        exerciseBorders["Burpees"] = BurpeesBorder;
+        exerciseBorders["Squat"] = SquatBorder;
+        exerciseBorders["Bench Press"] = BenchPressBorder;
+        exerciseBorders["Deadlift"] = DeadliftBorder;
+        exerciseBorders["Pull-Up"] = PullUpBorder;
+        exerciseBorders["Shoulder Press"] = ShoulderPressBorder;
     }
 
     private async void OnBeginExerciseClicked(object sender, EventArgs e)

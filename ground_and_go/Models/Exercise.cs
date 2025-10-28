@@ -20,18 +20,21 @@ namespace ground_and_go.Models
         public int ExerciseId
         {
             get => _exerciseId;
+            set => SetProperty(ref _exerciseId, value);
         }
 
         [Column("name")]
         public string Name
         {
             get => _name;
+            set => SetProperty(ref _name, value);
         }
 
         [Column("video_link")]
         public string VideoLink
         {
             get => _videoLink;
+            set => SetProperty(ref _videoLink, value);
         }
 
         public override bool Equals(object? obj)

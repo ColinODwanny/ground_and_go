@@ -307,34 +307,29 @@ namespace ground_and_go
                 }
             }
 
-            // Test workouts table
-            var workouts = await supabaseClient.From<Workout>().Limit(3).Get();
-            Console.WriteLine($"\n--- WORKOUTS (first 3) ---");
-            if (workouts?.Models != null)
-            {
-                foreach (var workout in workouts.Models)
-                {
-                    Console.WriteLine($"WorkoutId: {workout.WorkoutId}");
-                    Console.WriteLine($"Category: {workout.Category}");
-                    Console.WriteLine($"Equipment: {workout.Equipment}");
-                    Console.WriteLine($"Impact: {workout.Impact}");
-                    Console.WriteLine($"Exercises: [{string.Join(", ", workout.Exercises)}]");
-                    Console.WriteLine("---");
-                }
-            }
+            // Skip workouts table for now due to JSON parsing issues
+            Console.WriteLine($"\n--- WORKOUTS (skipped due to JSON parsing issues) ---");
 
             // Test exercises table  
-            var exercises = await supabaseClient.From<Exercise>().Limit(3).Get();
-            Console.WriteLine($"\n--- EXERCISES (first 3) ---");
-            if (exercises?.Models != null)
+            Console.WriteLine($"\n--- EXERCISES (ALL) ---");
+            try
             {
-                foreach (var exercise in exercises.Models)
+                var exercises = await supabaseClient.From<Exercise>().Get();
+                Console.WriteLine($"Found {exercises?.Models?.Count ?? 0} exercises in database");
+                if (exercises?.Models != null)
                 {
-                    Console.WriteLine($"ExerciseId: {exercise.ExerciseId}");
-                    Console.WriteLine($"Name: {exercise.Name}");
-                    Console.WriteLine($"VideoLink: {exercise.VideoLink}");
-                    Console.WriteLine("---");
+                    foreach (var exercise in exercises.Models)
+                    {
+                        Console.WriteLine($"ExerciseId: {exercise.ExerciseId}");
+                        Console.WriteLine($"Name: '{exercise.Name}'");
+                        Console.WriteLine($"VideoLink: '{exercise.VideoLink}'");
+                        Console.WriteLine("---");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading exercises: {ex.Message}");
             }
         }
 
