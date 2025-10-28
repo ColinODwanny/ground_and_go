@@ -2,73 +2,141 @@
 <!--Colin O'Dwanny & Aidan Trusky-->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ground_and_go.Models"
              x:Class="ground_and_go.Pages.Profile.MyWorkoutsPage"
-             Title="WrktEntries">
-    <ScrollView>
-        <VerticalStackLayout Spacing="0" Padding="0" VerticalOptions="Start">
+             Title="Workouts">
+    <Grid>
+        <!-- Loading indicator -->
+        <StackLayout IsVisible="{Binding IsLoading}"
+                     VerticalOptions="Center"
+                     HorizontalOptions="Center">
+            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                               Color="DarkBlue"
+                               Scale="1.5"/>
+            <Label Text="Loading workouts..."
+                   FontSize="16"
+                   TextColor="Gray"
+                   HorizontalOptions="Center"
+                   Margin="0,10,0,0"/>
+        </StackLayout>
+        
+        <ScrollView>
+            <StackLayout>
+                <CollectionView ItemsSource="{Binding Workouts}" 
+                                BackgroundColor="Transparent"
+                                IsVisible="{Binding IsNotLoading}"
+                                x:Name="WorkoutsCollectionView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:WorkoutViewModel">
+                    <StackLayout Spacing="0">
+                        <!-- Main workout header -->
+                        <Border Stroke="LightGray"
+                                StrokeThickness="1"
+                                BackgroundColor="White"
+                                Margin="0,0,0,1">
+                            <Border.Shadow>
+                                <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
+                            </Border.Shadow>
+                            
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnWorkoutTapped" />
+                            </Border.GestureRecognizers>
+
+                            <Grid ColumnDefinitions="*,Auto" Padding="15">
+                                <!-- Main content -->
+                                <StackLayout Grid.Column="0"
+                                             Orientation="Vertical"
+                                             VerticalOptions="Center">
+                                    <Label Text="{Binding DisplayDate}"
+                                           FontSize="22"
+                                           FontAttributes="Bold"
+                                           TextColor="Black"/>
+                                    <Label Text="{Binding WorkoutCategory}"
+                                           FontSize="16"
+                                           TextColor="DarkBlue"
+                                           FontAttributes="Bold"/>
+                                </StackLayout>
+                                
+                                <!-- Expand/Collapse Icon -->
+                                <Label Grid.Column="1"
+                                       Text="{Binding ExpandCollapseIcon}"
+                                       FontSize="18"
+                                       TextColor="Gray"
+                                       VerticalOptions="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Expandable content -->
+                        <StackLayout IsVisible="{Binding IsExpanded}" 
+                                     BackgroundColor="WhiteSmoke" 
+                                     Padding="15,10">
+                            
+                            <!-- Exercises Array Section -->
+                            <Label Text="Exercises Array:" 
+                                   FontSize="16" 
+                                   FontAttributes="Bold" 
+                                   TextColor="DarkBlue" 
+                                   Margin="0,0,0,8"/>
+                            <Frame BackgroundColor="LightBlue"
+                                   Padding="15"
+                                   Margin="0,0,0,15"
+                                   CornerRadius="8">
+                                <Label Text="{Binding ExercisesArray}"
+                                       FontSize="16"
+                                       FontFamily="Courier"
+                                       TextColor="Black"/>
+                            </Frame>
+                            
+                            <!-- Workout Details Section -->
+                            <StackLayout Orientation="Horizontal" Margin="0,0,0,8">
+                                <Label Text="Equipment: " 
+                                       FontSize="14" 
+                                       FontAttributes="Bold" 
+                                       TextColor="DarkGreen"/>
+                                <Label Text="{Binding WorkoutEquipment}"
+                                       FontSize="14"
+                                       TextColor="Black"/>
+                            </StackLayout>
+                            
+                            <StackLayout Orientation="Horizontal" Margin="0,0,0,8">
+                                <Label Text="Impact: " 
+                                       FontSize="14" 
+                                       FontAttributes="Bold" 
+                                       TextColor="DarkGreen"/>
+                                <Label Text="{Binding Workout.Impact}"
+                                       FontSize="14"
+                                       TextColor="Black"/>
+                            </StackLayout>
+                            
+                            <StackLayout Orientation="Horizontal">
+                                <Label Text="Emotion: " 
+                                       FontSize="14" 
+                                       FontAttributes="Bold" 
+                                       TextColor="DarkGreen"/>
+                                <Label Text="{Binding Workout.EmotionId}"
+                                       FontSize="14"
+                                       TextColor="Black"/>
+                            </StackLayout>
+                        </StackLayout>
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
             
-            
-            <Border Stroke="LightGray"
-                    StrokeThickness="1"
-                    BackgroundColor="White"
-                    HeightRequest="80"
-                    Margin="0,0,0,1">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
-                </Border.Shadow>
-                
-                <!-- Because of the block below, if you click on this region, a new page will open -->
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnWorkoutTapped" />
-                </Border.GestureRecognizers>
-
-                <Grid ColumnDefinitions="Auto,*" Padding="20">
-                    <Label Grid.Column="0"
-                           Text="💪"
-                           FontSize="32"
-                           VerticalOptions="Center"/>
-                    
-                    <Label Grid.Column="1"
-                           Text="Oct. 22 2025"
-                           FontSize="22"
-                           FontAttributes="Bold"
-                           TextColor="Black"
-                           VerticalOptions="Center"
-                           Margin="20,0,0,0"/>
-                </Grid>
-            </Border>
-
-            
-            <Border Stroke="LightGray"
-                    StrokeThickness="1"
-                    BackgroundColor="White"
-                    HeightRequest="80"
-                    Margin="0,0,0,1">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
-                </Border.Shadow>
-
-                <!-- Because of the block below, if you click on this region, a new page will open -->
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnWorkoutTapped" />
-                </Border.GestureRecognizers>
-                
-                <Grid ColumnDefinitions="Auto,*" Padding="20">
-                    <Label Grid.Column="0"
-                           Text="💪"
-                           FontSize="32"
-                           VerticalOptions="Center"/>
-                    
-                    <Label Grid.Column="1"
-                           Text="Oct. 23 2025"
-                           FontSize="22"
-                           FontAttributes="Bold"
-                           TextColor="Black"
-                           VerticalOptions="Center"
-                           Margin="20,0,0,0"/>
-                </Grid>
-            </Border>
-
-        </VerticalStackLayout>
-    </ScrollView>
+            <CollectionView.EmptyView>
+                <StackLayout Padding="20">
+                    <Label Text="No workouts found"
+                           FontSize="18"
+                           TextColor="Gray"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Check your database connection"
+                           FontSize="14"
+                           TextColor="LightGray"
+                           HorizontalOptions="Center"
+                           Margin="0,10,0,0"/>
+                </StackLayout>
+            </CollectionView.EmptyView>
+                </CollectionView>
+            </StackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

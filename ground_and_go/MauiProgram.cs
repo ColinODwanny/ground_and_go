@@ -22,6 +22,10 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
+        builder.Services.AddSingleton<Database>();
+        builder.Services.AddTransient<ground_and_go.Pages.Profile.MyWorkoutsPage>();
+        builder.Services.AddTransient<ground_and_go.Pages.Profile.MyJournalEntriesPage>();
+
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif

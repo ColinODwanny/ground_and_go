@@ -45,10 +45,12 @@ namespace ground_and_go
         public async Task<int> GetMemberIdByEmail(string userEmail)
         {
             await EnsureInitializedAsync();
+            if (supabaseClient == null) return -1;
+            
             int memberId;
             var response = await supabaseClient!.From<Member>().Where(member => member.Email == userEmail).Get();
 
-            if (response.Models.Any()) //If the query returned any rows
+            if (response?.Models?.Any() == true) //If the query returned any rows
             {
                 memberId = response.Models[0].MemberId;
             }
@@ -71,8 +73,10 @@ namespace ground_and_go
         public async Task LoadWorkoutHistory(int memberId)
         {
             await EnsureInitializedAsync();
-            var response = await supabaseClient!.From<WorkoutLog>().Where(workoutLog => workoutLog.MemberId == memberId).Get();
-            if (response.Models.Any())
+            if (supabaseClient == null) return;
+            
+            var response = await supabaseClient.From<WorkoutLog>().Where(workoutLog => workoutLog.MemberId == memberId).Get();
+            if (response?.Models?.Any() == true)
             {
                 WorkoutHistory = response.Models;
             }
@@ -92,10 +96,245 @@ namespace ground_and_go
         {
             //THIS METHOD DOES NOT WORK CURRENTLY
             await EnsureInitializedAsync();
-            var response = await supabaseClient!.From<Exercise>().Get();
-            foreach (Exercise row in response.Models)
+            if (supabaseClient == null || ExercisesDictionary == null) return;
+            
+            var response = await supabaseClient.From<Exercise>().Get();
+            if (response?.Models != null)
             {
-                ExercisesDictionary!.Add(row.ExerciseId, row);
+                foreach (Exercise row in response.Models)
+                {
+                    ExercisesDictionary.Add(row.ExerciseId, row);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets workout details by workout ID, including exercise information
+        /// </summary>
+        /// <param name="workoutId">The ID of the workout to fetch</param>
+        /// <returns>Workout object with exercise details</returns>
+        public async Task<Workout?> GetWorkoutById(int workoutId)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return null;
+            
+            var response = await supabaseClient.From<Workout>().Where(w => w.WorkoutId == workoutId).Get();
+            return response?.Models?.FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Gets all exercises to build a lookup dictionary
+        /// </summary>
+        /// <returns>Dictionary mapping exercise IDs to Exercise objects</returns>
+        public async Task<Dictionary<int, Exercise>> GetAllExercises()
+        {
+            await EnsureInitializedAsync();
+            var exercisesDict = new Dictionary<int, Exercise>();
+            
+            if (supabaseClient == null) return exercisesDict;
+            
+            try
+            {
+                var response = await supabaseClient.From<Exercise>().Get();
+                if (response?.Models != null)
+                {
+                    foreach (var exercise in response.Models)
+                    {
+                        exercisesDict[exercise.ExerciseId] = exercise;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading exercises: {ex.Message}");
+            }
+            
+            return exercisesDict;
+        }
+
+        /// <summary>
+        /// Gets workout logs with complete details including exercises
+        /// </summary>
+        /// <param name="memberId">Member ID to filter by</param>
+        /// <returns>List of WorkoutLogViewModel with complete information</returns>
+        public async Task<List<WorkoutLogViewModel>> GetWorkoutLogsWithDetails(int? memberId = null)
+        {
+            await EnsureInitializedAsync();
+            
+            var result = new List<WorkoutLogViewModel>();
+            if (supabaseClient == null) return result;
+            
+            try
+            {
+                // Get ALL workout logs - no filtering by member ID for now
+                Console.WriteLine("Getting ALL workout logs from database");
+                var workoutLogsResponse = await supabaseClient.From<WorkoutLog>().Get();
+                
+                // Commented out member ID filtering logic for now
+                // var query = supabaseClient.From<WorkoutLog>();
+                // if (memberId.HasValue)
+                // {
+                //     Console.WriteLine($"Filtering workout logs by member ID: {memberId.Value}");
+                //     query = query.Where(log => log.MemberId == memberId.Value);
+                // }
+                // else
+                // {
+                //     Console.WriteLine("Getting ALL workout logs from database");
+                // }
+                // var workoutLogsResponse = await query.Get();
+                Console.WriteLine($"Retrieved {workoutLogsResponse?.Models?.Count ?? 0} workout logs from database");
+                
+                if (workoutLogsResponse?.Models != null)
+                {
+                    foreach (var log in workoutLogsResponse.Models)
+                    {
+                        var viewModel = new WorkoutLogViewModel(log);
+                        
+                        // Get workout details only (excluding problematic info column)
+                        try
+                        {
+                            var workoutResponse = await supabaseClient.From<Workout>()
+                                .Select("workout_id, emotion_id, category, category_num, equipment, impact, exercises")
+                                .Where(w => w.WorkoutId == log.WorkoutId)
+                                .Get();
+                            
+                            viewModel.WorkoutDetails = workoutResponse?.Models?.FirstOrDefault();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error loading workout details for log {log.LogId}: {ex.Message}");
+                        }
+                        
+                        result.Add(viewModel);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetWorkoutLogsWithDetails: {ex.Message}");
+            }
+            
+            return result.OrderByDescending(x => x.WorkoutLog.DateTime).ToList();
+        }
+
+        /// <summary>
+        /// Gets all workouts from the workouts table with dates from workout_log
+        /// </summary>
+        /// <returns>List of WorkoutViewModel with dates</returns>
+        public async Task<List<WorkoutViewModel>> GetAllWorkoutsWithDates()
+        {
+            await EnsureInitializedAsync();
+            
+            var result = new List<WorkoutViewModel>();
+            if (supabaseClient == null) 
+            {
+                Console.WriteLine("Supabase client is null");
+                return result;
+            }
+            
+            try
+            {
+                Console.WriteLine("Querying workouts table...");
+                var workoutsResponse = await supabaseClient.From<Workout>()
+                    .Select("workout_id, emotion_id, category, category_num, equipment, impact, exercises")
+                    .Get();
+                Console.WriteLine($"Workouts response received. Models count: {workoutsResponse?.Models?.Count ?? 0}");
+                
+                Console.WriteLine("Querying workout_log table for dates...");
+                var workoutLogsResponse = await supabaseClient.From<WorkoutLog>()
+                    .Select("workout_id, date")
+                    .Get();
+                Console.WriteLine($"Workout logs response received. Models count: {workoutLogsResponse?.Models?.Count ?? 0}");
+                
+                if (workoutsResponse?.Models != null)
+                {
+                    var workoutLogDates = workoutLogsResponse?.Models?
+                        .GroupBy(log => log.WorkoutId)
+                        .ToDictionary(g => g.Key, g => g.OrderByDescending(log => log.DateTime).First().DateTime) ?? new Dictionary<int, DateTime>();
+                    
+                    foreach (var workout in workoutsResponse.Models.OrderBy(w => w.WorkoutId))
+                    {
+                        var viewModel = new WorkoutViewModel(workout);
+                        
+                        // Set the date from workout_log if available
+                        if (workoutLogDates.ContainsKey(workout.WorkoutId))
+                        {
+                            viewModel.WorkoutDate = workoutLogDates[workout.WorkoutId];
+                        }
+                        
+                        result.Add(viewModel);
+                        Console.WriteLine($"Added workout: ID={workout.WorkoutId}, Category={workout.Category}, Date={viewModel.DisplayDate}, Exercises=[{string.Join(",", workout.Exercises ?? new int[0])}]");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Workouts response or Models is null");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading workouts: {ex.Message}");
+            }
+            
+            return result;
+        }
+
+        /// <summary>
+        /// Test method to debug data structure and content
+        /// </summary>
+        public async Task DebugDatabaseContent()
+        {
+            await EnsureInitializedAsync();
+            
+            if (supabaseClient == null) return;
+            
+            Console.WriteLine("=== DEBUGGING DATABASE CONTENT ===");
+            
+            // Test workout_log table
+            var workoutLogs = await supabaseClient.From<WorkoutLog>().Limit(5).Get();
+            Console.WriteLine($"\n--- WORKOUT LOGS (first 5) ---");
+            if (workoutLogs?.Models != null)
+            {
+                foreach (var log in workoutLogs.Models)
+                {
+                    Console.WriteLine($"LogId: {log.LogId}");
+                    Console.WriteLine($"MemberId: {log.MemberId}");
+                    Console.WriteLine($"WorkoutId: {log.WorkoutId}");
+                    Console.WriteLine($"Date: {log.DateTime}");
+                    Console.WriteLine($"BeforeJournal: {log.BeforeJournal?.Substring(0, Math.Min(50, log.BeforeJournal?.Length ?? 0))}...");
+                    Console.WriteLine($"AfterJournal: {log.AfterJournal?.Substring(0, Math.Min(50, log.AfterJournal?.Length ?? 0))}...");
+                    Console.WriteLine("---");
+                }
+            }
+
+            // Test workouts table
+            var workouts = await supabaseClient.From<Workout>().Limit(3).Get();
+            Console.WriteLine($"\n--- WORKOUTS (first 3) ---");
+            if (workouts?.Models != null)
+            {
+                foreach (var workout in workouts.Models)
+                {
+                    Console.WriteLine($"WorkoutId: {workout.WorkoutId}");
+                    Console.WriteLine($"Category: {workout.Category}");
+                    Console.WriteLine($"Equipment: {workout.Equipment}");
+                    Console.WriteLine($"Impact: {workout.Impact}");
+                    Console.WriteLine($"Exercises: [{string.Join(", ", workout.Exercises)}]");
+                    Console.WriteLine("---");
+                }
+            }
+
+            // Test exercises table  
+            var exercises = await supabaseClient.From<Exercise>().Limit(3).Get();
+            Console.WriteLine($"\n--- EXERCISES (first 3) ---");
+            if (exercises?.Models != null)
+            {
+                foreach (var exercise in exercises.Models)
+                {
+                    Console.WriteLine($"ExerciseId: {exercise.ExerciseId}");
+                    Console.WriteLine($"Name: {exercise.Name}");
+                    Console.WriteLine($"VideoLink: {exercise.VideoLink}");
+                    Console.WriteLine("---");
+                }
             }
         }
 
