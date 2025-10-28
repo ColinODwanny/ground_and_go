@@ -48,7 +48,7 @@ namespace ground_and_go
             if (supabaseClient == null) return -1;
             
             int memberId;
-            var response = await supabaseClient.From<Member>().Where(member => member.Email == userEmail).Get();
+            var response = await supabaseClient!.From<Member>().Where(member => member.Email == userEmail).Get();
 
             if (response?.Models?.Any() == true) //If the query returned any rows
             {
@@ -338,6 +338,34 @@ namespace ground_and_go
             }
         }
 
+        /// <summary>
+        /// Takes the inputted journal entry and stores it in the database, leaving the after_journal null until updated
+        /// </summary>
+        /// <param name="entry">The inputted journal log to store</param>
+        /// <returns>A task</returns>
+        public async Task UploadJournalEntry(String entry)
+        {
+            await EnsureInitializedAsync();
+            try
+            {
+                //TODO Get user UUID once implemented
+                int memberId = 1; //Placeholder id
+                int workoutId = 201; //Placeholder id
+
+                WorkoutLog logEntry = new WorkoutLog();
+                logEntry.WorkoutId = workoutId;
+                logEntry.MemberId = memberId;
+                logEntry.BeforeJournal = entry;
+                logEntry.DateTime = DateTime.Now;
+                //logEntry.AfterJournal will be filled in after the workout, so it will be null for now
+
+                var response = await supabaseClient!.From<WorkoutLog>().Insert(logEntry);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ATTN: Error while inserting journal entry -- {ex.ToString()}");
+            }
+        }
 
     }
 }

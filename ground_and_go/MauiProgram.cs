@@ -6,6 +6,7 @@ namespace ground_and_go;
 
 public static class MauiProgram
 {
+    public static Database db = new Database();
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();

@@ -23,7 +23,14 @@ public partial class HomePage : ContentPage
         {
             // use shell navigation with the registered route
             // pass a parameter to tell the journal page this is a "workout" flow
-            await Shell.Current.GoToAsync("WorkoutJournalEntry?flow=workout");
+            try
+            {
+                await Shell.Current.GoToAsync("WorkoutJournalEntry?flow=workout");
+            } catch (Exception ex)
+            {
+                Console.WriteLine($"ATTN: Error while accessing workout journal entry -- {ex.ToString()}");
+            }
+            
         }
     }
 
