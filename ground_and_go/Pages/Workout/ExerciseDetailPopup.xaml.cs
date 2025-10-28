@@ -22,8 +22,8 @@ public partial class ExerciseDetailPopup : Popup
 
     private async void OnViewExerciseClicked(object sender, EventArgs e)
 {
-        // use shell navigation with the registered route
-        await Shell.Current.GoToAsync(nameof(ground_and_go.Pages.Workout.VideoPlayer));
+        // use shell navigation with the registered route and pass exercise name
+        await Shell.Current.GoToAsync($"{nameof(ground_and_go.Pages.Workout.VideoPlayer)}?exerciseName={Uri.EscapeDataString(ExerciseName)}");
         Close();
 }
 
