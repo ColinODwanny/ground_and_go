@@ -14,12 +14,15 @@ public static class MauiProgram
         builder
             .UseMauiApp<App>()
             .UseMaterialMauiIcons()
-            .UseMauiCommunityToolkit() 
+            .UseMauiCommunityToolkit()
             .ConfigureFonts(fonts =>
             {
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
+
+        Database db = new Database();
+        Console.WriteLine("Hello");
 
 #if DEBUG
 		builder.Logging.AddDebug();

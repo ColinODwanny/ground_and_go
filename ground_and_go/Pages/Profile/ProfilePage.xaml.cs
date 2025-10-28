@@ -22,11 +22,10 @@ public partial class ProfilePage : ContentPage
         await Shell.Current.GoToAsync(nameof(MyJournalEntriesPage));
     }
 
-    private async void OnLogoutTapped(object sender, EventArgs e)
-    {
-        // navigate back to the login page
-        await Shell.Current.GoToAsync("//login");
-    }
+	private async void OnLogoutTapped(object sender, EventArgs e)
+	{
+		// navigate back to the login page
+		await Shell.Current.GoToAsync("//login");
+	}
     
-
 }
