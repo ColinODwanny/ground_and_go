@@ -46,7 +46,7 @@ namespace ground_and_go
         {
             await EnsureInitializedAsync();
             int memberId;
-            var response = await supabaseClient.From<Member>().Where(member => member.Email == userEmail).Get();
+            var response = await supabaseClient!.From<Member>().Where(member => member.Email == userEmail).Get();
 
             if (response.Models.Any()) //If the query returned any rows
             {
@@ -71,7 +71,7 @@ namespace ground_and_go
         public async Task LoadWorkoutHistory(int memberId)
         {
             await EnsureInitializedAsync();
-            var response = await supabaseClient.From<WorkoutLog>().Where(workoutLog => workoutLog.MemberId == memberId).Get();
+            var response = await supabaseClient!.From<WorkoutLog>().Where(workoutLog => workoutLog.MemberId == memberId).Get();
             if (response.Models.Any())
             {
                 WorkoutHistory = response.Models;
@@ -92,13 +92,41 @@ namespace ground_and_go
         {
             //THIS METHOD DOES NOT WORK CURRENTLY
             await EnsureInitializedAsync();
-            var response = await supabaseClient.From<Exercise>().Get();
+            var response = await supabaseClient!.From<Exercise>().Get();
             foreach (Exercise row in response.Models)
             {
-                ExercisesDictionary.Add(row.ExerciseId, row);
+                ExercisesDictionary!.Add(row.ExerciseId, row);
             }
         }
 
+        /// <summary>
+        /// Takes the inputted journal entry and stores it in the database, leaving the after_journal null until updated
+        /// </summary>
+        /// <param name="entry">The inputted journal log to store</param>
+        /// <returns>A task</returns>
+        public async Task UploadJournalEntry(String entry)
+        {
+            await EnsureInitializedAsync();
+            try
+            {
+                //TODO Get user UUID once implemented
+                int memberId = 1; //Placeholder id
+                int workoutId = 201; //Placeholder id
+
+                WorkoutLog logEntry = new WorkoutLog();
+                logEntry.WorkoutId = workoutId;
+                logEntry.MemberId = memberId;
+                logEntry.BeforeJournal = entry;
+                logEntry.DateTime = DateTime.Now;
+                //logEntry.AfterJournal will be filled in after the workout, so it will be null for now
+
+                var response = await supabaseClient!.From<WorkoutLog>().Insert(logEntry);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ATTN: Error while inserting journal entry -- {ex.ToString()}");
+            }
+        }
 
     }
 }

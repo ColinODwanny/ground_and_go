@@ -6,6 +6,7 @@ namespace ground_and_go;
 
 public static class MauiProgram
 {
+    public static Database db = new Database();
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
@@ -20,9 +21,6 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
-
-        Database db = new Database();
-        Console.WriteLine("Hello");
 
 #if DEBUG
 		builder.Logging.AddDebug();

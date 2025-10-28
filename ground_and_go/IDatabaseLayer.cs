@@ -23,6 +23,6 @@ namespace ground_and_go
         /// <returns>Exercise with the corresponding ID in the DB</returns>
         public Exercise GetExerciseById(int exerciseId);
 
-
+        public Task UploadJournalEntry(String entry);
     }
 }

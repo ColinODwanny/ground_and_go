@@ -11,12 +11,13 @@ public partial class JournalEntryPage : ContentPage
     public JournalEntryPage()
     {
         InitializeComponent();
+        BindingContext = MauiProgram.db;
     }
 
     private async void OnNext_Clicked(object sender, EventArgs e)
     {
         // this button will eventually save the entry and navigate
-        
+        await MauiProgram.db.UploadJournalEntry(JournalEntry.Text);
         // check which flow we're in
         if (FlowType == "workout")
         {

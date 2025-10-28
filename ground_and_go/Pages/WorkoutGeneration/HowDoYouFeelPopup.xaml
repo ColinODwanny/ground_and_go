@@ -39,14 +39,40 @@
                 FontSize="16"
                 TextColor="DarkGray"/>
 
-            <!--flex wrap makes the text radio buttons flow to next line if screen is too narrow-->
+            <!--flex wrap makes the Checkbox buttons flow to next line if screen is too narrow-->
             <FlexLayout x:Name="MoodFlexLayout" Wrap="Wrap" JustifyContent="SpaceEvenly">
-                <RadioButton Content="😀 Happy" GroupName="Mood" Value="Happy" IsChecked="True"/>
-                <RadioButton Content="😊 Content" GroupName="Mood" Value="Content"/>
-                <RadioButton Content="😐 Neutral" GroupName="Mood" Value="Neutral"/>
-                <RadioButton Content="😟 Worried" GroupName="Mood" Value="Worried"/>
-                <RadioButton Content="😢 Sad" GroupName="Mood" Value="Sad"/>
-                <RadioButton Content="😠 Angry" GroupName="Mood" Value="Angry"/>
+                <HorizontalStackLayout>
+                    <CheckBox x:Name="Happy"/>
+                    <Label Text="😀 Happy" VerticalOptions="Center" FontSize="16"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <CheckBox x:Name="Energized"/>
+                    <Label Text="😆 Energized" VerticalOptions="Center" FontSize="16"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <CheckBox x:Name="Neutral"/>
+                    <Label Text="😐 Neutral" VerticalOptions="Center" FontSize="16"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <CheckBox x:Name="Anxious"/>
+                    <Label Text="😟 Anxious" VerticalOptions="Center" FontSize="16"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <CheckBox x:Name="Sad"/>
+                    <Label Text="😢 Sad" VerticalOptions="Center" FontSize="16"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <CheckBox x:Name="Angry"/>
+                    <Label Text="😠 Angry" VerticalOptions="Center" FontSize="16"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <CheckBox x:Name="Depressed"/>
+                    <Label Text="😞 Depressed" VerticalOptions="Center" FontSize="16"/>
+                </HorizontalStackLayout>
+                <HorizontalStackLayout>
+                    <CheckBox x:Name="Tired"/>
+                    <Label Text="🥱 Tired" VerticalOptions="Center" FontSize="16"/>
+                </HorizontalStackLayout>
             </FlexLayout>
 
             <!--create grid to make cancel and submit buttons side by side-->
