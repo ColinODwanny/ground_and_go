@@ -1,79 +1,129 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--Colin O'Dwanny-->
-<!--This page will eventually need to have dynamic content on it.  The number of journal entries will
-be variable.  This is just to show the concept of what it will look like.-->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:ground_and_go.Models"
              x:Class="ground_and_go.Pages.Profile.MyJournalEntriesPage"
              Title="My Journal Entries">
-    <ScrollView>
-        <VerticalStackLayout Spacing="0" Padding="0" VerticalOptions="Start">
-            
-            
-            <Border Stroke="LightGray"
-                    StrokeThickness="1"
-                    BackgroundColor="White"
-                    HeightRequest="80"
-                    Margin="0,0,0,1">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
-                </Border.Shadow>
-                
-                <!-- Because of the block below, if you click on this region, a new page will open -->
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnJournalEntryTapped" />
-                </Border.GestureRecognizers>
-
-                <Grid ColumnDefinitions="Auto,*" Padding="20">
-                    <Label Grid.Column="0"
-                           Text="📖"
-                           FontSize="32"
-                           VerticalOptions="Center"/>
-                    
-                    <Label Grid.Column="1"
-                           Text="Oct. 22 2025"
-                           FontSize="22"
-                           FontAttributes="Bold"
-                           TextColor="Black"
-                           VerticalOptions="Center"
-                           Margin="20,0,0,0"/>
-                </Grid>
-            </Border>
-
-            
-            <Border Stroke="LightGray"
-                    StrokeThickness="1"
-                    BackgroundColor="White"
-                    HeightRequest="80"
-                    Margin="0,0,0,1">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
-                </Border.Shadow>
-
-                <!-- Because of the block below, if you click on this region, a new page will open -->
-                <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnJournalEntryTapped" />
-                </Border.GestureRecognizers>
-                
-                <Grid ColumnDefinitions="Auto,*" Padding="20">
-                    <Label Grid.Column="0"
-                           Text="📖"
-                           FontSize="32"
-                           VerticalOptions="Center"/>
-                    
-                    <Label Grid.Column="1"
-                           Text="Oct. 23 2025"
-                           FontSize="22"
-                           FontAttributes="Bold"
-                           TextColor="Black"
-                           VerticalOptions="Center"
-                           Margin="20,0,0,0"/>
-                </Grid>
-            </Border>
-
-        </VerticalStackLayout>
-    </ScrollView>
-
-
+    <Grid>
+        <!-- Loading indicator -->
+        <StackLayout IsVisible="{Binding IsLoading}"
+                     VerticalOptions="Center"
+                     HorizontalOptions="Center">
+            <ActivityIndicator IsRunning="{Binding IsLoading}"
+                               Color="DarkBlue"
+                               Scale="1.5"/>
+            <Label Text="Loading journal entries..."
+                   FontSize="16"
+                   TextColor="Gray"
+                   HorizontalOptions="Center"
+                   Margin="0,10,0,0"/>
+        </StackLayout>
         
+        <ScrollView>
+            <StackLayout>
+                <CollectionView ItemsSource="{Binding JournalEntries}" 
+                                BackgroundColor="Transparent"
+                                IsVisible="{Binding IsNotLoading}"
+                                x:Name="JournalCollectionView">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:WorkoutLogViewModel">
+                    <StackLayout Spacing="0">
+                        <!-- Main journal header -->
+                        <Border Stroke="LightGray"
+                                StrokeThickness="1"
+                                BackgroundColor="White"
+                                Margin="0,0,0,1">
+                            <Border.Shadow>
+                                <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
+                            </Border.Shadow>
+                            
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnJournalEntryTapped" />
+                            </Border.GestureRecognizers>
+
+                            <Grid ColumnDefinitions="*,Auto" Padding="15">
+                                <!-- Main content -->
+                                <StackLayout Grid.Column="0"
+                                             Orientation="Vertical"
+                                             VerticalOptions="Center">
+                                    <Label Text="{Binding DisplayDate}"
+                                           FontSize="20"
+                                           FontAttributes="Bold"
+                                           TextColor="Black"/>
+                                    <Label Text="{Binding WorkoutDetails.EmotionId, StringFormat='Emotion: {0}'}"
+                                           FontSize="14"
+                                           TextColor="DarkBlue"
+                                           FontAttributes="Bold"/>
+                                </StackLayout>
+                                
+                                <!-- Expand/Collapse Icon -->
+                                <Label Grid.Column="1"
+                                       Text="{Binding ExpandCollapseIcon}"
+                                       FontSize="18"
+                                       TextColor="Gray"
+                                       VerticalOptions="Center"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Expandable content -->
+                        <StackLayout IsVisible="{Binding IsExpanded}" 
+                                     BackgroundColor="WhiteSmoke" 
+                                     Padding="15,10">
+                            
+                            <!-- Before Journal Section -->
+                            <StackLayout IsVisible="{Binding HasBeforeJournal}">
+                                <Label Text="Before Workout Reflection:" 
+                                       FontSize="16" 
+                                       FontAttributes="Bold" 
+                                       TextColor="DarkGreen" 
+                                       Margin="0,0,0,8"/>
+                                <Frame BackgroundColor="LightGreen"
+                                       Padding="15"
+                                       Margin="0,0,0,15"
+                                       CornerRadius="8">
+                                    <Label Text="{Binding WorkoutLog.BeforeJournal}"
+                                           FontSize="14"
+                                           TextColor="Black"/>
+                                </Frame>
+                            </StackLayout>
+                            
+                            <!-- After Journal Section -->
+                            <StackLayout IsVisible="{Binding HasAfterJournal}">
+                                <Label Text="After Workout Reflection:" 
+                                       FontSize="16" 
+                                       FontAttributes="Bold" 
+                                       TextColor="DarkOrange" 
+                                       Margin="0,0,0,8"/>
+                                <Frame BackgroundColor="PeachPuff"
+                                       Padding="15"
+                                       Margin="0,0,0,10"
+                                       CornerRadius="8">
+                                    <Label Text="{Binding WorkoutLog.AfterJournal}"
+                                           FontSize="14"
+                                           TextColor="Black"/>
+                                </Frame>
+                            </StackLayout>
+                        </StackLayout>
+                    </StackLayout>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            
+            <CollectionView.EmptyView>
+                <StackLayout Padding="20">
+                    <Label Text="No journal entries found"
+                           FontSize="18"
+                           TextColor="Gray"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Complete workouts with journal reflections to see them here!"
+                           FontSize="14"
+                           TextColor="LightGray"
+                           HorizontalOptions="Center"
+                           Margin="0,10,0,0"/>
+                </StackLayout>
+            </CollectionView.EmptyView>
+                </CollectionView>
+            </StackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

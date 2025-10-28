@@ -22,48 +22,56 @@ namespace ground_and_go.Models
         public int WorkoutId
         {
             get => _workoutId;
+            set => SetProperty(ref _workoutId, value);
         }
 
         [Column("emotion_id")]
         public int EmotionId
         {
             get => _emotion_id;
+            set => SetProperty(ref _emotion_id, value);
         }
 
         [Column("category")]
         public string Category
         {
             get => _category;
+            set => SetProperty(ref _category, value);
         }
 
         [Column("category_num")]
         public int CategoryNum
         {
             get => _category_num;
+            set => SetProperty(ref _category_num, value);
         }
 
         [Column("equipment")]
         public string Equipment
         {
             get => _equipment;
+            set => SetProperty(ref _equipment, value);
         }
 
         [Column("impact")]
         public string Impact
         {
             get => _impact;
+            set => SetProperty(ref _impact, value);
         }
 
         [Column("info")]
         public string Info
         {
             get => _info;
+            set => SetProperty(ref _info, value);
         }
 
         [Column("exercises")]
         public int[] Exercises
         {
             get => _exercies;
+            set => SetProperty(ref _exercies, value);
         }
 
         public override bool Equals(object? obj)
