@@ -8,14 +8,7 @@ The application uses **Supabase** for its backend database services, handling ev
 
 ## Sprint 2 Changes
 
-* *\[Login page is now the first thing that appears when the app launches and signs you into home 😀
-    
-    Overall navigation flow is now complete, depending on rest day or workout day. 😀
-    
-    Logout button reverts you to the login page now
-    
-    Journal Entry is inserted before and after activity
-    
-    ]
-
-    \*
+* Login page is now the first thing that appears when the app launches and signs you into home 😀
+* Overall navigation flow is now complete, depending on rest day or workout day. 😀
+* Logout button reverts you to the login page now
+* Journal Entry is inserted before and after activity
