@@ -7,7 +7,8 @@
     
     <Grid RowDefinitions="*, Auto" Padding="20">
 
-        <Editor Grid.Row="0"
+        <Editor x:Name="JournalEntry"
+                Grid.Row="0"
                 Placeholder="Write about your day, your workout, or anything on your mind..."
                 FontSize="18"
                 AutoSize="TextChanges"/>
