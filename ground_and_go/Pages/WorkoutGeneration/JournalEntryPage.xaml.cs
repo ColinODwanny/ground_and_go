@@ -3,13 +3,17 @@ namespace ground_and_go.Pages.WorkoutGeneration;
 
 // add this attribute to tell the page it can receive a "flow" parameter
 [QueryProperty(nameof(FlowType), "flow")]
+// add this attribute to tell the page the results of the popup
+[QueryProperty(nameof(ResultType), "results")]
 public partial class JournalEntryPage : ContentPage
 {
     // this property will be set by shell
     public string? FlowType { get; set; }
+    public FeelingResult? ResultType { get; set; }
 
     public JournalEntryPage()
     {
+        //TODO Calculate the mindfulness activity to show, and implement them so that they display depending on the parameter passed
         InitializeComponent();
         BindingContext = MauiProgram.db;
     }

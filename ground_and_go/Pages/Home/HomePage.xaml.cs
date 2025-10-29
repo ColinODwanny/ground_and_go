@@ -25,7 +25,7 @@ public partial class HomePage : ContentPage
             // pass a parameter to tell the journal page this is a "workout" flow
             try
             {
-                await Shell.Current.GoToAsync("WorkoutJournalEntry?flow=workout");
+                await Shell.Current.GoToAsync("WorkoutJournalEntry?flow=workout?results=result");
             } catch (Exception ex)
             {
                 Console.WriteLine($"ATTN: Error while accessing workout journal entry -- {ex.ToString()}");
