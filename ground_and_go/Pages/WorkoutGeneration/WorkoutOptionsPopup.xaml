@@ -18,7 +18,7 @@
 
         <VerticalStackLayout Spacing="15">
             <Label
-            Text="Home or Gym?"
+            Text="What equipment do you have access to?"
             FontSize="22"
             FontAttributes="Bold"
             HorizontalOptions="Center"
@@ -35,7 +35,7 @@
                        FontSize="18"
                        FontAttributes="Bold"
                        TextColor="Black"
-                       Text="Home"/>
+                       Text="Home Equipment"/>
             </HorizontalStackLayout>
 
             <HorizontalStackLayout Spacing="15">
@@ -47,7 +47,7 @@
                        FontSize="18"
                        FontAttributes="Bold"
                        TextColor="Black"
-                       Text="Gym"/>
+                       Text="Gym Equipment"/>
             </HorizontalStackLayout>
 
 
