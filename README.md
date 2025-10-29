@@ -12,3 +12,4 @@ The application uses **Supabase** for its backend database services, handling ev
 * Workout navigation flow is complete, depending on rest or workout day. 😀
 * Logout button reverts you to the login page now
 * Journal entry page is inserted before and after activity
+* Data can be pulled from the Supabase Database and is properly mapping to our C# objects 😀
