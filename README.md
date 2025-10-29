@@ -16,3 +16,5 @@ The application uses **Supabase** for its backend database services, handling ev
 * Workout and Journal logs now pull data from the database 😀😀
 * The workout and journal log pages presentation has been updated 😀
 * The "View Exercise" button in the workout page now plays the corresponding instructional video from the database 😀
+* The ability to pass user input as parameters to other pages has been implemented
+* Signup page has been designed and navigates similar to the login page
