@@ -13,3 +13,6 @@ The application uses **Supabase** for its backend database services, handling ev
 * Logout button reverts you to the login page now
 * Journal entry page is inserted before and after activity
 * Data can be pulled from the Supabase Database and is properly mapping to our C# objects 😀
+* Workout and Journal logs now pull data from the database 😀😀
+* The workout and journal log pages presentation has been updated 😀
+* The "View Exercise" button in the workout page now plays the corresponding instructional video from the database 😀
