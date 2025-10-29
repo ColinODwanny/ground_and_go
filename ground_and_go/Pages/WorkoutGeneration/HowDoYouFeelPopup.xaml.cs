@@ -9,13 +9,6 @@ public partial class HowDoYouFeelPopup : Popup
 	public HowDoYouFeelPopup()
 	{
         InitializeComponent();
-
-        //initialize neutral button as the default radio button that's clicked
-        var neutralButton = MoodFlexLayout.Children.FirstOrDefault(c => (c as RadioButton)?.Value as string == "Neutral");
-        if(neutralButton is RadioButton rb)
-        {
-            rb.IsChecked = true;
-        }
     }
 
     //close the window when cancel is clicked

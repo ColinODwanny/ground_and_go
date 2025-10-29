@@ -1,4 +1,5 @@
 ﻿// Samuel Reynebeau
+using System.Text.Json;
 using CommunityToolkit.Maui.Views;
 using ground_and_go.Pages.WorkoutGeneration;
 
@@ -19,16 +20,19 @@ public partial class HomePage : ContentPage
         var result = await this.ShowPopupAsync(popup);
 
         //if rating/feeling is given then push to the journal entry page
-        if (result is FeelingResult feelingResult)
+        if (result is FeelingResult)
         {
+            //Convert result to JSON to use in future pages
+            var resultJSON = JsonSerializer.Serialize(result);
+
             // use shell navigation with the registered route
             // pass a parameter to tell the journal page this is a "workout" flow
             try
             {
-                await Shell.Current.GoToAsync("WorkoutJournalEntry?flow=workout");
+                await Shell.Current.GoToAsync($"WorkoutJournalEntry?flow=workout&results={resultJSON}");
             } catch (Exception ex)
             {
-                Console.WriteLine($"ATTN: Error while accessing workout journal entry -- {ex.ToString()}");
+                Console.WriteLine($"ATTN: Error while accessing workout journal entry (Workout) -- {ex.ToString()}");
             }
             
         }
@@ -41,10 +45,21 @@ public partial class HomePage : ContentPage
         var result = await this.ShowPopupAsync(popup);
 
         //if rating/feeling is given then push to the journal entry page
-        if (result is FeelingResult feelingResult)
+        if (result is FeelingResult)
         {
+            //Convert result to JSON to use in future pages
+            var resultJSON = JsonSerializer.Serialize(result);
+
             // pass a parameter to tell the journal page this is a "rest" flow
-            await Shell.Current.GoToAsync("WorkoutJournalEntry?flow=rest");
+            try
+            {
+                await Shell.Current.GoToAsync($"WorkoutJournalEntry?flow=rest&results={resultJSON}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ATTN: Error while accessing workout journal entry (Rest) -- {ex.ToString()}");
+            }
+            
         }
     }
 }

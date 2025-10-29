@@ -13,7 +13,11 @@ public partial class WorkoutOptionsPopup : Popup
     // submit
     private async void OnSubmit_Clicked(object sender, EventArgs e)
     {
-        //TODO: This will be implemented to store checkbox results
-        Close();
+        var result = new EquipmentResult
+        {
+            HomeAccess = HomeCheckbox.IsChecked,
+            GymAccess = GymCheckbox.IsChecked,
+        };
+        Close(result); //The workout page will use these results + the inputted feelings to generate a workout
     }
 }

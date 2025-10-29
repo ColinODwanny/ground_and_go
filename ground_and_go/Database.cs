@@ -338,14 +338,13 @@ namespace ground_and_go
         /// </summary>
         /// <param name="entry">The inputted journal log to store</param>
         /// <returns>A task</returns>
-        public async Task UploadJournalEntry(String entry)
+        public async Task UploadJournalEntry(String entry, int workoutId)
         {
             await EnsureInitializedAsync();
             try
             {
                 //TODO Get user UUID once implemented
                 int memberId = 1; //Placeholder id
-                int workoutId = 201; //Placeholder id
 
                 WorkoutLog logEntry = new WorkoutLog();
                 logEntry.WorkoutId = workoutId;
