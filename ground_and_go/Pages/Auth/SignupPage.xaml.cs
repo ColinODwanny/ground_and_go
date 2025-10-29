@@ -3,26 +3,11 @@ using ground_and_go.Pages.Home;
 
 namespace ground_and_go.Pages.Auth;
 
-public partial class LoginPage : ContentPage 
+public partial class SignupPage : ContentPage 
 {
-    public LoginPage()
+    public SignupPage()
     {
         InitializeComponent();
-    }
-
-    private async void CreateAccountClicked(object sender, EventArgs e)
-    {
-        try
-        {
-            if (sender is not Button button) return;
-            //TODO: This will bring the user to the signup page
-            
-            await Shell.Current.GoToAsync("//signup");
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Error", $"Error: {ex.Message}", "OK");
-        }
     }
 
     private async void ForgotUsernameClicked(object sender, EventArgs e)
@@ -35,14 +20,14 @@ public partial class LoginPage : ContentPage
         //TODO: This takes user to a pop-up, where they can provide their email
     }
 
-    private async void LoginClicked(object sender, EventArgs e)
+    private async void SignupClicked(object sender, EventArgs e)
     {
         try
         {
             if (sender is not Button button) return;
-            //TODO: This will bring the user to the home page
-
-            await Shell.Current.GoToAsync("//home");
+            //TODO: This will bring the user to the login page
+            
+            await Shell.Current.GoToAsync("//login");
         }
         catch (Exception ex)
         {
