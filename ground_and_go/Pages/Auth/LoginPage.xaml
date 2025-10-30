@@ -4,7 +4,8 @@
              x:Class="ground_and_go.Pages.Auth.LoginPage"
              Title="Login"
              Shell.NavBarIsVisible="False">
-    <Grid Padding="20" RowSpacing="10">
+    <Grid Padding="20"
+            RowSpacing="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
@@ -12,100 +13,141 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-            <!-- Ground and Go Logo -->
+        <!-- Ground and Go Logo -->
 
-            <Image
-                Source="ground_and_go/Resources/Images/black_and_white.webp"
-                Grid.Row="0"
-                HeightRequest="500"
-                Aspect="AspectFit"
-                />
+        <Image
+            Source="ground_and_go/Resources/Images/black_and_white.webp"
+            Grid.Row="0"
+            HeightRequest="500"
+            Aspect="AspectFit"/>
 
-            <!-- Username -->
+        <!-- Username -->
 
-            <Border Grid.Row="1"
-                    x:Name="UsernameBorder"
-                    Stroke="LightGray"
-                    StrokeThickness="1"
-                    BackgroundColor="White"
-                    HeightRequest="70">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12"/>
-                </Border.StrokeShape>
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
-                </Border.Shadow>
-                
-                <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
-                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
-                        <Entry x:Name="UsernameENT" Text="" Placeholder="Username" FontSize="24"/>
-                    </VerticalStackLayout>
-                </Grid>
-            </Border>
+        <Button
+            Grid.Row="1"
+            x:Name="CreateAccount"
+            Text="Create Account"
+            FontSize="18"
+            FontAttributes="Bold"
+            HorizontalOptions="End"
+            BackgroundColor="#E9F3F4"
+            Clicked="CreateAccountClicked"
+            TextColor="Black">
+            <Button.Shadow>
+                <Shadow Brush="Black" Offset="4,4" Opacity="0.1"/>
+            </Button.Shadow>
+        </Button>
 
-            <!-- Forgot Username -->
+        <Border Grid.Row="2"
+                x:Name="UsernameBorder"
+                Stroke="LightGray"
+                StrokeThickness="1"
+                BackgroundColor="White"
+                HeightRequest="70">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="12"/>
+            </Border.StrokeShape>
+            <Border.Shadow>
+                <Shadow Brush="Black"
+                        Offset="3,3"
+                        Opacity="0.2"/>
+            </Border.Shadow>
 
-            <Button 
-                Grid.Row="2"
-                x:Name="ForgotUsername"
-                Text="Forgot Username?"
-                FontSize="18"
-                FontAttributes="Bold"
-                HorizontalOptions="End"
-                BackgroundColor="Transparent"
-                Clicked="ForgotUsernameClicked"
-                TextColor="Black"/>
+            <Grid ColumnDefinitions="*,Auto"
+                    Padding="10"
+                    Margin="0,0,10,0">
+                <VerticalStackLayout Grid.Column="0"
+                        VerticalOptions="Center"
+                        Spacing="2">
+                    <Entry x:Name="UsernameENT"
+                            Text=""
+                            Placeholder="Username"
+                            FontSize="24"/>
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
 
-            <!-- Password -->
+        <!-- Forgot Username -->
 
-            <Border Grid.Row="3"
-                    x:Name="PasswordBorder"
-                    Stroke="LightGray"
-                    StrokeThickness="1"
-                    BackgroundColor="White"
-                    HeightRequest="70">
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12"/>
-                </Border.StrokeShape>
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
-                </Border.Shadow>
-                
-                <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
-                    <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
-                        <Entry x:Name="PasswordENT" Text="" Placeholder="Password" FontSize="24"/>
-                    </VerticalStackLayout>
-                </Grid>
-            </Border>
+        <Button
+            Grid.Row="3"
+            x:Name="ForgotUsername"
+            Text="Forgot Username?"
+            FontSize="18"
+            FontAttributes="Bold"
+            HorizontalOptions="End"
+            BackgroundColor="#E9F3F4"
+            Clicked="ForgotUsernameClicked"
+            TextColor="Black">
+            <Button.Shadow>
+                <Shadow Brush="Black" Offset="4,4" Opacity="0.1"/>
+            </Button.Shadow>
+        </Button>
 
-            <!-- Forgot Password -->
+        <!-- Password -->
 
-            <Button 
-                Grid.Row="4"
-                x:Name="ForgotPassword"
-                Text="Forgot Password?"
-                FontSize="18"
-                FontAttributes="Bold"
-                HorizontalOptions="End"
-                BackgroundColor="Transparent"
-                Clicked="ForgotPasswordClicked"
-                TextColor="Black"/>
+        <Border Grid.Row="4"
+                x:Name="PasswordBorder"
+                Stroke="LightGray"
+                StrokeThickness="1"
+                BackgroundColor="White"
+                HeightRequest="70">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="12"/>
+            </Border.StrokeShape>
+            <Border.Shadow>
+                <Shadow Brush="Black"
+                        Offset="3,3"
+                        Opacity="0.2"/>
+            </Border.Shadow>
 
-            <!-- Login Button -->
+            <Grid ColumnDefinitions="*,Auto"
+                    Padding="10"
+                    Margin="0,0,10,0">
+                <VerticalStackLayout Grid.Column="0"
+                        VerticalOptions="Center"
+                        Spacing="2">
+                    <Entry x:Name="PasswordENT"
+                            Text=""
+                            Placeholder="Password"
+                            FontSize="24"/>
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
 
-            <Button 
-                Grid.Row="5"
-                Text="Login"
-                BackgroundColor="Black"
-                TextColor="White"
-                CornerRadius="20"
-                HeightRequest="50"
-                FontSize="18"
-                FontAttributes="Bold"
-                Clicked="LoginClicked"
-                Margin="0,50,0,10"/>
+        <!-- Forgot Password -->
+
+        <Button
+            Grid.Row="5"
+            x:Name="ForgotPassword"
+            Text="Forgot Password?"
+            FontSize="18"
+            FontAttributes="Bold"
+            HorizontalOptions="End"
+            BackgroundColor="#E9F3F4"
+            Clicked="ForgotPasswordClicked"
+            TextColor="Black">
+            <Button.Shadow>
+                <Shadow Brush="Black" Offset="4,4" Opacity="0.1"/>
+            </Button.Shadow>
+        </Button>
+
+        <!-- Login Button -->
+
+        <Button
+            Grid.Row="6"
+            Text="Login"
+            BackgroundColor="Black"
+            TextColor="White"
+            CornerRadius="20"
+            HeightRequest="50"
+            FontSize="18"
+            FontAttributes="Bold"
+            Clicked="LoginClicked"
+            Margin="0,50,0,10"/>
 
     </Grid>
 </ContentPage>
