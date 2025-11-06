@@ -17,7 +17,7 @@ namespace ground_and_go
         private Task waitingForInitialization;
 
         public List<WorkoutLog>? WorkoutHistory { get; set; }
-        public Dictionary<int, Exercise>? ExercisesDictionary { get; set; }
+        public static Dictionary<int, Exercise>? ExercisesDictionary { get; set; }
         public Database()
         {
             waitingForInitialization = InitializeSupabaseSystems();
@@ -32,6 +32,8 @@ namespace ground_and_go
             supabaseClient = new Supabase.Client(supabaseProjectURL, supabaseProjectKey);
             await supabaseClient.InitializeAsync();
             Console.WriteLine("after supabase client init");
+
+            await LoadExercises();
         }
 
         /// <summary>
@@ -93,20 +95,34 @@ namespace ground_and_go
         /// </remarks>
         /// THIS METHOD DOES NOT WORK CURRENTLY
         public async Task LoadExercises()
+{
+    await EnsureInitializedAsync();
+    if (supabaseClient == null) return;
+
+    ExercisesDictionary = new Dictionary<int, Exercise>();
+
+    try
+    {
+        var response = await supabaseClient.From<Exercise>().Get();
+        if (response?.Models != null)
         {
-            //THIS METHOD DOES NOT WORK CURRENTLY
-            await EnsureInitializedAsync();
-            if (supabaseClient == null || ExercisesDictionary == null) return;
-            
-            var response = await supabaseClient.From<Exercise>().Get();
-            if (response?.Models != null)
+            foreach (var exercise in response.Models)
             {
-                foreach (Exercise row in response.Models)
-                {
-                    ExercisesDictionary.Add(row.ExerciseId, row);
-                }
+                ExercisesDictionary[exercise.ExerciseId] = exercise;
             }
+            Console.WriteLine($"Loaded {ExercisesDictionary.Count} exercises into dictionary.");
         }
+        else
+        {
+            Console.WriteLine("No exercises found in database.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error loading exercises: {ex.Message}");
+    }
+}
+
 
         /// <summary>
         /// Gets workout details by workout ID, including exercise information

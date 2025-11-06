@@ -72,19 +72,21 @@
                                      Padding="15,10">
                             
                             <!-- Exercises Array Section -->
-                            <Label Text="Exercises Array:" 
+                            <Label Text="Exercises:" 
                                    FontSize="16" 
                                    FontAttributes="Bold" 
                                    TextColor="DarkBlue" 
                                    Margin="0,0,0,8"/>
-                            <Frame BackgroundColor="LightBlue"
-                                   Padding="15"
-                                   Margin="0,0,0,15"
-                                   CornerRadius="8">
-                                <Label Text="{Binding ExercisesArray}"
-                                       FontSize="16"
-                                       FontFamily="Courier"
-                                       TextColor="Black"/>
+                            <Frame BackgroundColor="WhiteSmoke"
+                                BorderColor="Transparent"
+                                Padding="5"
+                                HasShadow="False"
+                                Margin="0,0,0,15"
+                                CornerRadius="8">
+                                <Label Text="{Binding ExercisesBulletedList}"
+                                    FontSize="16"
+                                    FontFamily="Courier"
+                                    TextColor="Black"/>
                             </Frame>
                             
                             <!-- Workout Details Section -->
