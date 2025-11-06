@@ -115,7 +115,8 @@
                                        FontSize="14" 
                                        FontAttributes="Bold" 
                                        TextColor="DarkGreen"/>
-                                <Label Text="{Binding Workout.EmotionId}"
+                                <!-- <Label Text="{Binding Workout.EmotionId}" -->
+                                     <Label Text="Happy"
                                        FontSize="14"
                                        TextColor="Black"/>
                             </StackLayout>

@@ -51,7 +51,8 @@
                                            FontSize="20"
                                            FontAttributes="Bold"
                                            TextColor="Black"/>
-                                    <Label Text="{Binding WorkoutDetails.EmotionId, StringFormat='Emotion: {0}'}"
+                                    <!-- <Label Text="{Binding WorkoutDetails.EmotionId, StringFormat='Emotion: {0}'}" -->
+                                         <Label Text="Depressed"
                                            FontSize="14"
                                            TextColor="DarkBlue"
                                            FontAttributes="Bold"/>
