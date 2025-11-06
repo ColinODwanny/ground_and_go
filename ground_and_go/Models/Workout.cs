@@ -2,6 +2,8 @@ using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
+using System.Linq;
 
 namespace ground_and_go.Models
 {
@@ -73,6 +75,20 @@ namespace ground_and_go.Models
             get => _exercies;
             set => SetProperty(ref _exercies, value);
         }
+
+
+
+        [JsonIgnore]
+        public string ExercisesBulletedList =>
+            Exercises != null && Exercises.Length > 0 && Database.ExercisesDictionary?.Count > 0
+                ? string.Join(Environment.NewLine,
+                    Exercises.Select(id =>
+                        Database.ExercisesDictionary.TryGetValue(id, out var exercise)
+                            ? $"• {exercise.Name}"
+                            : $"• Unknown ({id})"
+                    ))
+                : "No exercises";
+
 
         public override bool Equals(object? obj)
             => obj is Workout other && WorkoutId == other.WorkoutId;

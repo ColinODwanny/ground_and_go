@@ -10,9 +10,9 @@ namespace ground_and_go.Models
 
         public Workout Workout { get; set; }
 
-        public DateTime? WorkoutDate 
-        { 
-            get => _workoutDate; 
+        public DateTime? WorkoutDate
+        {
+            get => _workoutDate;
             set
             {
                 _workoutDate = value;
@@ -20,6 +20,9 @@ namespace ground_and_go.Models
                 OnPropertyChanged(nameof(DisplayDate));
             }
         }
+        
+        public string ExercisesBulletedList => Workout?.ExercisesBulletedList ?? "No exercises";
+
 
         public bool IsExpanded 
         { 
