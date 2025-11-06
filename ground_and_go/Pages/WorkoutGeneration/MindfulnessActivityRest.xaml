@@ -3,32 +3,128 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ground_and_go.Pages.WorkoutGeneration.MindfulnessActivityRestPage"
-             Title="Mindfulness Activity">
+             Title="Mindfulness Activity"
+             BackgroundColor="#F0F0F0">
 
-    <Grid RowDefinitions="Auto,Auto,Auto,Auto" Padding="20">
+    <ScrollView>
+        <VerticalStackLayout Spacing="15" Padding="20">
 
-        <Label Grid.Row="0"
-                Text="Step 1: Do Something"
-                FontSize="18"
-                Margin="0,10,0,10"/>
-        
-        <Label Grid.Row="1"
-                Text="Step 2: Do Something Else"
-                FontSize="18"
-                Margin="0,10,0,10"/>
+            <!-- Step 1 -->
+            <Border Stroke="LightGray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="15">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Step 1" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#2196F3"/>
+                    <Label Text="Sit or lie comfortably, close your eyes, and take a few deep, grounding breaths."
+                           FontSize="16"
+                           TextColor="Black"
+                           LineBreakMode="WordWrap"/>
+                </VerticalStackLayout>
+            </Border>
 
-        <Label Grid.Row="2"
-                Text="Step 3: Do Another Thing"
-                FontSize="18"
-                Margin="0,10,0,10"/>
+            <!-- Step 2 -->
+            <Border Stroke="LightGray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="15">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Step 2" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#2196F3"/>
+                    <Label Text="Visualize a soft, warm light above your head. With each inhale, imagine it gently flowing into your body."
+                           FontSize="16"
+                           TextColor="Black"
+                           LineBreakMode="WordWrap"/>
+                </VerticalStackLayout>
+            </Border>
 
-        <Button Grid.Row="3"
-                Text="All Done"
-                CornerRadius="20"
-                Margin="0,10,0,0"
-                BackgroundColor="#2196F3"
-                TextColor="White"
-                Clicked="OnNext_Clicked"/>
-        
-    </Grid>
+            <!-- Step 3 -->
+            <Border Stroke="LightGray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="15">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Step 3" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#2196F3"/>
+                    <Label Text="Picture the light filling your heart, chest, and mind — a small spark of calm and hope."
+                           FontSize="16"
+                           TextColor="Black"
+                           LineBreakMode="WordWrap"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Step 4 -->
+            <Border Stroke="LightGray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="15">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Step 4" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#2196F3"/>
+                    <Label Text="If you feel safe, imagine it expanding around you like a bubble of support, holding you gently."
+                           FontSize="16"
+                           TextColor="Black"
+                           LineBreakMode="WordWrap"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Step 5 -->
+            <Border Stroke="LightGray"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 12"
+                    BackgroundColor="White"
+                    Padding="15">
+                <Border.Shadow>
+                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
+                </Border.Shadow>
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Step 5" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="#2196F3"/>
+                    <Label Text="Repeat silently: 'I am held. I am safe. I can rest in this light.'"
+                           FontSize="16"
+                           TextColor="Black"
+                           LineBreakMode="WordWrap"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Complete Button -->
+            <Button Text="All Done"
+                    CornerRadius="20"
+                    HeightRequest="50"
+                    FontSize="18"
+                    FontAttributes="Bold"
+                    Margin="0,20,0,10"
+                    BackgroundColor="#4CAF50"
+                    TextColor="White"
+                    Clicked="OnNext_Clicked"/>
+            
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

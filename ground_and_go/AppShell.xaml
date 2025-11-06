@@ -31,7 +31,7 @@
                     Route="home"/>
         </Tab>
 
-        <Tab Title="Workout"
+        <Tab Title="Activity"
                 Icon="{mi:Material FitnessCenter}">
             <ShellContent ContentTemplate="{DataTemplate workoutgen:TodaysWorkoutPage}"
                     Route="workout"/>
