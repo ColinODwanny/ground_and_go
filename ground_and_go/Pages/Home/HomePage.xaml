@@ -46,7 +46,7 @@
                     <!--actual button, "Clicked" is tied to function in c# file-->
                     <Button 
                         x:Name="StartWorkoutFlowButton"
-                        Text="Begin"
+                        Text="Begin Activity"
                         Margin="0,10,0,0"
                         CornerRadius="20"
                         BackgroundColor="#2196F3"
