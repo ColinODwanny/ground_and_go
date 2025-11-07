@@ -24,9 +24,9 @@ namespace ground_and_go.Models
         public string ExercisesBulletedList => Workout?.ExercisesBulletedList ?? "No exercises";
 
 
-        public bool IsExpanded 
-        { 
-            get => _isExpanded; 
+        public bool IsExpanded
+        {
+            get => _isExpanded;
             set
             {
                 _isExpanded = value;
@@ -35,7 +35,9 @@ namespace ground_and_go.Models
             }
         }
 
-        public string ExpandCollapseIcon => IsExpanded ? "▼" : "▶";
+        // public string ExpandCollapseIcon => IsExpanded ? "▼" : "▶";
+        // public string ExpandCollapseIcon => IsExpanded ? "∇" : "∆"; 
+        public string ExpandCollapseIcon => IsExpanded ? "▼\uFE0E" : "▶\uFE0E";
         
         public string DisplayDate => WorkoutDate?.ToString("MMM dd, yyyy") ?? "No date";
         
