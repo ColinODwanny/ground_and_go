@@ -38,26 +38,53 @@ public partial class JournalEntryPage : ContentPage
         _authService = authService;
     }
 
+    // NEW: Add this OnAppearing method
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        // This makes the progress bar show the correct step
+        // based on the flow started on the HomePage
+        if (FlowType == "workout")
+        {
+            // WORKOUT FLOW (5 steps total)
+            // Step 1 (Popup) is done. This is Step 2.
+            this.Title = "Step 2 of 5: Journal";
+            ProgressStepLabel.Text = "Step 2 of 5: Write a reflection";
+            FlowProgressBar.Progress = 0.20; // 1/5 complete
+        }
+        else // "rest" flow
+        {
+            // REST FLOW (4 steps total)
+            // Step 1 (Popup) is done. This is Step 2.
+            this.Title = "Step 2 of 4: Journal";
+            ProgressStepLabel.Text = "Step 2 of 4: Write a reflection";
+            FlowProgressBar.Progress = 0.25; // 1/4 complete
+        }
+    }
+
+
+    // UPDATED: This 'OnNext_Clicked' method is modified
     private async void OnNext_Clicked(object sender, EventArgs e)
     {
         // 1. Get the (mock) user ID
         int memberId = _authService.GetCurrentMemberId();
         
         // 2. Save the initial journal entry to the database
-        // This creates the log for today and sets our progress to Step 1
+        // This creates the log for today and sets our database progress
         await _database.CreateInitialWorkoutLog(memberId, JournalEntry.Text);
         
         // 3. Navigate to the next page
         // check which flow we're in
         if (FlowType == "workout")
         {
-            // go to the workout mindfulness page
-            await Shell.Current.GoToAsync(nameof(MindfulnessActivityWorkoutPage)); // Removed the bad parameter
+            // NEW: We pass the 'flow' parameter to the next page
+            await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityWorkoutPage)}?flow=workout");
         }
         else if (FlowType == "rest")
         {
-            // go to the rest day mindfulness page
-            await Shell.Current.GoToAsync(nameof(MindfulnessActivityRestPage)); // Removed the bad parameter
+            // NEW: We pass the 'flow' parameter to the next page
+            await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityRestPage)}?flow=rest");
         }
         else
         {
@@ -65,7 +92,4 @@ public partial class JournalEntryPage : ContentPage
             await DisplayAlert("Error", "Could not determine navigation flow.", "OK");
         }
     }
-
-    // REMOVED: The 'calculateWorkoutId' function is no longer needed here.
-    // The workout ID will be calculated and saved later in the flow.
 }

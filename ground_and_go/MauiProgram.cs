@@ -3,12 +3,13 @@ using MauiIcons.Material;
 using CommunityToolkit.Maui;
 using ground_and_go.Services;  // <-- Make sure Services are imported
 using ground_and_go.Pages.Home; // <-- Make sure Home page is imported
+using ground_and_go.Pages.WorkoutGeneration; // <-- Make sure WorkoutGeneration pages are imported
+using ground_and_go.Pages.Workout; // <-- Make sure Workout pages are imported
 
 namespace ground_and_go;
 
 public static class MauiProgram
 {
-    // CHANGE #1:
     // Made the property nullable with a '?' to fix the CS8618 error.
     public static Database? db { get; private set; }
 
@@ -40,10 +41,14 @@ public static class MauiProgram
         builder.Services.AddTransient<ground_and_go.Pages.Home.HomePage>(); 
         builder.Services.AddTransient<ground_and_go.Pages.Profile.MyWorkoutsPage>();
         builder.Services.AddTransient<ground_and_go.Pages.Profile.MyJournalEntriesPage>();
+        
+        // --- Register ALL pages in the workout/rest flow ---
         builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.JournalEntryPage>();
-        // We will need to register the other pages in the flow here too
-        // (JournalEntryPage, MindfulnessActivityWorkoutPage, etc.)
-        // But we can do that in the next steps.
+        builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.MindfulnessActivityWorkoutPage>(); // <-- ADDED
+        builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.MindfulnessActivityRestPage>(); // <-- ADDED
+        builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.TodaysWorkoutPage>(); // <-- ADDED
+        builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.PostActivityJournalEntryPage>();
+
 
 #if DEBUG
         builder.Logging.AddDebug();
@@ -52,10 +57,8 @@ public static class MauiProgram
         // --- Build the App ---
         var app = builder.Build();
 
-        // CHANGE #2:
         // Get the singleton Database instance from the service provider...
         // ...and assign it to our 'db' property.
-        // We add '!' at the end to tell the compiler we know this won't be null.
         db = app.Services.GetRequiredService<Database>()!;
 
         return app;

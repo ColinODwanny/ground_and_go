@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!-- Devlin Delegard -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ground_and_go.Pages.WorkoutGeneration.MindfulnessActivityWorkoutPage"
@@ -9,7 +8,9 @@
     <ScrollView>
         <VerticalStackLayout Spacing="15" Padding="20">
 
-            <!-- Step 1 -->
+            <Label x:Name="ProgressStepLabel" Text="Step 3" FontAttributes="Bold" TextColor="Gray" />
+            <ProgressBar x:Name="FlowProgressBar" Progress="0.0" />
+
             <Border Stroke="LightGray"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
@@ -30,7 +31,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Step 2 -->
             <Border Stroke="LightGray"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
@@ -51,7 +51,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Step 3 -->
             <Border Stroke="LightGray"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
@@ -72,7 +71,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Step 4 -->
             <Border Stroke="LightGray"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
@@ -93,7 +91,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Step 5 -->
             <Border Stroke="LightGray"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
@@ -114,7 +111,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Complete Button -->
             <Button Text="All Done"
                     CornerRadius="20"
                     HeightRequest="50"

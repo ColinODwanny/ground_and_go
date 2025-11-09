@@ -410,7 +410,7 @@ namespace ground_and_go
                 return null; // Return null if anything goes wrong
             }
         }
-        
+
         // This function creates the *initial* log entry for the day
         // It only saves the memberId, date, and before_journal
         public async Task<WorkoutLog?> CreateInitialWorkoutLog(int memberId, string beforeJournalText)
@@ -437,6 +437,26 @@ namespace ground_and_go
             {
                 Console.WriteLine($"Error creating initial workout log: {ex.Message}");
                 return null;
+            }
+        }
+        
+        // This function updates an existing log with the 'after_journal' text
+        public async Task UpdateAfterJournalAsync(int logId, string afterJournalText)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return;
+
+            try
+            {
+                // We find the log by its 'log_id' and update only the 'after_journal' column
+                await supabaseClient.From<WorkoutLog>()
+                                    .Where(log => log.LogId == logId)
+                                    .Set(log => log.AfterJournal, afterJournalText)
+                                    .Update();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating after_journal: {ex.Message}");
             }
         }
     }
