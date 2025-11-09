@@ -377,5 +377,38 @@ namespace ground_and_go
             }
         }
 
+        // This function gets the workout log for a specific member on today's date
+        public async Task<WorkoutLog?> GetTodaysWorkoutLog(int memberId)
+        {
+            // Make sure the client is ready
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) 
+            {
+                Console.WriteLine("Supabase client is not initialized.");
+                return null;
+            }
+
+            // Get today's date. We use .Date to make sure we're only comparing
+            // the day, not the time.
+            var today = DateTime.Today;
+
+            try
+            {
+                // Query the 'workout_log' table using your 'supabaseClient'
+                var response = await supabaseClient.From<WorkoutLog>()
+                    .Where(log => log.MemberId == memberId && log.DateTime.Date == today)
+                    .Limit(1) // We only expect one log per day
+                    .Get();
+
+                // Return the first log it finds, or null if none exist
+                return response.Models.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                // Log the error for debugging
+                Console.WriteLine($"Error fetching today's workout log: {ex.Message}");
+                return null; // Return null if anything goes wrong
+            }
+        }
     }
 }
