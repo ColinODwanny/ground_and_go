@@ -1,19 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 
-<!--xclass links to corresponding c# file, hide top nav bar-->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ground_and_go.Pages.Home.HomePage"
              Shell.NavBarIsVisible="False"
              BackgroundColor="#F0F0F0">
 
-    <!--if too big to fit screen, allow scroll-->
     <ScrollView>
 
-        <!--arrange children in vertical column-->
         <VerticalStackLayout Spacing="20" Padding="25">
 
-            <!--page label at the top of page-->
             <Label 
                 Text="Ground &amp; Go"
                 FontSize="32"
@@ -22,70 +18,104 @@
                 TextColor="Black"
                 Margin="0,20,0,10"/>
 
-            <!--start of first box/prompt for workout-->
-            <Border Stroke="LightGray"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 15"
-                    BackgroundColor="White"
-                    Padding="20">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="5,5" Opacity="0.2" />
-                </Border.Shadow>
-                
-                <VerticalStackLayout Spacing="10">
-                    <Label 
-                        Text="How do you feel?"
-                        FontSize="22"
-                        FontAttributes="Bold"
-                        TextColor="Black"/>
-                    <Label 
-                        Text="Let's check in and generate a workout tailored to how you're feeling today."
-                        FontSize="16"
-                        TextColor="DarkGray"/>
+            <VerticalStackLayout x:Name="ProgressContainer" IsVisible="False" Spacing="10">
+                <Border Stroke="LightGray"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 15"
+                        BackgroundColor="White"
+                        Padding="20">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="5,5" Opacity="0.2" />
+                    </Border.Shadow>
+                    
+                    <VerticalStackLayout Spacing="15">
+                        <Label 
+                            x:Name="ProgressLabel"
+                            Text="You've already started today's activity!"
+                            FontSize="22"
+                            FontAttributes="Bold"
+                            TextColor="Black"/>
+                        
+                        <ProgressBar x:Name="WorkoutProgressBar"
+                                     Progress="0.0" 
+                                     ProgressColor="#2196F3"/>
+                        
+                        <Button 
+                            x:Name="ResumeButton"
+                            Text="Resume Activity"
+                            Margin="0,10,0,0"
+                            CornerRadius="20"
+                            BackgroundColor="#2196F3"
+                            TextColor="White"
+                            Clicked="OnResume_Clicked"/>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+            
+            <VerticalStackLayout x:Name="StartFlowContainer" Spacing="0">
+                <Border Stroke="LightGray"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 15"
+                        BackgroundColor="White"
+                        Padding="20">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="5,5" Opacity="0.2" />
+                    </Border.Shadow>
+                    
+                    <VerticalStackLayout Spacing="10">
+                        <Label 
+                            Text="How do you feel?"
+                            FontSize="22"
+                            FontAttributes="Bold"
+                            TextColor="Black"/>
+                        <Label 
+                            Text="Let's check in and generate a workout tailored to how you're feeling today."
+                            FontSize="16"
+                            TextColor="DarkGray"/>
 
-                    <!--actual button, "Clicked" is tied to function in c# file-->
-                    <Button 
-                        x:Name="StartWorkoutFlowButton"
-                        Text="Begin Activity"
-                        Margin="0,10,0,0"
-                        CornerRadius="20"
-                        BackgroundColor="#2196F3"
-                        TextColor="White"
-                        Clicked="OnStartWorkoutFlow_Clicked"/>
-                </VerticalStackLayout>
-            </Border>
+                        <Button 
+                            x:Name="StartWorkoutFlowButton"
+                            Text="Begin Activity"
+                            Margin="0,10,0,0"
+                            CornerRadius="20"
+                            BackgroundColor="#2196F3"
+                            TextColor="White"
+                            Clicked="OnStartWorkoutFlow_Clicked"/>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+            
+            <VerticalStackLayout x:Name="RestDayContainer" Spacing="0">
+                <Border Stroke="LightGray"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 15"
+                        BackgroundColor="White"
+                        Padding="20">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="5,5" Opacity="0.2" />
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="10">
+                        <Label 
+                            Text="Rest Day"
+                            FontSize="22"
+                            FontAttributes="Bold"
+                            TextColor="Black"/>
+                        <Label 
+                            Text="Taking a day off? Log it here to keep your journal and workout history accurate."
+                            FontSize="16"
+                            TextColor="DarkGray"/>
 
-            <!--next box for Rest Day-->
-            <Border Stroke="LightGray"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 15"
-                    BackgroundColor="White"
-                    Padding="20">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="5,5" Opacity="0.2" />
-                </Border.Shadow>
-                <VerticalStackLayout Spacing="10">
-                    <Label 
-                        Text="Rest Day"
-                        FontSize="22"
-                        FontAttributes="Bold"
-                        TextColor="Black"/>
-                    <Label 
-                        Text="Taking a day off? Log it here to keep your journal and workout history accurate."
-                        FontSize="16"
-                        TextColor="DarkGray"/>
-
-                    <!--another button for if rest day is clicked-->
-                    <Button 
-                        x:Name="RestDayButton"
-                        Text="Log Rest Day"
-                        Margin="0,10,0,0"
-                        CornerRadius="20"
-                        BackgroundColor="#808080"
-                        TextColor="White"
-                        Clicked="OnRestDay_Clicked"/>
-                </VerticalStackLayout>
-            </Border>
+                        <Button 
+                            x:Name="RestDayButton"
+                            Text="Log Rest Day"
+                            Margin="0,10,0,0"
+                            CornerRadius="20"
+                            BackgroundColor="#808080"
+                            TextColor="White"
+                            Clicked="OnRestDay_Clicked"/>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
 
         </VerticalStackLayout>
     </ScrollView>

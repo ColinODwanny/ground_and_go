@@ -377,5 +377,108 @@ namespace ground_and_go
             }
         }
 
+        // This function gets the workout log for a specific member on today's date
+        public async Task<WorkoutLog?> GetTodaysWorkoutLog(int memberId)
+        {
+            // Make sure the client is ready
+            await EnsureInitializedAsync();
+            if (supabaseClient == null)
+            {
+                Console.WriteLine("Supabase client is not initialized.");
+                return null;
+            }
+
+            // Get today's date. We use .Date to make sure we're only comparing
+            // the day, not the time.
+            var today = DateTime.Today;
+
+            try
+            {
+                // Query the 'workout_log' table using your 'supabaseClient'
+                var response = await supabaseClient.From<WorkoutLog>()
+                    .Where(log => log.MemberId == memberId && log.DateTime.Date == today)
+                    .Limit(1) // We only expect one log per day
+                    .Get();
+
+                // Return the first log it finds, or null if none exist
+                return response.Models.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                // Log the error for debugging
+                Console.WriteLine($"Error fetching today's workout log: {ex.Message}");
+                return null; // Return null if anything goes wrong
+            }
+        }
+
+        // This function creates the *initial* log entry for the day
+        // It only saves the memberId, date, and before_journal
+        public async Task<WorkoutLog?> CreateInitialWorkoutLog(int memberId, string beforeJournalText)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return null;
+
+            try
+            {
+                var newLog = new WorkoutLog
+                {
+                    MemberId = memberId,
+                    BeforeJournal = beforeJournalText,
+                    // *** BUG 2 FIX: Use local time (Now) to match the query (Today) ***
+                    DateTime = DateTime.Now // Was UtcNow
+                };
+
+                var response = await supabaseClient.From<WorkoutLog>()
+                                                    .Insert(newLog);
+
+                return response.Models.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating initial workout log: {ex.Message}");
+                return null;
+            }
+        }
+        
+        // This function updates an existing log with the 'after_journal' text
+        public async Task UpdateAfterJournalAsync(int logId, string afterJournalText)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return;
+
+            try
+            {
+                // We find the log by its 'log_id' and update only the 'after_journal' column
+                await supabaseClient.From<WorkoutLog>()
+                                    .Where(log => log.LogId == logId)
+                                    .Set(log => log.AfterJournal, afterJournalText)
+                                    .Update();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating after_journal: {ex.Message}");
+            }
+        }
+
+        // *** BUILD ERROR FIX: Add the missing method ***
+        // This function updates an existing log with the 'workout_id'
+        public async Task UpdateWorkoutIdAsync(int logId, int workoutId)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return;
+
+            try
+            {
+                // We find the log by its 'log_id' and update only the 'workout_id' column
+                await supabaseClient.From<WorkoutLog>()
+                                    .Where(log => log.LogId == logId)
+                                    .Set(log => log.WorkoutId, workoutId)
+                                    .Update();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating workout_id: {ex.Message}");
+            }
+        }
     }
 }
