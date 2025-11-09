@@ -4,21 +4,24 @@ using ground_and_go.Services; // NEW
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
-// NEW: Add this QueryProperty
-[QueryProperty(nameof(FlowType), "flow")]
+// *** FIX: Remove this QueryProperty ***
+// [QueryProperty(nameof(FlowType), "flow")]
 public partial class PostActivityJournalEntryPage : ContentPage
 {
-    // NEW: Add these properties
-    public string? FlowType { get; set; }
+    // *** FIX: Remove this property ***
+    // public string? FlowType { get; set; }
     private readonly Database _database;
     private readonly MockAuthService _authService;
+    // *** FIX: Add this field for the progress service ***
+    private readonly DailyProgressService _progressService;
 
-    // NEW: Update constructor to receive our services
-    public PostActivityJournalEntryPage(Database database, MockAuthService authService)
+    // *** FIX: Update constructor to receive all services ***
+    public PostActivityJournalEntryPage(Database database, MockAuthService authService, DailyProgressService progressService)
     {
         InitializeComponent();
         _database = database;
         _authService = authService;
+        _progressService = progressService; // Assign the service
     }
 
     // NEW: Add this method
@@ -26,7 +29,8 @@ public partial class PostActivityJournalEntryPage : ContentPage
     {
         base.OnAppearing();
 
-        if (FlowType == "workout")
+        // *** FIX: Read the flow type directly from the service ***
+        if (_progressService.CurrentFlowType == "workout")
         {
             // WORKOUT FLOW (5 steps total)
             // Step 4 (Workout) is done. This is Step 5.

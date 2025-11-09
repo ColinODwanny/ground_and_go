@@ -2,19 +2,32 @@
 // FILE: ground_and_go/Pages/Workout/RestDayPage.xaml.cs
 using CommunityToolkit.Maui.Views;
 using ground_and_go.Pages.Home;
+// *** FIX: Add using statements for services and models ***
+using ground_and_go.Services;
+using ground_and_go.Models;
+using ground_and_go;
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
-// NEW: Add this QueryProperty
-[QueryProperty(nameof(FlowType), "flow")]
+// *** FIX: Remove this QueryProperty ***
+// [QueryProperty(nameof(FlowType), "flow")]
 public partial class MindfulnessActivityWorkoutPage : ContentPage
 {
-    // NEW: Add this property
-    public string? FlowType { get; set; }
+    // *** FIX: Remove this property ***
+    // public string? FlowType { get; set; }
 
-    public MindfulnessActivityWorkoutPage()
+    // *** FIX: Add fields for our injected services ***
+    private readonly DailyProgressService _progressService;
+    private readonly Database _database;
+    private readonly MockAuthService _authService;
+
+    // *** FIX: Update constructor to receive our services ***
+    public MindfulnessActivityWorkoutPage(Database database, MockAuthService authService, DailyProgressService progressService)
     {
         InitializeComponent();
+        _database = database;
+        _authService = authService;
+        _progressService = progressService;
     }
 
     // NEW: Add this method
@@ -24,6 +37,8 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         
         // WORKOUT FLOW (5 steps total)
         // Step 2 (Journal) is done. This is Step 3.
+        // We don't need to check the flow type, because this page
+        // is *only* for the workout flow.
         this.Title = "Step 3 of 5: Mindfulness";
         ProgressStepLabel.Text = "Step 3 of 5: Complete this activity";
         FlowProgressBar.Progress = 0.40; // 2/5 complete
@@ -36,9 +51,33 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         var popup = new WorkoutOptionsPopup();
         var result = await this.ShowPopupAsync(popup);
 
+        // *** FIX: This is Step 3, we must save the workout_id ***
+        // (as you described in your app flow)
+        
+        // 1. Get User ID and Today's Log
+        int memberId = _authService.GetCurrentMemberId();
+        WorkoutLog? todaysLog = await _database.GetTodaysWorkoutLog(memberId);
+
+        // 2. Get a workout ID (using a placeholder for now)
+        // TODO: Replace '1' with your actual workout generation logic
+        int generatedWorkoutId = 1; 
+
+        // 3. Save the workout ID to the log
+        if (todaysLog != null)
+        {
+            // We will create this 'UpdateWorkoutIdAsync' method in Database.cs
+            // when we fix Bug 2. For now, we just write the code that uses it.
+            await _database.UpdateWorkoutIdAsync(todaysLog.LogId, generatedWorkoutId);
+        }
+        else
+        {
+            // This should not happen, but it's good to check
+            Console.WriteLine("Error: Could not find today's log to save workout_id.");
+        }
+
         // after the popup closes, navigate to the main "workout" tab
         // the "//" means go to this absolute route
-        // NEW: We pass the 'flow' parameter along to the next page
-        await Shell.Current.GoToAsync($"//workout?flow=workout"); 
+        // *** FIX: Navigate without the query parameter ***
+        await Shell.Current.GoToAsync($"//workout"); 
     }
 }

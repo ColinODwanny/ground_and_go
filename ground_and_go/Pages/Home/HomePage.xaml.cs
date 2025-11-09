@@ -66,49 +66,57 @@ public partial class HomePage : ContentPage
         var popup = new HowDoYouFeelPopup();
         var result = await this.ShowPopupAsync(popup);
 
-        //if rating/feeling is given then push to the journal entry page
-        if (result is FeelingResult)
-        {
-            //Convert result to JSON to use in future pages
-            var resultJSON = JsonSerializer.Serialize(result);
+        //if rating/feeling is given then push to the journal entry page
+        if (result is FeelingResult)
+        {
+            //Convert result to JSON to use in future pages
+            var resultJSON = JsonSerializer.Serialize(result);
 
-            // use shell navigation with the registered route
-            // pass a parameter to tell the journal page this is a "workout" flow
-            try
-            {
-                await Shell.Current.GoToAsync($"WorkoutJournalEntry?flow=workout&results={resultJSON}");
-            } catch (Exception ex)
-            {
-          	 Console.WriteLine($"ATTN: Error while accessing workout journal entry (Workout) -- {ex.ToString()}");
-            }
-  	 
-        } // Cleaned: Removed stray '.'
+            // use shell navigation with the registered route
+            // pass a parameter to tell the journal page this is a "workout" flow
+            try
+            {
+                // *** FIX: 1. Set the state in the singleton service ***
+                _progressService.CurrentFlowType = "workout";
+                
+                // *** FIX: 2. Navigate WITHOUT the "flow" query parameter ***
+                await Shell.Current.GoToAsync($"WorkoutJournalEntry?results={resultJSON}");
+            } catch (Exception ex)
+            {
+               Console.WriteLine($"ATTN: Error while accessing workout journal entry (Workout) -- {ex.ToString()}");
+            }
+        
+        } 
     }
 
     // This is your existing function.
     private async void OnRestDay_Clicked(object sender, EventArgs e)
     {
         // same flow as the "begin" button
-      	var popup = new HowDoYouFeelPopup();
-      	var result = await this.ShowPopupAsync(popup);
+          var popup = new HowDoYouFeelPopup();
+          var result = await this.ShowPopupAsync(popup);
 
-      	//if rating/feeling is given then push to the journal entry page
-      	if (result is FeelingResult)
-      	{
-          	//Convert result to JSON to use in future pages
-          	var resultJSON = JsonSerializer.Serialize(result);
+          //if rating/feeling is given then push to the journal entry page
+          if (result is FeelingResult)
+          {
+                //Convert result to JSON to use in future pages
+                var resultJSON = JsonSerializer.Serialize(result);
 
-          	// pass a parameter to tell the journal page this is a "rest" flow
-          	try
-          	{ // Cleaned: Removed stray 'S'
-              	await Shell.Current.GoToAsync($"WorkoutJournalEntry?flow=rest&results={resultJSON}");
-          	}
-        	 	catch (Exception ex)
-          	{
-              	Console.WriteLine($"ATTN: Error while accessing workout journal entry (Rest) -- {ex.ToString()}");
-          	} // Cleaned: Removed stray 'A'
-          	
-      	}
+                // pass a parameter to tell the journal page this is a "rest" flow
+                try
+                { 
+                    // *** FIX: 1. Set the state in the singleton service ***
+                    _progressService.CurrentFlowType = "rest";
+
+                    // *** FIX: 2. Navigate WITHOUT the "flow" query parameter ***
+                    await Shell.Current.GoToAsync($"WorkoutJournalEntry?results={resultJSON}");
+                }
+                    catch (Exception ex)
+                {
+                    Console.WriteLine($"ATTN: Error while accessing workout journal entry (Rest) -- {ex.ToString()}");
+                } 
+                
+          }
     }
 
     // NEW --> This handler is correct

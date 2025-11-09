@@ -1,34 +1,42 @@
 //Aidan Trusky
 using CommunityToolkit.Maui.Views;
 using Microsoft.Maui.Controls;
+using ground_and_go.Services; // *** FIX: Add this using statement ***
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
-// NEW: Add this QueryProperty
-[QueryProperty(nameof(FlowType), "flow")]
+// *** FIX: Remove this QueryProperty ***
+// [QueryProperty(nameof(FlowType), "flow")]
 public partial class TodaysWorkoutPage : ContentPage
 {
     private Dictionary<string, Border> exerciseBorders;
 
-    // NEW: Add this property
-    public string? FlowType { get; set; }
+    // *** FIX: Remove this property ***
+    // public string? FlowType { get; set; }
 
-    public TodaysWorkoutPage()
+    // *** FIX: Add a field for the progress service ***
+    private readonly DailyProgressService _progressService;
+
+    // *** FIX: Update constructor to receive the service ***
+    public TodaysWorkoutPage(DailyProgressService progressService)
     {
         InitializeComponent();
         
+        // *** FIX: Assign the service ***
+        _progressService = progressService;
+        
         // Initialize the dictionary to map exercise names to their buttons
-  	    exerciseBorders = new Dictionary<string, Border>();
+          exerciseBorders = new Dictionary<string, Border>();
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
         
-        // NEW: Add this logic
+        // *** FIX: Read the flow type directly from the service ***
         // We only check for "workout" because the "rest" flow
         // never comes to this page.
-        if (FlowType == "workout")
+        if (_progressService.CurrentFlowType == "workout")
         {
             // WORKOUT FLOW (5 steps total)
             // Step 3 (Mindfulness) is done. This is Step 4.
@@ -39,11 +47,11 @@ public partial class TodaysWorkoutPage : ContentPage
 
         // This is your existing code
         // Map exercise names to their corresponding borders
-  	    exerciseBorders["Squat"] = SquatBorder;
- 	 	exerciseBorders["Bench Press"] = BenchPressBorder;
- 	 	exerciseBorders["Deadlift"] = DeadliftBorder;
- 	 	exerciseBorders["Pull-Up"] = PullUpBorder;
- 	 	exerciseBorders["Shoulder Press"] = ShoulderPressBorder;
+          exerciseBorders["Squat"] = SquatBorder;
+          exerciseBorders["Bench Press"] = BenchPressBorder;
+          exerciseBorders["Deadlift"] = DeadliftBorder;
+          exerciseBorders["Pull-Up"] = PullUpBorder;
+          exerciseBorders["Shoulder Press"] = ShoulderPressBorder;
     }
 
     private async void OnBeginExerciseClicked(object sender, EventArgs e)
@@ -76,6 +84,8 @@ public partial class TodaysWorkoutPage : ContentPage
     {
         // navigate to the new post-activity journal page
         // UPDATED: Pass the flow parameter to the final page
-        await Shell.Current.GoToAsync($"{nameof(PostActivityJournalEntryPage)}?flow=workout");
+        // *** FIX: Navigate without query parameters ***
+        // The service already knows we are in the "workout" flow.
+        await Shell.Current.GoToAsync($"{nameof(PostActivityJournalEntryPage)}");
     }
 }

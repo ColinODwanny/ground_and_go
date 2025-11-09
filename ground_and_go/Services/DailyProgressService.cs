@@ -18,6 +18,9 @@ namespace ground_and_go.Services
         private readonly Database _database;
         private readonly MockAuthService _authService;
 
+        // *** FIX: This property will store our flow state ***
+        public string? CurrentFlowType { get; set; }
+
         // The service "requests" the database and mock auth service
         // and .NET MAUI gives them to us (this is dependency injection).
         public DailyProgressService(Database database, MockAuthService authService)
@@ -38,7 +41,8 @@ namespace ground_and_go.Services
             // We will create it in Database.cs in the next chunk.
             // For now, we're just writing the code that *will* use it.
             //
-            WorkoutLog log = await _database.GetTodaysWorkoutLog(memberId);
+            // *** FIX for CS8600: Make 'log' nullable to match method's return type ***
+            WorkoutLog? log = await _database.GetTodaysWorkoutLog(memberId);
 
             // 3. Figure out the progress step based on the log
             

@@ -5,8 +5,9 @@ using ground_and_go.Models;   // NEW: Import models
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
+// *** FIX: Removed the QueryProperty for FlowType ***
 // add this attribute to tell the page it can receive a "flow" parameter
-[QueryProperty(nameof(FlowType), "flow")]
+// [QueryProperty(nameof(FlowType), "flow")]
 // add this attribute to tell the page the results of the popup
 [QueryProperty(nameof(ResultJSON), "results")]
 public partial class JournalEntryPage : ContentPage
@@ -14,9 +15,11 @@ public partial class JournalEntryPage : ContentPage
     // NEW: Add private fields for our services
     private readonly Database _database;
     private readonly MockAuthService _authService;
-    
-    // this property will be set by shell
-    public string? FlowType { get; set; }
+    // *** FIX: Add a field for the progress service ***
+    private readonly DailyProgressService _progressService;
+        
+    // *** FIX: Removed this property, we will read from the service instead ***
+    // public string? FlowType { get; set; }
     public FeelingResult? ResultType { get; set; }
     private string? _resultJSON;
     public string? ResultJSON
@@ -29,13 +32,15 @@ public partial class JournalEntryPage : ContentPage
         }
     }
 
-    // NEW: Update constructor to receive our services
-    public JournalEntryPage(Database database, MockAuthService authService)
+    // *** FIX: Update constructor to receive our services ***
+    public JournalEntryPage(Database database, MockAuthService authService, DailyProgressService progressService)
     {
         InitializeComponent();
 
         _database = database;
         _authService = authService;
+        // *** FIX: Assign the new service ***
+        _progressService = progressService;
     }
 
     // NEW: Add this OnAppearing method
@@ -45,7 +50,8 @@ public partial class JournalEntryPage : ContentPage
 
         // This makes the progress bar show the correct step
         // based on the flow started on the HomePage
-        if (FlowType == "workout")
+        // *** FIX: Read the flow type directly from the service ***
+        if (_progressService.CurrentFlowType == "workout")
         {
             // WORKOUT FLOW (5 steps total)
             // Step 1 (Popup) is done. This is Step 2.
@@ -75,16 +81,16 @@ public partial class JournalEntryPage : ContentPage
         await _database.CreateInitialWorkoutLog(memberId, JournalEntry.Text);
         
         // 3. Navigate to the next page
-        // check which flow we're in
-        if (FlowType == "workout")
+        // *** FIX: Read the flow type directly from the service ***
+        if (_progressService.CurrentFlowType == "workout")
         {
-            // NEW: We pass the 'flow' parameter to the next page
-            await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityWorkoutPage)}?flow=workout");
+            // *** FIX: Navigate without query parameters ***
+            await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityWorkoutPage)}");
         }
-        else if (FlowType == "rest")
+        else if (_progressService.CurrentFlowType == "rest")
         {
-            // NEW: We pass the 'flow' parameter to the next page
-            await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityRestPage)}?flow=rest");
+            // *** FIX: Navigate without query parameters ***
+            await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityRestPage)}");
         }
         else
         {

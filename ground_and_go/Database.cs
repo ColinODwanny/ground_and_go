@@ -424,12 +424,12 @@ namespace ground_and_go
                 {
                     MemberId = memberId,
                     BeforeJournal = beforeJournalText,
-                    DateTime = DateTime.UtcNow // Use UtcNow for database consistency
-                    // We are intentionally leaving WorkoutId, AfterJournal, etc., as null
+                    // *** BUG 2 FIX: Use local time (Now) to match the query (Today) ***
+                    DateTime = DateTime.Now // Was UtcNow
                 };
 
                 var response = await supabaseClient.From<WorkoutLog>()
-                                                .Insert(newLog);
+                                                    .Insert(newLog);
 
                 return response.Models.FirstOrDefault();
             }
@@ -457,6 +457,27 @@ namespace ground_and_go
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating after_journal: {ex.Message}");
+            }
+        }
+
+        // *** BUILD ERROR FIX: Add the missing method ***
+        // This function updates an existing log with the 'workout_id'
+        public async Task UpdateWorkoutIdAsync(int logId, int workoutId)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return;
+
+            try
+            {
+                // We find the log by its 'log_id' and update only the 'workout_id' column
+                await supabaseClient.From<WorkoutLog>()
+                                    .Where(log => log.LogId == logId)
+                                    .Set(log => log.WorkoutId, workoutId)
+                                    .Update();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating workout_id: {ex.Message}");
             }
         }
     }
