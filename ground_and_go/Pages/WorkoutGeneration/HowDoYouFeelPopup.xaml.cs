@@ -6,6 +6,8 @@ namespace ground_and_go.Pages.WorkoutGeneration;
 
 public partial class HowDoYouFeelPopup : Popup
 {
+    private Button _selectedMoodButton;
+    private FeelingResult feelingResult;
 	public HowDoYouFeelPopup()
 	{
         InitializeComponent();
@@ -20,38 +22,39 @@ public partial class HowDoYouFeelPopup : Popup
     // submit
     private void OnSubmit_Clicked(object sender, EventArgs e)
     {
+
+        if (_selectedMoodButton == null)
+    {
+        Application.Current.MainPage.DisplayAlert("Missing mood", "Please select a mood before submitting.", "OK");
+        return;
+    }
         var result = new FeelingResult
         {
             Rating = RatingSlider.Value,
-            Mood = CalculateMood()
+            Mood = _selectedMoodButton?.Text
         };
 
         Close(result);
     }
 
-    /// <summary>
-    /// Takes all checked boxes and adds them to a string array
-    /// </summary>
-    /// <returns>A nullable string array containing checked emotions</returns>
-    private String?[] CalculateMood()
+
+    private void OnMoodClicked(object sender, EventArgs e)
     {
-        List<String?> mood = []; //A list dynamically adds emotions to it
-        if (Happy.IsChecked)
-            mood.Add("Happy");
-        if (Energized.IsChecked)
-            mood.Add("Energized");
-        if (Neutral.IsChecked)
-            mood.Add("Neutral");
-        if (Anxious.IsChecked)
-            mood.Add("Anxious");
-        if (Sad.IsChecked)
-            mood.Add("Sad");
-        if (Angry.IsChecked)
-            mood.Add("Angry");
-        if (Depressed.IsChecked)
-            mood.Add("Depressed");
-        if (Tired.IsChecked)
-            mood.Add("Tired");
-        return mood.ToArray();
+        if (sender is Button clickedButton)
+        {
+            // Deselect previous
+            if (_selectedMoodButton != null)
+            {
+                _selectedMoodButton.BackgroundColor = Color.FromArgb("#F3F4F6");
+                _selectedMoodButton.TextColor = Colors.Black;
+                _selectedMoodButton.BorderColor = Color.FromArgb("#E0E0E0");
+            }
+
+            // Select new one
+            _selectedMoodButton = clickedButton;
+            _selectedMoodButton.BackgroundColor = Color.FromArgb("#2196F3");
+            _selectedMoodButton.TextColor = Colors.White;
+            _selectedMoodButton.BorderColor = Color.FromArgb("#2196F3");
+        }
     }
 }
