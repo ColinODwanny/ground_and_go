@@ -25,8 +25,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<Database>();
         builder.Services.AddTransient<ground_and_go.Pages.Profile.MyWorkoutsPage>();
         builder.Services.AddTransient<ground_and_go.Pages.Profile.MyJournalEntriesPage>();
+        builder.Services.AddSingleton<ground_and_go.Services.DailyProgressService>();
+
         //mock auth service
         builder.Services.AddSingleton<ground_and_go.Services.MockAuthService>();
+
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif
