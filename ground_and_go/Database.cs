@@ -382,7 +382,7 @@ namespace ground_and_go
         {
             // Make sure the client is ready
             await EnsureInitializedAsync();
-            if (supabaseClient == null) 
+            if (supabaseClient == null)
             {
                 Console.WriteLine("Supabase client is not initialized.");
                 return null;
@@ -408,6 +408,35 @@ namespace ground_and_go
                 // Log the error for debugging
                 Console.WriteLine($"Error fetching today's workout log: {ex.Message}");
                 return null; // Return null if anything goes wrong
+            }
+        }
+        
+        // This function creates the *initial* log entry for the day
+        // It only saves the memberId, date, and before_journal
+        public async Task<WorkoutLog?> CreateInitialWorkoutLog(int memberId, string beforeJournalText)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return null;
+
+            try
+            {
+                var newLog = new WorkoutLog
+                {
+                    MemberId = memberId,
+                    BeforeJournal = beforeJournalText,
+                    DateTime = DateTime.UtcNow // Use UtcNow for database consistency
+                    // We are intentionally leaving WorkoutId, AfterJournal, etc., as null
+                };
+
+                var response = await supabaseClient.From<WorkoutLog>()
+                                                .Insert(newLog);
+
+                return response.Models.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating initial workout log: {ex.Message}");
+                return null;
             }
         }
     }

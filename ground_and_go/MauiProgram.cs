@@ -40,7 +40,7 @@ public static class MauiProgram
         builder.Services.AddTransient<ground_and_go.Pages.Home.HomePage>(); 
         builder.Services.AddTransient<ground_and_go.Pages.Profile.MyWorkoutsPage>();
         builder.Services.AddTransient<ground_and_go.Pages.Profile.MyJournalEntriesPage>();
-        
+        builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.JournalEntryPage>();
         // We will need to register the other pages in the flow here too
         // (JournalEntryPage, MindfulnessActivityWorkoutPage, etc.)
         // But we can do that in the next steps.

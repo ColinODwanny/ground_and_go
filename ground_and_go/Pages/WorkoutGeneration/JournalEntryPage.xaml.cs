@@ -1,5 +1,7 @@
 // Samuel Reynebeau
 using System.Text.Json;
+using ground_and_go.Services; // NEW: Import our services
+using ground_and_go.Models;   // NEW: Import models
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
@@ -9,6 +11,10 @@ namespace ground_and_go.Pages.WorkoutGeneration;
 [QueryProperty(nameof(ResultJSON), "results")]
 public partial class JournalEntryPage : ContentPage
 {
+    // NEW: Add private fields for our services
+    private readonly Database _database;
+    private readonly MockAuthService _authService;
+    
     // this property will be set by shell
     public string? FlowType { get; set; }
     public FeelingResult? ResultType { get; set; }
@@ -23,27 +29,35 @@ public partial class JournalEntryPage : ContentPage
         }
     }
 
-    public JournalEntryPage()
+    // NEW: Update constructor to receive our services
+    public JournalEntryPage(Database database, MockAuthService authService)
     {
-        //TODO Calculate the mindfulness activity to show, and implement them so that they display depending on the parameter passed
         InitializeComponent();
+
+        _database = database;
+        _authService = authService;
     }
 
     private async void OnNext_Clicked(object sender, EventArgs e)
     {
-        // this button will eventually save the entry and navigate
-        int workoutId = calculateWorkoutId(ResultType);
-        await MauiProgram.db.UploadJournalEntry(JournalEntry.Text, workoutId);
+        // 1. Get the (mock) user ID
+        int memberId = _authService.GetCurrentMemberId();
+        
+        // 2. Save the initial journal entry to the database
+        // This creates the log for today and sets our progress to Step 1
+        await _database.CreateInitialWorkoutLog(memberId, JournalEntry.Text);
+        
+        // 3. Navigate to the next page
         // check which flow we're in
         if (FlowType == "workout")
         {
             // go to the workout mindfulness page
-            await Shell.Current.GoToAsync(nameof(MindfulnessActivityWorkoutPage) + "?feelings=ResultType");
+            await Shell.Current.GoToAsync(nameof(MindfulnessActivityWorkoutPage)); // Removed the bad parameter
         }
         else if (FlowType == "rest")
         {
             // go to the rest day mindfulness page
-            await Shell.Current.GoToAsync(nameof(MindfulnessActivityRestPage) + "?feelings=ResultType");
+            await Shell.Current.GoToAsync(nameof(MindfulnessActivityRestPage)); // Removed the bad parameter
         }
         else
         {
@@ -52,12 +66,6 @@ public partial class JournalEntryPage : ContentPage
         }
     }
 
-    private int calculateWorkoutId(FeelingResult? ResultType)
-    {
-        //rating < 5 or (anxious + sad + tired + depressed) > (energized + angry + happy) = Meditation or Low Impact or Yoga
-        //rating >= 5 and (energized + angry + happy) > (anxious + sad + tired + depressed) = High Impact or Cardio or Low Impact
-
-        return 201; //Placeholder
-        //TODO do some calculation to determine workout to be given using inputted feelings - more workouts + exercises will be needed in the database for this
-    }
+    // REMOVED: The 'calculateWorkoutId' function is no longer needed here.
+    // The workout ID will be calculated and saved later in the flow.
 }
