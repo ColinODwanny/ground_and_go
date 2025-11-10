@@ -62,23 +62,31 @@ public partial class HomePage : ContentPage
     // This is your existing function.
     private async void OnStartWorkoutFlow_Clicked(object sender, EventArgs e)
     {
-            //initiate popup and store result
-            var popup = new HowDoYouFeelPopup();
-            var result = await this.ShowPopupAsync(popup);
+        //initiate popup and store result
+        var popup = new HowDoYouFeelPopup();
+        var result = await this.ShowPopupAsync(popup);
 
 
-            //if rating/feeling is given then push to the journal entry page
-            if (result is FeelingResult)
+        //if rating/feeling is given then push to the journal entry page
+        if (result is FeelingResult)
+        {
+            //Convert result to JSON to use in future pages
+            var resultJSON = JsonSerializer.Serialize(result);
+
+            _progressService.CurrentFlowType = "workout";
+
+            // use shell navigation with the registered route
+            // pass a parameter to tell the journal page this is a "workout" flow
+            try
             {
-                _progressService.CurrentFlowType = "workout";
-                
-                await Shell.Current.GoToAsync($"WorkoutJournalEntry?results={resultJSON}");
-            } catch (Exception ex)
-            {
-               Console.WriteLine($"ATTN: Error while accessing workout journal entry (Workout) -- {ex.ToString()}");
+                await Shell.Current.GoToAsync($"WorkoutJournalEntry?flow=workout&results={resultJSON}");
             }
-        
-        } 
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ATTN: Error while accessing workout journal entry (Workout) -- {ex.ToString()}");
+            }
+
+        }
     }
 
     // This is your existing function.
