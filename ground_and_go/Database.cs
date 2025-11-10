@@ -388,7 +388,7 @@ namespace ground_and_go
                 return null;
             }
 
-            // Get today's date. We use .Date to make sure we're only comparing
+            // Get today's date. use .Date to make sure we're only comparing
             // the day, not the time.
             var today = DateTime.Today;
 
@@ -424,7 +424,6 @@ namespace ground_and_go
                 {
                     MemberId = memberId,
                     BeforeJournal = beforeJournalText,
-                    // *** BUG 2 FIX: Use local time (Now) to match the query (Today) ***
                     DateTime = DateTime.Now // Was UtcNow
                 };
 
@@ -460,7 +459,7 @@ namespace ground_and_go
             }
         }
 
-        // *** BUILD ERROR FIX: Add the missing method ***
+        
         // This function updates an existing log with the 'workout_id'
         public async Task UpdateWorkoutIdAsync(int logId, int workoutId)
         {

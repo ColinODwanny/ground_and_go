@@ -2,26 +2,21 @@
 // FILE: ground_and_go/Pages/Workout/RestDayPage.xaml.cs
 using CommunityToolkit.Maui.Views;
 using ground_and_go.Pages.Home;
-// *** FIX: Add using statements for services and models ***
 using ground_and_go.Services;
 using ground_and_go.Models;
 using ground_and_go;
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
-// *** FIX: Remove this QueryProperty ***
-// [QueryProperty(nameof(FlowType), "flow")]
 public partial class MindfulnessActivityWorkoutPage : ContentPage
 {
-    // *** FIX: Remove this property ***
-    // public string? FlowType { get; set; }
 
-    // *** FIX: Add fields for our injected services ***
+    // Add fields for our injected services ***
     private readonly DailyProgressService _progressService;
     private readonly Database _database;
     private readonly MockAuthService _authService;
 
-    // *** FIX: Update constructor to receive our services ***
+    //  Update constructor to receive our services
     public MindfulnessActivityWorkoutPage(Database database, MockAuthService authService, DailyProgressService progressService)
     {
         InitializeComponent();
@@ -30,7 +25,6 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         _progressService = progressService;
     }
 
-    // NEW: Add this method
     protected override void OnAppearing()
     {
         base.OnAppearing();
@@ -44,15 +38,12 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         FlowProgressBar.Progress = 0.40; // 2/5 complete
     }
 
-    // UPDATED: This method now passes the flow parameter
+    // This method now passes the flow parameter
     private async void OnNext_Clicked(object sender, EventArgs e)
     {
         // This button will eventually save the entry and navigate
         var popup = new WorkoutOptionsPopup();
         var result = await this.ShowPopupAsync(popup);
-
-        // *** FIX: This is Step 3, we must save the workout_id ***
-        // (as you described in your app flow)
         
         // 1. Get User ID and Today's Log
         int memberId = _authService.GetCurrentMemberId();
@@ -65,8 +56,6 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         // 3. Save the workout ID to the log
         if (todaysLog != null)
         {
-            // We will create this 'UpdateWorkoutIdAsync' method in Database.cs
-            // when we fix Bug 2. For now, we just write the code that uses it.
             await _database.UpdateWorkoutIdAsync(todaysLog.LogId, generatedWorkoutId);
         }
         else
@@ -77,7 +66,7 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
 
         // after the popup closes, navigate to the main "workout" tab
         // the "//" means go to this absolute route
-        // *** FIX: Navigate without the query parameter ***
+        // Navigate without the query parameter
         await Shell.Current.GoToAsync($"//workout"); 
     }
 }

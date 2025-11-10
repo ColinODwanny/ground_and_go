@@ -1,4 +1,4 @@
-using ground_and_go.Models; // We need this for the 'WorkoutLog' model
+using ground_and_go.Models;
 
 namespace ground_and_go.Services
 {
@@ -9,7 +9,7 @@ namespace ground_and_go.Services
     {
         public int Step { get; set; }
         public double Progress { get; set; }
-        public WorkoutLog? TodaysLog { get; set; } // We'll pass the log along for convenience
+        public WorkoutLog? TodaysLog { get; set; } // pass the log along for convenience
     }
 
     // This is the main "brain" service
@@ -18,7 +18,7 @@ namespace ground_and_go.Services
         private readonly Database _database;
         private readonly MockAuthService _authService;
 
-        // *** FIX: This property will store our flow state ***
+        // This property will store our flow state
         public string? CurrentFlowType { get; set; }
 
         // The service "requests" the database and mock auth service
@@ -36,12 +36,6 @@ namespace ground_and_go.Services
             int memberId = _authService.GetCurrentMemberId();
 
             // 2. Ask the database for this user's log for today
-            //
-            // !!! NOTE: This 'GetTodaysWorkoutLog' function doesn't exist yet!
-            // We will create it in Database.cs in the next chunk.
-            // For now, we're just writing the code that *will* use it.
-            //
-            // *** FIX for CS8600: Make 'log' nullable to match method's return type ***
             WorkoutLog? log = await _database.GetTodaysWorkoutLog(memberId);
 
             // 3. Figure out the progress step based on the log

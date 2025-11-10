@@ -1,28 +1,22 @@
 //Aidan Trusky
 using CommunityToolkit.Maui.Views;
 using Microsoft.Maui.Controls;
-using ground_and_go.Services; // *** FIX: Add this using statement ***
+using ground_and_go.Services;
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
-// *** FIX: Remove this QueryProperty ***
-// [QueryProperty(nameof(FlowType), "flow")]
 public partial class TodaysWorkoutPage : ContentPage
 {
     private Dictionary<string, Border> exerciseBorders;
 
-    // *** FIX: Remove this property ***
-    // public string? FlowType { get; set; }
-
-    // *** FIX: Add a field for the progress service ***
+    // a field for the progress service
     private readonly DailyProgressService _progressService;
 
-    // *** FIX: Update constructor to receive the service ***
     public TodaysWorkoutPage(DailyProgressService progressService)
     {
         InitializeComponent();
         
-        // *** FIX: Assign the service ***
+        //  Assign the service
         _progressService = progressService;
         
         // Initialize the dictionary to map exercise names to their buttons
@@ -33,7 +27,7 @@ public partial class TodaysWorkoutPage : ContentPage
     {
         base.OnAppearing();
         
-        // *** FIX: Read the flow type directly from the service ***
+        // Read the flow type directly from the service
         // We only check for "workout" because the "rest" flow
         // never comes to this page.
         if (_progressService.CurrentFlowType == "workout")
@@ -70,7 +64,7 @@ public partial class TodaysWorkoutPage : ContentPage
             // If exercise was marked as complete, change the border color
             if (result is string completedExercise && exerciseBorders.ContainsKey(completedExercise))
             {
-                exerciseBorders[completedExercise].BackgroundColor = Color.FromArgb("#C8E6C9"); // Darker green
+                exerciseBorders[completedExercise].BackgroundColor = Color.FromArgb("#C8E6C9");
                 exerciseBorders[completedExercise].Stroke = Color.FromArgb("#4CAF50"); // Green border
             }
         }
@@ -83,8 +77,6 @@ public partial class TodaysWorkoutPage : ContentPage
     private async void OnCompleteWorkout_Clicked(object sender, EventArgs e)
     {
         // navigate to the new post-activity journal page
-        // UPDATED: Pass the flow parameter to the final page
-        // *** FIX: Navigate without query parameters ***
         // The service already knows we are in the "workout" flow.
         await Shell.Current.GoToAsync($"{nameof(PostActivityJournalEntryPage)}");
     }
