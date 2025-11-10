@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--Aidan Trusky-->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ground_and_go.Pages.WorkoutGeneration.TodaysWorkoutPage"
@@ -9,8 +8,9 @@
     <ScrollView>
         <VerticalStackLayout Spacing="12" Padding="20">
             
+            <Label x:Name="ProgressStepLabel" Text="Step 4" FontAttributes="Bold" TextColor="Gray" />
+            <ProgressBar x:Name="FlowProgressBar" Progress="0.0" />
 
-            <!-- Exercise 1: Squat -->
             <Border x:Name="SquatBorder"
                     Stroke="LightGray"
                     StrokeThickness="1"
@@ -40,7 +40,6 @@
                 </Grid>
             </Border>
 
-            <!-- Exercise 2: Bench Press -->
             <Border x:Name="BenchPressBorder"
                     Stroke="LightGray"
                     StrokeThickness="1"
@@ -70,7 +69,6 @@
                 </Grid>
             </Border>
 
-            <!-- Exercise 3: Deadlift -->
             <Border x:Name="DeadliftBorder"
                     Stroke="LightGray"
                     StrokeThickness="1"
@@ -100,7 +98,6 @@
                 </Grid>
             </Border>
 
-            <!-- Exercise 4: Pull-Up -->
             <Border x:Name="PullUpBorder"
                     Stroke="LightGray"
                     StrokeThickness="1"
@@ -130,7 +127,6 @@
                 </Grid>
             </Border>
 
-            <!-- Exercise 5: Shoulder Press -->
             <Border x:Name="ShoulderPressBorder"
                     Stroke="LightGray"
                     StrokeThickness="1"
@@ -160,7 +156,6 @@
                 </Grid>
             </Border>
 
-            <!-- Complete Workout Button -->
             <Button 
                 Text="Complete Workout"
                 BackgroundColor="#4CAF50"
