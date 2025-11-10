@@ -1,16 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
 using MauiIcons.Material;
 using CommunityToolkit.Maui;
-using ground_and_go.Services;  // <-- Make sure Services are imported
-using ground_and_go.Pages.Home; // <-- Make sure Home page is imported
-using ground_and_go.Pages.WorkoutGeneration; // <-- Make sure WorkoutGeneration pages are imported
-using ground_and_go.Pages.Workout; // <-- Make sure Workout pages are imported
+using ground_and_go.Services;  
+using ground_and_go.Pages.Home; 
+using ground_and_go.Pages.WorkoutGeneration; 
+using ground_and_go.Pages.Workout; 
 
 namespace ground_and_go;
 
 public static class MauiProgram
 {
-    // Made the property nullable with a '?' to fix the CS8618 error.
     public static Database? db { get; private set; }
 
     public static MauiApp CreateMauiApp()
@@ -44,9 +43,9 @@ public static class MauiProgram
         
         // --- Register ALL pages in the workout/rest flow ---
         builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.JournalEntryPage>();
-        builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.MindfulnessActivityWorkoutPage>(); // <-- ADDED
-        builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.MindfulnessActivityRestPage>(); // <-- ADDED
-        builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.TodaysWorkoutPage>(); // <-- ADDED
+        builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.MindfulnessActivityWorkoutPage>(); 
+        builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.MindfulnessActivityRestPage>();
+        builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.TodaysWorkoutPage>(); 
         builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.PostActivityJournalEntryPage>();
 
 

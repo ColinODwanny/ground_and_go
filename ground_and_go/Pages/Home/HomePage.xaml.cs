@@ -76,10 +76,8 @@ public partial class HomePage : ContentPage
             // pass a parameter to tell the journal page this is a "workout" flow
             try
             {
-                // *** FIX: 1. Set the state in the singleton service ***
                 _progressService.CurrentFlowType = "workout";
                 
-                // *** FIX: 2. Navigate WITHOUT the "flow" query parameter ***
                 await Shell.Current.GoToAsync($"WorkoutJournalEntry?results={resultJSON}");
             } catch (Exception ex)
             {
@@ -105,10 +103,8 @@ public partial class HomePage : ContentPage
                 // pass a parameter to tell the journal page this is a "rest" flow
                 try
                 { 
-                    // *** FIX: 1. Set the state in the singleton service ***
                     _progressService.CurrentFlowType = "rest";
 
-                    // *** FIX: 2. Navigate WITHOUT the "flow" query parameter ***
                     await Shell.Current.GoToAsync($"WorkoutJournalEntry?results={resultJSON}");
                 }
                     catch (Exception ex)
@@ -119,7 +115,6 @@ public partial class HomePage : ContentPage
           }
     }
 
-    // NEW --> This handler is correct
     private async void OnResume_Clicked(object sender, EventArgs e)
     {
         if (sender is not Button button || button.CommandParameter is not DailyProgressState state)

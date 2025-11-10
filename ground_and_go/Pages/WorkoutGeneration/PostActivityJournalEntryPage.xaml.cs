@@ -1,21 +1,18 @@
 // Samuel Reynebeau
-using ground_and_go.Models;   // NEW
-using ground_and_go.Services; // NEW
+using ground_and_go.Models;
+using ground_and_go.Services;
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
-// *** FIX: Remove this QueryProperty ***
-// [QueryProperty(nameof(FlowType), "flow")]
 public partial class PostActivityJournalEntryPage : ContentPage
 {
-    // *** FIX: Remove this property ***
-    // public string? FlowType { get; set; }
+    
     private readonly Database _database;
     private readonly MockAuthService _authService;
-    // *** FIX: Add this field for the progress service ***
+    // progress service
     private readonly DailyProgressService _progressService;
 
-    // *** FIX: Update constructor to receive all services ***
+    // Update constructor to receive all services
     public PostActivityJournalEntryPage(Database database, MockAuthService authService, DailyProgressService progressService)
     {
         InitializeComponent();
@@ -24,12 +21,11 @@ public partial class PostActivityJournalEntryPage : ContentPage
         _progressService = progressService; // Assign the service
     }
 
-    // NEW: Add this method
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        // *** FIX: Read the flow type directly from the service ***
+        // Read the flow type directly from the service
         if (_progressService.CurrentFlowType == "workout")
         {
             // WORKOUT FLOW (5 steps total)
@@ -52,7 +48,7 @@ public partial class PostActivityJournalEntryPage : ContentPage
         // in case of any issues.
     }
 
-    // UPDATED: This method now saves the journal entry
+    // This method now saves the journal entry
     private async void OnFinish_Clicked(object sender, EventArgs e)
     {
         try
