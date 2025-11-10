@@ -1,84 +1,76 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--this is the pop up toolkit, not a content page, so define it here and make it transparent-->
 <toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
-             x:Class="ground_and_go.Pages.WorkoutGeneration.HowDoYouFeelPopup"
-             Color="Transparent">
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               x:Class="ground_and_go.Pages.WorkoutGeneration.HowDoYouFeelPopup"
+               Color="Transparent">
 
-    <!--create the actual window that holds the content-->
     <Border StrokeShape="RoundRectangle 20"
             Stroke="LightGray"
             BackgroundColor="White"
             Padding="25"
             WidthRequest="320">
 
-        <!--make it vertical, home-slice-->
         <VerticalStackLayout Spacing="15">
-            <Label 
-                Text="How do you feel?"
-                FontSize="22"
-                FontAttributes="Bold"
-                HorizontalOptions="Center"
-                TextColor="Black"/>
+            <Label Text="How do you feel?"
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   TextColor="Black" />
 
-            <Label HorizontalOptions="Center"
+            <Label x:Name="ValueLabel"
+                   HorizontalOptions="Center"
                    FontSize="18"
                    FontAttributes="Bold"
                    TextColor="#2196F3"
                    Text="{Binding Source={x:Reference RatingSlider}, 
                                   Path=Value, 
                                   StringFormat='{0:F0}'}" />
-            <!--cool slider-->
+
             <Slider x:Name="RatingSlider"
                     Minimum="1"
-                    Maximum="10.00" Value="5" />
+                    Maximum="10"
+                    Value="5"
+                    MinimumTrackColor="#2196F3"
+                    ThumbColor="#2196F3"
+                    />
 
-            <Label 
-                Text="Describe your mood:"
-                FontSize="16"
-                TextColor="DarkGray"/>
+            <Label Text="Describe your mood:"
+                   FontSize="16"
+                   TextColor="DarkGray"
+                   HorizontalOptions="Center"
+                   
+                   />
 
-            <!--flex wrap makes the Checkbox buttons flow to next line if screen is too narrow-->
-            <FlexLayout x:Name="MoodFlexLayout" Wrap="Wrap" JustifyContent="SpaceEvenly">
-                <HorizontalStackLayout>
-                    <CheckBox x:Name="Happy"/>
-                    <Label Text="😀 Happy" VerticalOptions="Center" FontSize="16"/>
-                </HorizontalStackLayout>
-                <HorizontalStackLayout>
-                    <CheckBox x:Name="Energized"/>
-                    <Label Text="😆 Energized" VerticalOptions="Center" FontSize="16"/>
-                </HorizontalStackLayout>
-                <HorizontalStackLayout>
-                    <CheckBox x:Name="Neutral"/>
-                    <Label Text="😐 Neutral" VerticalOptions="Center" FontSize="16"/>
-                </HorizontalStackLayout>
-                <HorizontalStackLayout>
-                    <CheckBox x:Name="Anxious"/>
-                    <Label Text="😟 Anxious" VerticalOptions="Center" FontSize="16"/>
-                </HorizontalStackLayout>
-                <HorizontalStackLayout>
-                    <CheckBox x:Name="Sad"/>
-                    <Label Text="😢 Sad" VerticalOptions="Center" FontSize="16"/>
-                </HorizontalStackLayout>
-                <HorizontalStackLayout>
-                    <CheckBox x:Name="Angry"/>
-                    <Label Text="😠 Angry" VerticalOptions="Center" FontSize="16"/>
-                </HorizontalStackLayout>
-                <HorizontalStackLayout>
-                    <CheckBox x:Name="Depressed"/>
-                    <Label Text="😞 Depressed" VerticalOptions="Center" FontSize="16"/>
-                </HorizontalStackLayout>
-                <HorizontalStackLayout>
-                    <CheckBox x:Name="Tired"/>
-                    <Label Text="🥱 Tired" VerticalOptions="Center" FontSize="16"/>
-                </HorizontalStackLayout>
+            <!-- Flex layout of pill buttons -->
+            <FlexLayout x:Name="MoodFlexLayout"
+            Wrap="Wrap"
+            JustifyContent="Center"
+            AlignItems="Center"
+            Direction="Row">
+
+                <Button Text="Happy" Clicked="OnMoodClicked" Style="{StaticResource MoodButtonStyle}" Margin="5" x:Name="Happy"/>
+                <Button Text="Energized" Clicked="OnMoodClicked" Style="{StaticResource MoodButtonStyle}" Margin="5"/>
+                <Button Text="Neutral" Clicked="OnMoodClicked" Style="{StaticResource MoodButtonStyle}" Margin="5"/>
+                <Button Text="Anxious" Clicked="OnMoodClicked" Style="{StaticResource MoodButtonStyle}" Margin="5"/>
+                <Button Text="Sad" Clicked="OnMoodClicked" Style="{StaticResource MoodButtonStyle}" Margin="5"/>
+                <Button Text="Angry" Clicked="OnMoodClicked" Style="{StaticResource MoodButtonStyle}" Margin="5"/>
+                <Button Text="Depressed" Clicked="OnMoodClicked" Style="{StaticResource MoodButtonStyle}" Margin="5"/>
+                <Button Text="Tired" Clicked="OnMoodClicked" Style="{StaticResource MoodButtonStyle}" Margin="5"/>
             </FlexLayout>
 
-            <!--create grid to make cancel and submit buttons side by side-->
+
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,10,0,0">
-                <Button Grid.Column="0" Text="Cancel" Clicked="OnCancel_Clicked" BackgroundColor="Gray" TextColor="White"/>
-                <Button Grid.Column="1" Text="Submit" Clicked="OnSubmit_Clicked" BackgroundColor="#2196F3" TextColor="White"/>
+                <Button Grid.Column="0"
+                        Text="Cancel"
+                        Clicked="OnCancel_Clicked"
+                        BackgroundColor="Gray"
+                        TextColor="White" />
+                <Button Grid.Column="1"
+                        Text="Submit"
+                        Clicked="OnSubmit_Clicked"
+                        BackgroundColor="#2196F3"
+                        TextColor="White" />
             </Grid>
         </VerticalStackLayout>
     </Border>

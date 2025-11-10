@@ -62,19 +62,13 @@ public partial class HomePage : ContentPage
     // This is your existing function.
     private async void OnStartWorkoutFlow_Clicked(object sender, EventArgs e)
     {
-        //initiate popup and store result
-        var popup = new HowDoYouFeelPopup();
-        var result = await this.ShowPopupAsync(popup);
+            //initiate popup and store result
+            var popup = new HowDoYouFeelPopup();
+            var result = await this.ShowPopupAsync(popup);
 
-        //if rating/feeling is given then push to the journal entry page
-        if (result is FeelingResult)
-        {
-            //Convert result to JSON to use in future pages
-            var resultJSON = JsonSerializer.Serialize(result);
 
-            // use shell navigation with the registered route
-            // pass a parameter to tell the journal page this is a "workout" flow
-            try
+            //if rating/feeling is given then push to the journal entry page
+            if (result is FeelingResult)
             {
                 // *** FIX: 1. Set the state in the singleton service ***
                 _progressService.CurrentFlowType = "workout";
