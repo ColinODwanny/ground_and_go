@@ -10,13 +10,13 @@ namespace ground_and_go.Models
     [Table("members")]
     public class Member : ObservableBaseModel, IEquatable<Member>
     {
-        int _memberId = -1;
+        string _memberId = "-1";
         string _first = "";
         string _last = "";
         string _email = "";
 
-        [PrimaryKey("id")]
-        public int MemberId
+        [PrimaryKey("user_id")]
+        public string MemberId
         {
             get => _memberId;
             set => SetProperty(ref _memberId, value);

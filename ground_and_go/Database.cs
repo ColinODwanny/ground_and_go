@@ -8,6 +8,7 @@ using Supabase.Postgrest.Attributes;
 using Supabase.Gotrue;
 using System.Collections.ObjectModel;
 using ground_and_go.Models;
+using Microsoft.Maui.Graphics.Text;
 
 namespace ground_and_go
 {
@@ -37,6 +38,76 @@ namespace ground_and_go
         }
 
         /// <summary>
+        /// Communicates with Supabase to log the user in with the given credentials
+        /// </summary>
+        /// <param name="username">The email to log the user in with</param>
+        /// <param name="password">The password to log the user in with</param>
+        /// <returns>Null if successful, an error string otherwise</returns>
+        public async Task<String?> LogIn(String username, String password)
+        {
+            try
+            {
+                Session? session = await supabaseClient!.Auth.SignInWithPassword(username, password);
+                if (session != null)
+                {
+                    Console.WriteLine("Login successful");
+                    return null;
+                }
+                throw new Supabase.Gotrue.Exceptions.GotrueException("Login failed"); //The login has failed
+            }
+            catch (Supabase.Gotrue.Exceptions.GotrueException e) //The login has failed
+            {
+                Console.WriteLine($"Login failed: {e}");
+                return "Invalid login credentials";
+            }
+            catch (Exception e) //An unexpected error has occurred
+            {
+                Console.WriteLine($"Login error: {e}");
+                return "An error has occurred - Please try again later";
+            }
+        }
+
+        /// <summary>
+        /// Communicates with Supabase to create an accout for the user with the given credentials
+        /// </summary>
+        /// <param name="username">The email to sign the user up with</param>
+        /// <param name="password">The password to sign the user up with</param>
+        /// <returns>Null if successful, an error string otherwise</returns>
+        public async Task<String?> SignUp(String username, String password)
+        {
+            try
+            {
+                await supabaseClient!.Auth.SignOut();
+                var session = await supabaseClient.Auth.SignUp(username, password);
+
+                Console.WriteLine("Signup was successful");
+                return null; //The user has successfully signed up
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Signup failed: {e}");
+                return "An error has occurred while signing up";
+            }
+        }
+
+        /// <summary>
+        /// Communicates with Supabase to log out the current user
+        /// </summary>
+        /// <returns>A task</returns>
+        public async Task LogOut()
+        {
+            try
+            {
+                await supabaseClient!.Auth.SignOut();
+                Console.WriteLine("Logout successful");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Logout error: {e.Message}");
+            }
+        }
+
+        /// <summary>
         /// Queries the database to find a member's ID using their email address.
         /// </summary>
         /// <param name="userEmail">The email address of the member to look up</param>
@@ -44,12 +115,12 @@ namespace ground_and_go
         /// <remarks>
         /// This method ensures the Supabase client is initialized before querying.
         /// </remarks>
-        public async Task<int> GetMemberIdByEmail(string userEmail)
+        public async Task<string> GetMemberIdByEmail(string userEmail)
         {
             await EnsureInitializedAsync();
-            if (supabaseClient == null) return -1;
-            
-            int memberId;
+            if (supabaseClient == null) return "-1";
+
+            string memberId;
             var response = await supabaseClient!.From<Member>().Where(member => member.Email == userEmail).Get();
 
             if (response?.Models?.Any() == true) //If the query returned any rows
@@ -58,7 +129,7 @@ namespace ground_and_go
             }
             else
             {
-                memberId = -1;
+                memberId = "-1";
             }
             return memberId;
         }
@@ -76,7 +147,7 @@ namespace ground_and_go
         {
             await EnsureInitializedAsync();
             if (supabaseClient == null) return;
-            
+
             var response = await supabaseClient.From<WorkoutLog>().Where(workoutLog => workoutLog.MemberId == memberId).Get();
             if (response?.Models?.Any() == true)
             {
@@ -95,33 +166,33 @@ namespace ground_and_go
         /// </remarks>
         /// THIS METHOD DOES NOT WORK CURRENTLY
         public async Task LoadExercises()
-{
-    await EnsureInitializedAsync();
-    if (supabaseClient == null) return;
-
-    ExercisesDictionary = new Dictionary<int, Exercise>();
-
-    try
-    {
-        var response = await supabaseClient.From<Exercise>().Get();
-        if (response?.Models != null)
         {
-            foreach (var exercise in response.Models)
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return;
+
+            ExercisesDictionary = new Dictionary<int, Exercise>();
+
+            try
             {
-                ExercisesDictionary[exercise.ExerciseId] = exercise;
+                var response = await supabaseClient.From<Exercise>().Get();
+                if (response?.Models != null)
+                {
+                    foreach (var exercise in response.Models)
+                    {
+                        ExercisesDictionary[exercise.ExerciseId] = exercise;
+                    }
+                    Console.WriteLine($"Loaded {ExercisesDictionary.Count} exercises into dictionary.");
+                }
+                else
+                {
+                    Console.WriteLine("No exercises found in database.");
+                }
             }
-            Console.WriteLine($"Loaded {ExercisesDictionary.Count} exercises into dictionary.");
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading exercises: {ex.Message}");
+            }
         }
-        else
-        {
-            Console.WriteLine("No exercises found in database.");
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error loading exercises: {ex.Message}");
-    }
-}
 
 
         /// <summary>
@@ -133,7 +204,7 @@ namespace ground_and_go
         {
             await EnsureInitializedAsync();
             if (supabaseClient == null) return null;
-            
+
             var response = await supabaseClient.From<Workout>().Where(w => w.WorkoutId == workoutId).Get();
             return response?.Models?.FirstOrDefault();
         }
@@ -146,9 +217,9 @@ namespace ground_and_go
         {
             await EnsureInitializedAsync();
             var exercisesDict = new Dictionary<int, Exercise>();
-            
+
             if (supabaseClient == null) return exercisesDict;
-            
+
             try
             {
                 var response = await supabaseClient.From<Exercise>().Get();
@@ -164,7 +235,7 @@ namespace ground_and_go
             {
                 Console.WriteLine($"Error loading exercises: {ex.Message}");
             }
-            
+
             return exercisesDict;
         }
 
@@ -176,16 +247,16 @@ namespace ground_and_go
         public async Task<List<WorkoutLogViewModel>> GetWorkoutLogsWithDetails(int? memberId = null)
         {
             await EnsureInitializedAsync();
-            
+
             var result = new List<WorkoutLogViewModel>();
             if (supabaseClient == null) return result;
-            
+
             try
             {
                 // Get ALL workout logs - no filtering by member ID for now
                 Console.WriteLine("Getting ALL workout logs from database");
                 var workoutLogsResponse = await supabaseClient.From<WorkoutLog>().Get();
-                
+
                 // Commented out member ID filtering logic for now
                 // var query = supabaseClient.From<WorkoutLog>();
                 // if (memberId.HasValue)
@@ -199,13 +270,13 @@ namespace ground_and_go
                 // }
                 // var workoutLogsResponse = await query.Get();
                 Console.WriteLine($"Retrieved {workoutLogsResponse?.Models?.Count ?? 0} workout logs from database");
-                
+
                 if (workoutLogsResponse?.Models != null)
                 {
                     foreach (var log in workoutLogsResponse.Models)
                     {
                         var viewModel = new WorkoutLogViewModel(log);
-                        
+
                         // Get workout details only (excluding problematic info column)
                         try
                         {
@@ -213,14 +284,14 @@ namespace ground_and_go
                                 .Select("workout_id, emotion_id, category, category_num, equipment, impact, exercises")
                                 .Where(w => w.WorkoutId == log.WorkoutId)
                                 .Get();
-                            
+
                             viewModel.WorkoutDetails = workoutResponse?.Models?.FirstOrDefault();
                         }
                         catch (Exception ex)
                         {
                             Console.WriteLine($"Error loading workout details for log {log.LogId}: {ex.Message}");
                         }
-                        
+
                         result.Add(viewModel);
                     }
                 }
@@ -229,7 +300,7 @@ namespace ground_and_go
             {
                 Console.WriteLine($"Error in GetWorkoutLogsWithDetails: {ex.Message}");
             }
-            
+
             return result.OrderByDescending(x => x.WorkoutLog.DateTime).ToList();
         }
 
@@ -240,14 +311,14 @@ namespace ground_and_go
         public async Task<List<WorkoutViewModel>> GetAllWorkoutsWithDates()
         {
             await EnsureInitializedAsync();
-            
+
             var result = new List<WorkoutViewModel>();
-            if (supabaseClient == null) 
+            if (supabaseClient == null)
             {
                 Console.WriteLine("Supabase client is null");
                 return result;
             }
-            
+
             try
             {
                 Console.WriteLine("Querying workouts table...");
@@ -255,29 +326,29 @@ namespace ground_and_go
                     .Select("workout_id, emotion_id, category, category_num, equipment, impact, exercises")
                     .Get();
                 Console.WriteLine($"Workouts response received. Models count: {workoutsResponse?.Models?.Count ?? 0}");
-                
+
                 Console.WriteLine("Querying workout_log table for dates...");
                 var workoutLogsResponse = await supabaseClient.From<WorkoutLog>()
                     .Select("workout_id, date")
                     .Get();
                 Console.WriteLine($"Workout logs response received. Models count: {workoutLogsResponse?.Models?.Count ?? 0}");
-                
+
                 if (workoutsResponse?.Models != null)
                 {
                     var workoutLogDates = workoutLogsResponse?.Models?
                         .GroupBy(log => log.WorkoutId)
                         .ToDictionary(g => g.Key, g => g.OrderByDescending(log => log.DateTime).First().DateTime) ?? new Dictionary<int, DateTime>();
-                    
+
                     foreach (var workout in workoutsResponse.Models.OrderBy(w => w.WorkoutId))
                     {
                         var viewModel = new WorkoutViewModel(workout);
-                        
+
                         // Set the date from workout_log if available
                         if (workoutLogDates.ContainsKey(workout.WorkoutId))
                         {
                             viewModel.WorkoutDate = workoutLogDates[workout.WorkoutId];
                         }
-                        
+
                         result.Add(viewModel);
                         Console.WriteLine($"Added workout: ID={workout.WorkoutId}, Category={workout.Category}, Date={viewModel.DisplayDate}, Exercises=[{string.Join(",", workout.Exercises ?? new int[0])}]");
                     }
@@ -291,7 +362,7 @@ namespace ground_and_go
             {
                 Console.WriteLine($"Error loading workouts: {ex.Message}");
             }
-            
+
             return result;
         }
 
@@ -301,11 +372,11 @@ namespace ground_and_go
         public async Task DebugDatabaseContent()
         {
             await EnsureInitializedAsync();
-            
+
             if (supabaseClient == null) return;
-            
+
             Console.WriteLine("=== DEBUGGING DATABASE CONTENT ===");
-            
+
             // Test workout_log table
             var workoutLogs = await supabaseClient.From<WorkoutLog>().Limit(5).Get();
             Console.WriteLine($"\n--- WORKOUT LOGS (first 5) ---");
@@ -438,7 +509,7 @@ namespace ground_and_go
                 return null;
             }
         }
-        
+
         // This function updates an existing log with the 'after_journal' text
         public async Task UpdateAfterJournalAsync(int logId, string afterJournalText)
         {
@@ -459,7 +530,7 @@ namespace ground_and_go
             }
         }
 
-        
+
         // This function updates an existing log with the 'workout_id'
         public async Task UpdateWorkoutIdAsync(int logId, int workoutId)
         {
