@@ -1,10 +1,14 @@
 // FILE: ground_and_go/Pages/Auth/LoginPage.xaml.cs
+using CommunityToolkit.Maui.Alerts;
+using CommunityToolkit.Maui.Core;
+using ground_and_go.Models;
 using ground_and_go.Pages.Home;
 
 namespace ground_and_go.Pages.Auth;
 
-public partial class LoginPage : ContentPage 
+public partial class LoginPage : ContentPage
 {
+    readonly BusinessLogic businessLogic = MauiProgram.BusinessLogic;
     public LoginPage()
     {
         InitializeComponent();
@@ -15,8 +19,6 @@ public partial class LoginPage : ContentPage
         try
         {
             if (sender is not Button button) return;
-            //TODO: This will bring the user to the signup page
-            
             await Shell.Current.GoToAsync("//signup");
         }
         catch (Exception ex)
@@ -40,9 +42,17 @@ public partial class LoginPage : ContentPage
         try
         {
             if (sender is not Button button) return;
-            //TODO: This will bring the user to the home page
 
-            await Shell.Current.GoToAsync("//home");
+            //Returns null if successful and an error message otherwise
+            String? result = await businessLogic.LogIn(UsernameENT.Text, PasswordENT.Text);
+            if (result == null)
+            {
+                await Shell.Current.GoToAsync("//home");
+            }
+            else
+            {
+                await DisplayAlert("Error", result, "OK");
+            }
         }
         catch (Exception ex)
         {

@@ -1,10 +1,12 @@
 //Aidan Trusky
 using System.Net.Security;
+using ground_and_go.Models;
 
 namespace ground_and_go.Pages.Profile;
 
 public partial class ProfilePage : ContentPage
 {
+    readonly BusinessLogic businessLogic = MauiProgram.BusinessLogic;
     public ProfilePage()
     {
         InitializeComponent();
@@ -23,8 +25,9 @@ public partial class ProfilePage : ContentPage
     }
 
 	private async void OnLogoutTapped(object sender, EventArgs e)
-	{
-		// navigate back to the login page
+    {
+        // navigate back to the login page
+        await businessLogic.LogOut();
 		await Shell.Current.GoToAsync("//login");
 	}
     

@@ -4,12 +4,14 @@ using CommunityToolkit.Maui;
 using ground_and_go.Services;  
 using ground_and_go.Pages.Home; 
 using ground_and_go.Pages.WorkoutGeneration; 
-using ground_and_go.Pages.Workout; 
+using ground_and_go.Pages.Workout;
+using ground_and_go.Models;
 
 namespace ground_and_go;
 
 public static class MauiProgram
 {
+    public static readonly BusinessLogic BusinessLogic = new();
     public static Database? db { get; private set; }
 
     public static MauiApp CreateMauiApp()
