@@ -22,6 +22,7 @@ namespace ground_and_go.Models
         public string LogId
         {
             get => _logId;
+            set => SetProperty(ref _logId, value); 
         }
 
         [Column("member_id")]

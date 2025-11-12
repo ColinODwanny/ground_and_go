@@ -348,15 +348,15 @@ namespace ground_and_go
                 if (workoutsResponse?.Models != null)
                 {
                     var workoutLogDates = workoutLogsResponse?.Models?
-                        .GroupBy(log => log.WorkoutId)
-                        .ToDictionary(g => g.Key, g => g.OrderByDescending(log => log.DateTime).First().DateTime) ?? new Dictionary<int?, DateTime>();
+                        .Where(log => log.WorkoutId.HasValue) 
+                        .GroupBy(log => log.WorkoutId.Value) 
+                        .ToDictionary(g => g.Key, g => g.OrderByDescending(log => log.DateTime).First().DateTime) ?? new Dictionary<int, DateTime>();
                     
                     foreach (var workout in workoutsResponse.Models.OrderBy(w => w.WorkoutId))
                     {
                         var viewModel = new WorkoutViewModel(workout);
                         
-                        // Set the date from workout_log if available
-                        if (workout.WorkoutId != null && workoutLogDates.ContainsKey(workout.WorkoutId))
+                        if (workoutLogDates.ContainsKey(workout.WorkoutId))
                         {
                             viewModel.WorkoutDate = workoutLogDates[workout.WorkoutId];
                         }
@@ -478,7 +478,7 @@ namespace ground_and_go
 
             // Get today's date. use .Date to make sure we're only comparing
             // the day, not the time.
-            var today = DateTime.Today;
+            var today = DateTime.UtcNow.Date;
 
             try
             {
@@ -512,7 +512,7 @@ namespace ground_and_go
                 {
                     MemberId = memberId,
                     BeforeJournal = beforeJournalText,
-                    DateTime = DateTime.Now // Was UtcNow
+                    DateTime = DateTime.UtcNow
                 };
 
                 var response = await supabaseClient.From<WorkoutLog>()
