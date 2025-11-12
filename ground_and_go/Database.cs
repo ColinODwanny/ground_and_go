@@ -476,15 +476,20 @@ namespace ground_and_go
                 return null;
             }
 
-            // Get today's date. use .Date to make sure we're only comparing
-            // the day, not the time.
-            var today = DateTime.UtcNow.Date;
+            // Get the start of the user's local day
+            var localToday = DateTime.Today;
+            // Get the start of the user's next local day
+            var localTomorrow = localToday.AddDays(1);
 
             try
             {
                 // Query the 'workout_log' table using your 'supabaseClient'
                 var response = await supabaseClient.From<WorkoutLog>()
-                    .Where(log => log.MemberId == memberId && log.DateTime.Date == today)
+                    .Where(log => 
+                        log.MemberId == memberId && 
+                        log.DateTime >= localToday && 
+                        log.DateTime < localTomorrow
+                    )
                     .Limit(1) // We only expect one log per day
                     .Get();
 
@@ -512,7 +517,7 @@ namespace ground_and_go
                 {
                     MemberId = memberId,
                     BeforeJournal = beforeJournalText,
-                    DateTime = DateTime.UtcNow
+                    DateTime = DateTime.Now // Use local time
                 };
 
                 var response = await supabaseClient.From<WorkoutLog>()
@@ -551,7 +556,7 @@ namespace ground_and_go
         // This function updates an existing log with the 'workout_id'
         public async Task UpdateWorkoutIdAsync(string logId, int workoutId)
         {
-            await EnsureInitializedAsync();
+            await EnsureInitializedAsync().ConfigureAwait(false);
             if (supabaseClient == null) return;
 
             try
