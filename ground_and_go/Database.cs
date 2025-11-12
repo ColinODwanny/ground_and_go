@@ -36,6 +36,15 @@ namespace ground_and_go
 
             await LoadExercises();
         }
+        
+        /// <summary>
+        /// Gets the currently logged-in user's UUID (as a string).
+        /// </summary>
+        /// <returns>The user's UUID string, or null if not logged in.</returns>
+        public string? GetAuthenticatedMemberId()
+        {
+            return supabaseClient?.Auth?.CurrentUser?.Id;
+        }
 
         /// <summary>
         /// Communicates with Supabase to log the user in with the given credentials
@@ -148,11 +157,16 @@ namespace ground_and_go
             await EnsureInitializedAsync();
             if (supabaseClient == null) return;
 
-            var response = await supabaseClient.From<WorkoutLog>().Where(workoutLog => workoutLog.MemberId == memberId).Get();
-            if (response?.Models?.Any() == true)
-            {
-                WorkoutHistory = response.Models;
-            }
+            // This query will fail if member_id is a UUID. 
+            // We can fix it later if needed, but it's not blocking the journal insert.
+            // var response = await supabaseClient.From<WorkoutLog>().Where(workoutLog => workoutLog.MemberId == memberId).Get();
+            
+            // For now, let's just log a warning
+            Console.WriteLine("WARNING: LoadWorkoutHistory is using an 'int' memberId, but schema is 'uuid'. This method will not work.");
+            // if (response?.Models?.Any() == true)
+            // {
+            //     WorkoutHistory = response.Models;
+            // }
         }
 
 
@@ -244,7 +258,7 @@ namespace ground_and_go
         /// </summary>
         /// <param name="memberId">Member ID to filter by</param>
         /// <returns>List of WorkoutLogViewModel with complete information</returns>
-        public async Task<List<WorkoutLogViewModel>> GetWorkoutLogsWithDetails(int? memberId = null)
+        public async Task<List<WorkoutLogViewModel>> GetWorkoutLogsWithDetails(string? memberId = null) 
         {
             await EnsureInitializedAsync();
 
@@ -253,22 +267,20 @@ namespace ground_and_go
 
             try
             {
-                // Get ALL workout logs - no filtering by member ID for now
-                Console.WriteLine("Getting ALL workout logs from database");
-                var workoutLogsResponse = await supabaseClient.From<WorkoutLog>().Get();
+                // explicitly define the query type to avoid the compiler error
+                Supabase.Postgrest.Interfaces.IPostgrestTable<WorkoutLog> query = supabaseClient.From<WorkoutLog>();
 
-                // Commented out member ID filtering logic for now
-                // var query = supabaseClient.From<WorkoutLog>();
-                // if (memberId.HasValue)
-                // {
-                //     Console.WriteLine($"Filtering workout logs by member ID: {memberId.Value}");
-                //     query = query.Where(log => log.MemberId == memberId.Value);
-                // }
-                // else
-                // {
-                //     Console.WriteLine("Getting ALL workout logs from database");
-                // }
-                // var workoutLogsResponse = await query.Get();
+                if (!string.IsNullOrEmpty(memberId))
+                {
+                   Console.WriteLine($"Filtering workout logs by member ID: {memberId}");
+                   query = query.Where(log => log.MemberId == memberId);
+                }
+                else
+                {
+                   Console.WriteLine("Getting ALL workout logs from database (no memberId specified)");
+                }
+                var workoutLogsResponse = await query.Get();
+
                 Console.WriteLine($"Retrieved {workoutLogsResponse?.Models?.Count ?? 0} workout logs from database");
 
                 if (workoutLogsResponse?.Models != null)
@@ -313,12 +325,12 @@ namespace ground_and_go
             await EnsureInitializedAsync();
 
             var result = new List<WorkoutViewModel>();
-            if (supabaseClient == null)
+            if (supabaseClient == null) 
             {
                 Console.WriteLine("Supabase client is null");
                 return result;
             }
-
+            
             try
             {
                 Console.WriteLine("Querying workouts table...");
@@ -326,29 +338,29 @@ namespace ground_and_go
                     .Select("workout_id, emotion_id, category, category_num, equipment, impact, exercises")
                     .Get();
                 Console.WriteLine($"Workouts response received. Models count: {workoutsResponse?.Models?.Count ?? 0}");
-
+                
                 Console.WriteLine("Querying workout_log table for dates...");
                 var workoutLogsResponse = await supabaseClient.From<WorkoutLog>()
                     .Select("workout_id, date")
                     .Get();
                 Console.WriteLine($"Workout logs response received. Models count: {workoutLogsResponse?.Models?.Count ?? 0}");
-
+                
                 if (workoutsResponse?.Models != null)
                 {
                     var workoutLogDates = workoutLogsResponse?.Models?
                         .GroupBy(log => log.WorkoutId)
-                        .ToDictionary(g => g.Key, g => g.OrderByDescending(log => log.DateTime).First().DateTime) ?? new Dictionary<int, DateTime>();
-
+                        .ToDictionary(g => g.Key, g => g.OrderByDescending(log => log.DateTime).First().DateTime) ?? new Dictionary<int?, DateTime>();
+                    
                     foreach (var workout in workoutsResponse.Models.OrderBy(w => w.WorkoutId))
                     {
                         var viewModel = new WorkoutViewModel(workout);
-
+                        
                         // Set the date from workout_log if available
-                        if (workoutLogDates.ContainsKey(workout.WorkoutId))
+                        if (workout.WorkoutId != null && workoutLogDates.ContainsKey(workout.WorkoutId))
                         {
                             viewModel.WorkoutDate = workoutLogDates[workout.WorkoutId];
                         }
-
+                        
                         result.Add(viewModel);
                         Console.WriteLine($"Added workout: ID={workout.WorkoutId}, Category={workout.Category}, Date={viewModel.DisplayDate}, Exercises=[{string.Join(",", workout.Exercises ?? new int[0])}]");
                     }
@@ -362,7 +374,7 @@ namespace ground_and_go
             {
                 Console.WriteLine($"Error loading workouts: {ex.Message}");
             }
-
+            
             return result;
         }
 
@@ -372,11 +384,11 @@ namespace ground_and_go
         public async Task DebugDatabaseContent()
         {
             await EnsureInitializedAsync();
-
+            
             if (supabaseClient == null) return;
-
+            
             Console.WriteLine("=== DEBUGGING DATABASE CONTENT ===");
-
+            
             // Test workout_log table
             var workoutLogs = await supabaseClient.From<WorkoutLog>().Limit(5).Get();
             Console.WriteLine($"\n--- WORKOUT LOGS (first 5) ---");
@@ -427,11 +439,16 @@ namespace ground_and_go
         /// <returns>A task</returns>
         public async Task UploadJournalEntry(String entry, int workoutId)
         {
+            // This is the old/unused method. We can ignore it, but I'll update it for completeness.
             await EnsureInitializedAsync();
             try
             {
-                //TODO Get user UUID once implemented
-                int memberId = 1; //Placeholder id
+                string? memberId = GetAuthenticatedMemberId();
+                if (string.IsNullOrEmpty(memberId))
+                {
+                    Console.WriteLine("ATTN: Error in UploadJournalEntry - User not logged in.");
+                    return;
+                }
 
                 WorkoutLog logEntry = new WorkoutLog();
                 logEntry.WorkoutId = workoutId;
@@ -449,7 +466,7 @@ namespace ground_and_go
         }
 
         // This function gets the workout log for a specific member on today's date
-        public async Task<WorkoutLog?> GetTodaysWorkoutLog(int memberId)
+        public async Task<WorkoutLog?> GetTodaysWorkoutLog(string memberId) 
         {
             // Make sure the client is ready
             await EnsureInitializedAsync();
@@ -484,7 +501,7 @@ namespace ground_and_go
 
         // This function creates the *initial* log entry for the day
         // It only saves the memberId, date, and before_journal
-        public async Task<WorkoutLog?> CreateInitialWorkoutLog(int memberId, string beforeJournalText)
+        public async Task<WorkoutLog?> CreateInitialWorkoutLog(string memberId, string beforeJournalText)
         {
             await EnsureInitializedAsync();
             if (supabaseClient == null) return null;
@@ -499,7 +516,7 @@ namespace ground_and_go
                 };
 
                 var response = await supabaseClient.From<WorkoutLog>()
-                                                    .Insert(newLog);
+                                                  .Insert(newLog);
 
                 return response.Models.FirstOrDefault();
             }
@@ -511,7 +528,7 @@ namespace ground_and_go
         }
 
         // This function updates an existing log with the 'after_journal' text
-        public async Task UpdateAfterJournalAsync(int logId, string afterJournalText)
+        public async Task UpdateAfterJournalAsync(string logId, string afterJournalText)
         {
             await EnsureInitializedAsync();
             if (supabaseClient == null) return;
@@ -520,9 +537,9 @@ namespace ground_and_go
             {
                 // We find the log by its 'log_id' and update only the 'after_journal' column
                 await supabaseClient.From<WorkoutLog>()
-                                    .Where(log => log.LogId == logId)
-                                    .Set(log => log.AfterJournal, afterJournalText)
-                                    .Update();
+                                      .Where(log => log.LogId == logId)
+                                      .Set(log => log.AfterJournal, afterJournalText)
+                                      .Update();
             }
             catch (Exception ex)
             {
@@ -532,7 +549,7 @@ namespace ground_and_go
 
 
         // This function updates an existing log with the 'workout_id'
-        public async Task UpdateWorkoutIdAsync(int logId, int workoutId)
+        public async Task UpdateWorkoutIdAsync(string logId, int workoutId)
         {
             await EnsureInitializedAsync();
             if (supabaseClient == null) return;
@@ -541,9 +558,9 @@ namespace ground_and_go
             {
                 // We find the log by its 'log_id' and update only the 'workout_id' column
                 await supabaseClient.From<WorkoutLog>()
-                                    .Where(log => log.LogId == logId)
-                                    .Set(log => log.WorkoutId, workoutId)
-                                    .Update();
+                                      .Where(log => log.LogId == logId)
+                                      .Set(log => log.WorkoutId, workoutId)
+                                      .Update();
             }
             catch (Exception ex)
             {

@@ -65,8 +65,15 @@ public partial class JournalEntryPage : ContentPage
 
     private async void OnNext_Clicked(object sender, EventArgs e)
     {
-        // 1. Get the (mock) user ID
-        int memberId = _authService.GetCurrentMemberId();
+        // 1. Get the real user ID from the database service
+        string? memberId = _database.GetAuthenticatedMemberId();
+
+        // 1a. check if user is actually logged in
+        if (string.IsNullOrEmpty(memberId))
+        {
+            await DisplayAlert("Error", "You are not logged in. Please restart the app.", "OK");
+            return;
+        }
         
         // 2. Save the initial journal entry to the database
         // This creates the log for today and sets our database progress

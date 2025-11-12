@@ -53,8 +53,14 @@ public partial class PostActivityJournalEntryPage : ContentPage
     {
         try
         {
-            // 1. Get the (mock) user ID
-            int memberId = _authService.GetCurrentMemberId();
+            // 1. Get the real user ID
+            string? memberId = _database.GetAuthenticatedMemberId();
+
+            if (string.IsNullOrEmpty(memberId))
+            {
+                await DisplayAlert("Error", "You are not logged in. Please restart the app.", "OK");
+                return;
+            }
 
             // 2. Get today's log from the database
             WorkoutLog? todaysLog = await _database.GetTodaysWorkoutLog(memberId);

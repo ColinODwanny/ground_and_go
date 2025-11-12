@@ -40,7 +40,11 @@ public partial class MyJournalEntriesPage : ContentPage, INotifyPropertyChanged
         {
             IsLoading = true;
             
-            var workoutLogsWithDetails = await _database.GetWorkoutLogsWithDetails(); // Get ALL logs
+            // Get the real logged-in user's ID
+            string? memberId = _database.GetAuthenticatedMemberId();
+            
+            // Pass the memberId to the query
+            var workoutLogsWithDetails = await _database.GetWorkoutLogsWithDetails(memberId); 
             
             Console.WriteLine($"Total workout logs retrieved: {workoutLogsWithDetails.Count}");
             
@@ -70,11 +74,13 @@ public partial class MyJournalEntriesPage : ContentPage, INotifyPropertyChanged
         }
     }
     
-    public event PropertyChangedEventHandler? PropertyChanged;
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    // This is the corrected section
+    public new event PropertyChangedEventHandler? PropertyChanged;
+    protected new virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
+    // End corrected section
     
     private void OnJournalEntryTapped(object sender, EventArgs e)
     {

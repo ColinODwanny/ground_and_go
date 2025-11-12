@@ -32,10 +32,17 @@ namespace ground_and_go.Services
         // This is the main public function our pages will call
         public async Task<DailyProgressState> GetTodaysProgressAsync()
         {
-            // 1. Get the (fake) logged-in user
-            int memberId = _authService.GetCurrentMemberId();
+            // 1. Get the REAL logged-in user's ID
+            string? memberId = _database.GetAuthenticatedMemberId();
 
             // 2. Ask the database for this user's log for today
+            
+            // if memberId is null, user isn't logged in, so no log.
+            if (string.IsNullOrEmpty(memberId))
+            {
+                 return new DailyProgressState { Step = 0, Progress = 0.0, TodaysLog = null };
+            }
+            
             WorkoutLog? log = await _database.GetTodaysWorkoutLog(memberId);
 
             // 3. Figure out the progress step based on the log

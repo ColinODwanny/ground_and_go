@@ -11,31 +11,28 @@ namespace ground_and_go.Models
     public class WorkoutLog : ObservableBaseModel, IEquatable<WorkoutLog>
     {
 
-        int _logId = -1;
-        int _memberId = -1;
+        string _logId = "-1";
+        string _memberId = "-1";
         DateTime _dateTime;
-        int _workoutId = -1;
+        int? _workoutId = null;
         string _beforeJournal = "";
         string _afterJournal = "";
 
-
-
-
         [PrimaryKey("log_id")]
-        public int LogId
+        public string LogId
         {
             get => _logId;
         }
 
         [Column("member_id")]
-        public int MemberId
+        public string MemberId
         {
             get => _memberId;
             set => SetProperty(ref _memberId, value);
         }
 
         [Column("workout_id")]
-        public int WorkoutId
+        public int? WorkoutId
         {
             get => _workoutId;
             set => SetProperty(ref _workoutId, value);

@@ -46,7 +46,13 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         var result = await this.ShowPopupAsync(popup);
         
         // 1. Get User ID and Today's Log
-        int memberId = _authService.GetCurrentMemberId();
+        string? memberId = _database.GetAuthenticatedMemberId();
+        if (string.IsNullOrEmpty(memberId))
+        {
+            await DisplayAlert("Error", "You are not logged in. Please restart the app.", "OK");
+            return;
+        }
+
         WorkoutLog? todaysLog = await _database.GetTodaysWorkoutLog(memberId);
 
         // 2. Get a workout ID (using a placeholder for now)
