@@ -53,27 +53,22 @@ public partial class PostActivityJournalEntryPage : ContentPage
     {
         try
         {
-            // 1. Get the real user ID
-            string? memberId = _database.GetAuthenticatedMemberId();
+            // 1. Get the Log ID we saved from the service
+            string? logId = _progressService.CurrentLogId;
 
-            if (string.IsNullOrEmpty(memberId))
+
+            if (!string.IsNullOrEmpty(logId))
             {
-                await DisplayAlert("Error", "You are not logged in. Please restart the app.", "OK");
-                return;
-            }
+                // 2. Save the final journal text to that log
+                await _database.UpdateAfterJournalAsync(logId, JournalEditor.Text);
 
-            // 2. Get today's log from the database
-            WorkoutLog? todaysLog = await _database.GetTodaysWorkoutLog(memberId);
-
-            if (todaysLog != null)
-            {
-                // 3. Save the final journal text to that log
-                await _database.UpdateAfterJournalAsync(todaysLog.LogId, JournalEditor.Text);
+                // 3. Clear the ID now that we're done
+                _progressService.CurrentLogId = null;
             }
             else
             {
                 // This shouldn't happen, but just in case...
-                Console.WriteLine("Error: Could not find today's log to save the after_journal.");
+                Console.WriteLine("Error: Could not find CurrentLogId to save the after_journal.");
             }
         }
         catch (Exception ex)

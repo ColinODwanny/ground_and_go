@@ -45,29 +45,24 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         var popup = new WorkoutOptionsPopup();
         var result = await this.ShowPopupAsync(popup);
         
-        // 1. Get User ID and Today's Log
-        string? memberId = _database.GetAuthenticatedMemberId();
-        if (string.IsNullOrEmpty(memberId))
-        {
-            await DisplayAlert("Error", "You are not logged in. Please restart the app.", "OK");
-            return;
-        }
-
-        WorkoutLog? todaysLog = await _database.GetTodaysWorkoutLog(memberId);
+        // 1. Get the Log ID we saved in the previous step
+        string? logId = _progressService.CurrentLogId;
 
         // 2. Get a workout ID (using a placeholder for now)
         // TODO: Replace '1' with your actual workout generation logic
         int generatedWorkoutId = 1; 
 
         // 3. Save the workout ID to the log
-        if (todaysLog != null)
+        if (!string.IsNullOrEmpty(logId))
         {
-            await _database.UpdateWorkoutIdAsync(todaysLog.LogId, generatedWorkoutId);
+            await _database.UpdateWorkoutIdAsync(logId, generatedWorkoutId);
         }
         else
         {
             // This should not happen, but it's good to check
-            Console.WriteLine("Error: Could not find today's log to save workout_id.");
+            Console.WriteLine("Error: Could not find the CurrentLogId to save the workout_id.");
+            await DisplayAlert("Error", "A problem occurred. Could not find the current log.", "OK");
+            return;
         }
 
         // after the popup closes, navigate to the main "workout" tab

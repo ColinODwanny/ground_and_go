@@ -77,9 +77,21 @@ public partial class JournalEntryPage : ContentPage
         
         // 2. Save the initial journal entry to the database
         // This creates the log for today and sets our database progress
-        await _database.CreateInitialWorkoutLog(memberId, JournalEntry.Text);
+        WorkoutLog? newLog = await _database.CreateInitialWorkoutLog(memberId, JournalEntry.Text);
+
+        // 3. Save the new LogId in our service
+        if (newLog != null)
+        {
+            _progressService.CurrentLogId = newLog.LogId;
+        }
+        else
+        {
+            // The insert failed, so we should stop here
+            await DisplayAlert("Error", "There was a problem saving your journal entry. Please try again.", "OK");
+            return;
+        }
         
-        // 3. Navigate to the next page
+        // 4. Navigate to the next page
         // Read the flow type directly from the service
         if (_progressService.CurrentFlowType == "workout")
         {
