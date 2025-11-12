@@ -49,8 +49,7 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         string? logId = _progressService.CurrentLogId;
 
         // 2. Get a workout ID (using a placeholder for now)
-        // TODO: Replace '1' with your actual workout generation logic
-        int generatedWorkoutId = 1; 
+        int generatedWorkoutId = 201;
 
         // 3. Save the workout ID to the log
         if (!string.IsNullOrEmpty(logId))
