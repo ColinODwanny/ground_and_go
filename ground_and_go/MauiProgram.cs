@@ -61,6 +61,9 @@ public static class MauiProgram
         // Get the singleton Database instance from the service provider...
         // ...and assign it to our 'db' property.
         db = app.Services.GetRequiredService<Database>()!;
+        
+        // This injects the database into our business logic
+        BusinessLogic.Database = db;
 
         return app;
     }

@@ -2,12 +2,13 @@ namespace ground_and_go.Models;
 
 public class BusinessLogic
 {
-    private Database Database { get; set; }
+    // make this public so MauiProgram can set it
+    public Database Database { get; set; } = null!; 
     public bool IsLoggedIn { get; set; } = false;
 
     public BusinessLogic()
     {
-        Database = new Database();
+
     }
 
     /// <summary>

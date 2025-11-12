@@ -21,6 +21,9 @@ namespace ground_and_go.Services
         // This property will store our flow state
         public string? CurrentFlowType { get; set; }
 
+        // This new property will store the ID of the log we just created
+        public string? CurrentLogId { get; set; }
+
         // The service "requests" the database and mock auth service
         // and .NET MAUI gives them to us (this is dependency injection).
         public DailyProgressService(Database database, MockAuthService authService)
@@ -33,9 +36,16 @@ namespace ground_and_go.Services
         public async Task<DailyProgressState> GetTodaysProgressAsync()
         {
             // 1. Get the (fake) logged-in user
-            int memberId = _authService.GetCurrentMemberId();
+            string? memberId = _database.GetAuthenticatedMemberId();
 
             // 2. Ask the database for this user's log for today
+            
+            // if memberId is null, user isn't logged in, so no log.
+            if (string.IsNullOrEmpty(memberId))
+            {
+                 return new DailyProgressState { Step = 0, Progress = 0.0, TodaysLog = null };
+            }
+            
             WorkoutLog? log = await _database.GetTodaysWorkoutLog(memberId);
 
             // 3. Figure out the progress step based on the log
@@ -51,6 +61,8 @@ namespace ground_and_go.Services
             // A log row exists, 'before_journal' is filled, but 'workout_id' is null (or -1, based on your model)
             if (!string.IsNullOrEmpty(log.BeforeJournal) && log.WorkoutId <= 0) // Using <= 0 to be safe
             {
+                // We've found an existing log, so let's save its ID just in case
+                CurrentLogId = log.LogId;
                 return new DailyProgressState { Step = 1, Progress = 0.33, TodaysLog = log };
             }
 
@@ -58,6 +70,8 @@ namespace ground_and_go.Services
             // A 'workout_id' has been saved, but the 'after_journal' is still empty.
             if (log.WorkoutId > 0 && string.IsNullOrEmpty(log.AfterJournal))
             {
+                // We've found an existing log, so let's save its ID
+                CurrentLogId = log.LogId;
                 return new DailyProgressState { Step = 2, Progress = 0.66, TodaysLog = log };
             }
 
@@ -65,6 +79,8 @@ namespace ground_and_go.Services
             // The 'after_journal' is filled. The user is done for the day.
             if (!string.IsNullOrEmpty(log.AfterJournal))
             {
+                // We're all done, so we can clear the ID
+                CurrentLogId = null;
                 return new DailyProgressState { Step = 3, Progress = 1.0, TodaysLog = log };
             }
 

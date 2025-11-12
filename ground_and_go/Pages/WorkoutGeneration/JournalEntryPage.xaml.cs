@@ -65,14 +65,33 @@ public partial class JournalEntryPage : ContentPage
 
     private async void OnNext_Clicked(object sender, EventArgs e)
     {
-        // 1. Get the (mock) user ID
-        int memberId = _authService.GetCurrentMemberId();
+        // 1. Get the real user ID from the database service
+        string? memberId = _database.GetAuthenticatedMemberId();
+
+        // 1a. check if user is actually logged in
+        if (string.IsNullOrEmpty(memberId))
+        {
+            await DisplayAlert("Error", "You are not logged in. Please restart the app.", "OK");
+            return;
+        }
         
         // 2. Save the initial journal entry to the database
         // This creates the log for today and sets our database progress
-        await _database.CreateInitialWorkoutLog(memberId, JournalEntry.Text);
+        WorkoutLog? newLog = await _database.CreateInitialWorkoutLog(memberId, JournalEntry.Text);
+
+        // 3. Save the new LogId in our service
+        if (newLog != null)
+        {
+            _progressService.CurrentLogId = newLog.LogId;
+        }
+        else
+        {
+            // The insert failed, so we should stop here
+            await DisplayAlert("Error", "There was a problem saving your journal entry. Please try again.", "OK");
+            return;
+        }
         
-        // 3. Navigate to the next page
+        // 4. Navigate to the next page
         // Read the flow type directly from the service
         if (_progressService.CurrentFlowType == "workout")
         {
