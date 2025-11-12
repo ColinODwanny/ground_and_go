@@ -49,7 +49,7 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         string? logId = _progressService.CurrentLogId;
 
         // 2. Get a workout ID (using a placeholder for now)
-        int generatedWorkoutId = 201;
+        int generatedWorkoutId = 201; 
 
         // 3. Save the workout ID to the log
         if (!string.IsNullOrEmpty(logId))
@@ -64,9 +64,7 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
             return;
         }
 
-        // after the popup closes, navigate to the main "workout" tab
-        // the "//" means go to this absolute route
-        // Navigate without the query parameter
-        await Shell.Current.GoToAsync($"//workout"); 
+        // Navigate hierarchically using the alias "TheWorkout"
+        await Shell.Current.GoToAsync("TheWorkout"); 
     }
 }

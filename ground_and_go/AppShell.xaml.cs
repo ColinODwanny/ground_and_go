@@ -13,6 +13,10 @@ public partial class AppShell : Shell
         Routing.RegisterRoute(nameof(Pages.Profile.WorkoutPage), typeof(Pages.Profile.WorkoutPage));
         Routing.RegisterRoute(nameof(Pages.Workout.VideoPlayer), typeof(Pages.Workout.VideoPlayer));
         
+        // Use simple string aliases for pages now accessed hierarchically
+        Routing.RegisterRoute("TheWorkout", typeof(Pages.WorkoutGeneration.TodaysWorkoutPage));
+        Routing.RegisterRoute("PostJournal", typeof(Pages.WorkoutGeneration.PostActivityJournalEntryPage));
+
         // need unique routes for pages with the same class name
         Routing.RegisterRoute("ProfileJournalEntry", typeof(ground_and_go.Pages.Profile.JournalEntryPage));
         Routing.RegisterRoute("WorkoutJournalEntry", typeof(ground_and_go.Pages.WorkoutGeneration.JournalEntryPage));

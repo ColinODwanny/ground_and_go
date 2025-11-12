@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ground_and_go.Pages.WorkoutGeneration.TodaysWorkoutPage"
-             Title="Today's Activity"
-             BackgroundColor="#F0F0F0">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="ground_and_go.Pages.WorkoutGeneration.TodaysWorkoutPage"
+    Title="Today's Activity"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="#F0F0F0">
 
     <ScrollView>
         <VerticalStackLayout Spacing="12" Padding="20">
