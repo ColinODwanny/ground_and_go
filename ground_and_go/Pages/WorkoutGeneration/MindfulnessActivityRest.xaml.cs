@@ -28,9 +28,7 @@ public partial class MindfulnessActivityRestPage : ContentPage
     // This method passes the flow parameter
     private async void OnNext_Clicked(object sender, EventArgs e)
     {
-        // This button will eventually save the entry and navigate
-        // change this to go to the new post-activity journal page
-        // We pass the 'flow' parameter along to the next page
-        await Shell.Current.GoToAsync($"{nameof(PostActivityJournalEntryPage)}?flow=rest");
+        // Navigate hierarchically using the alias "PostJournal"
+        await Shell.Current.GoToAsync("PostJournal");
     }
 }

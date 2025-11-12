@@ -31,12 +31,6 @@
                     Route="home"/>
         </Tab>
 
-        <Tab Title="Activity"
-                Icon="{mi:Material FitnessCenter}">
-            <ShellContent ContentTemplate="{DataTemplate workoutgen:TodaysWorkoutPage}"
-                    Route="workout"/>
-        </Tab>
-
         <Tab Title="Profile"
                 Icon="{mi:Material AccountCircle}">
             <ShellContent ContentTemplate="{DataTemplate profile:ProfilePage}"
