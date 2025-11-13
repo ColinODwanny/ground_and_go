@@ -4,11 +4,10 @@ using System.Runtime.CompilerServices;
 using CommunityToolkit.Maui.Views;
 using ground_and_go.Pages.WorkoutGeneration;
 using ground_and_go.Services; 
-using System.Text.Json; // 1. ADDED THIS USING STATEMENT
+using System.Text.Json;
 
 namespace ground_and_go.Pages.Home;
 
-// Add INotifyPropertyChanged to the class definition
 public partial class HomePage : ContentPage, INotifyPropertyChanged
 {
     private readonly DailyProgressService _progressService;
@@ -109,7 +108,7 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    // --- Event Handlers (Unchanged) ---
+    // Event Handlers
 
     private async void OnStartWorkoutFlow_Clicked(object sender, EventArgs e)
     {

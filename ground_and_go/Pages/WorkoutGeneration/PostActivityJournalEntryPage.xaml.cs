@@ -42,10 +42,6 @@ public partial class PostActivityJournalEntryPage : ContentPage
             ProgressStepLabel.Text = "Step 4 of 4: Write a final reflection";
             FlowProgressBar.Progress = 0.75; // 3/4 complete
         }
-
-        // We can pre-load today's log to make saving faster,
-        // but it's safer to get it fresh on the 'Finish' click
-        // in case of any issues.
     }
 
     // This method now saves the journal entry

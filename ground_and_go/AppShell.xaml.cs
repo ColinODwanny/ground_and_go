@@ -21,11 +21,11 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("ProfileJournalEntry", typeof(ground_and_go.Pages.Profile.JournalEntryPage));
         Routing.RegisterRoute("WorkoutJournalEntry", typeof(ground_and_go.Pages.WorkoutGeneration.JournalEntryPage));
 
-        // add these routes for the mindfulness pages
+        // routes for the mindfulness pages
         Routing.RegisterRoute(nameof(Pages.WorkoutGeneration.MindfulnessActivityWorkoutPage), typeof(Pages.WorkoutGeneration.MindfulnessActivityWorkoutPage));
         Routing.RegisterRoute(nameof(Pages.WorkoutGeneration.MindfulnessActivityRestPage), typeof(Pages.WorkoutGeneration.MindfulnessActivityRestPage));
 
-        // add the new post-activity journal page route
+        // post-activity journal page route
         Routing.RegisterRoute(nameof(Pages.WorkoutGeneration.PostActivityJournalEntryPage), typeof(Pages.WorkoutGeneration.PostActivityJournalEntryPage));
     }
 }
