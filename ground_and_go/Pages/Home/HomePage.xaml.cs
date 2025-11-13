@@ -1,134 +1,154 @@
 ﻿// Samuel Reynebeau
-using System.Text.Json;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using CommunityToolkit.Maui.Views;
 using ground_and_go.Pages.WorkoutGeneration;
 using ground_and_go.Services; 
+using System.Text.Json; // 1. ADDED THIS USING STATEMENT
 
 namespace ground_and_go.Pages.Home;
 
-public partial class HomePage : ContentPage
+// Add INotifyPropertyChanged to the class definition
+public partial class HomePage : ContentPage, INotifyPropertyChanged
 {
     private readonly DailyProgressService _progressService;
+
+    // Define the variables for our UI state
+    private bool _isLoading = true;
+    private bool _showStart = false;
+    private bool _showResume = false;
+    private bool _showComplete = false;
+    private double _progressValue = 0.0;
+
+    // Create Public Properties that the UI can "Bind" to
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set { _isLoading = value; OnPropertyChanged(); }
+    }
+
+    public bool ShowStart
+    {
+        get => _showStart;
+        set { _showStart = value; OnPropertyChanged(); }
+    }
+
+    public bool ShowResume
+    {
+        get => _showResume;
+        set { _showResume = value; OnPropertyChanged(); }
+    }
+
+    public bool ShowComplete
+    {
+        get => _showComplete;
+        set { _showComplete = value; OnPropertyChanged(); }
+    }
+
+    public double ProgressValue
+    {
+        get => _progressValue;
+        set { _progressValue = value; OnPropertyChanged(); }
+    }
 
     public HomePage(DailyProgressService progressService)
     {
         InitializeComponent();
         _progressService = progressService;
+        
+        // Tell the XAML that "this" file holds the data
+        BindingContext = this;
     }
 
-    protected override void OnAppearing()
+    // Use OnAppearing to refresh the data every time the page shows up
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
-
-        // 1. Show spinner and hide all content panels
-        LoadingSpinner.IsVisible = true;
-        ProgressContainer.IsVisible = false;
-        StartFlowContainer.IsVisible = false;
-        RestDayContainer.IsVisible = false;
-
-        // 2. Run the check in the background (fire and forget)
-        // This avoids blocking the UI thread and allows the
-        // MainThread.BeginInvokeOnMainThread to work correctly.
-        _ = CheckDailyProgress();
+        await RefreshData();
     }
 
-    private async Task CheckDailyProgress()
+    private async Task RefreshData()
     {
-        // This code now runs on a background thread
+        // Switch to loading state
+        IsLoading = true;
+        ShowStart = false;
+        ShowResume = false;
+        ShowComplete = false;
+
+        // Get the data
         var progressState = await _progressService.GetTodaysProgressAsync();
 
-        // 3. Force all UI updates to run on the Main UI Thread
-        // We use BeginInvoke which is the correct "fire and forget"
-        // for UI updates from a background thread.
-        MainThread.BeginInvokeOnMainThread(() =>
+        // Update the specific state based on the data
+        if (progressState.Step == 0)
         {
-            if (progressState.Step == 0)
-            {
-                // STEP 0: Not Started
-                StartFlowContainer.IsVisible = true;
-                RestDayContainer.IsVisible = true;
-            }
-            else if (progressState.Step > 0 && progressState.Step < 3)
-            {
-                // STEP 1 or 2: In Progress
-                ProgressContainer.IsVisible = true;
-                
-                WorkoutProgressBar.Progress = progressState.Progress;
-                ResumeButton.CommandParameter = progressState;
-                
-                ProgressLabel.Text = "You've already started today's activity!";
-                ResumeButton.IsVisible = true;
-            }
-            else // Step 3
-            {
-                // STEP 3: All Complete
-                ProgressContainer.IsVisible = true;
-                
-                WorkoutProgressBar.Progress = 1.0;
-                ProgressLabel.Text = "You've completed your activity for today!";
-                ResumeButton.IsVisible = false; 
-            }
+            // Not Started
+            ShowStart = true;
+        }
+        else if (progressState.Step > 0 && progressState.Step < 3)
+        {
+            // In Progress
+            ShowResume = true;
+            ProgressValue = progressState.Progress;
+            ResumeButton.CommandParameter = progressState;
+        }
+        else
+        {
+            // Complete
+            ShowComplete = true;
+            ProgressValue = 1.0;
+        }
 
-            // 4. Hide the spinner once the correct content is ready
-            LoadingSpinner.IsVisible = false;
-        });
+        // Turn off loading
+        IsLoading = false;
     }
 
-    // This is your existing function.
+    // 2. ADDED '?' TO THE EVENT HANDLER
+    public new event PropertyChangedEventHandler? PropertyChanged;
+    protected new void OnPropertyChanged([CallerMemberName] string propertyName = "")
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    // --- Event Handlers (Unchanged) ---
+
     private async void OnStartWorkoutFlow_Clicked(object sender, EventArgs e)
     {
-        //initiate popup and store result
         var popup = new HowDoYouFeelPopup();
         var result = await this.ShowPopupAsync(popup);
 
-
-        //if rating/feeling is given then push to the journal entry page
         if (result is FeelingResult)
         {
-            //Convert result to JSON to use in future pages
             var resultJSON = JsonSerializer.Serialize(result);
-
             _progressService.CurrentFlowType = "workout";
 
-            // use shell navigation with the registered route
-            // pass a parameter to tell the journal page this is a "workout" flow
             try
             {
                 await Shell.Current.GoToAsync($"WorkoutJournalEntry?flow=workout&results={resultJSON}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"ATTN: Error while accessing workout journal entry (Workout) -- {ex.ToString()}");
+                Console.WriteLine($"Error: {ex}");
             }
-
         }
     }
 
-    // This is your existing function.
     private async void OnRestDay_Clicked(object sender, EventArgs e)
     {
-        // same flow as the "begin" button
           var popup = new HowDoYouFeelPopup();
           var result = await this.ShowPopupAsync(popup);
 
-          //if rating/feeling is given then push to the journal entry page
           if (result is FeelingResult)
           {
-                //Convert result to JSON to use in future pages
                 var resultJSON = JsonSerializer.Serialize(result);
-
-                // pass a parameter to tell the journal page this is a "rest" flow
                 try
                 { 
                     _progressService.CurrentFlowType = "rest";
-
                     await Shell.Current.GoToAsync($"WorkoutJournalEntry?results={resultJSON}");
                 }
                   catch (Exception ex)
                 {
-                    Console.WriteLine($"ATTN: Error while accessing workout journal entry (Rest) -- {ex.ToString()}");
+                    Console.WriteLine($"Error: {ex}");
                 } 
-                
           }
     }
 
@@ -137,15 +157,12 @@ public partial class HomePage : ContentPage
         if (sender is not Button button || button.CommandParameter is not DailyProgressState state)
             return;
 
-        // Navigate to the correct page based on the step
         if (state.Step == 1)
         {
-            // User finished journal, needs to do mindfulness.
             await Shell.Current.GoToAsync(nameof(MindfulnessActivityWorkoutPage));
         }
         else if (state.Step == 2)
         {
-            // User has a workout, needs to perform it
             await Shell.Current.GoToAsync("TheWorkout");
         }
     }
