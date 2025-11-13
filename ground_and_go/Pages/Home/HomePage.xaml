@@ -18,6 +18,14 @@
                 TextColor="Black"
                 Margin="0,20,0,10"/>
 
+            <ActivityIndicator x:Name="LoadingSpinner" 
+                               IsRunning="True" 
+                               IsVisible="True" 
+                               Color="{StaticResource Primary}"
+                               VerticalOptions="Center"
+                               HorizontalOptions="Center"
+                               Margin="0,40,0,0" />
+
             <VerticalStackLayout x:Name="ProgressContainer" IsVisible="False" Spacing="10">
                 <Border Stroke="LightGray"
                         StrokeThickness="1"
@@ -52,7 +60,7 @@
                 </Border>
             </VerticalStackLayout>
             
-            <VerticalStackLayout x:Name="StartFlowContainer" Spacing="0">
+            <VerticalStackLayout x:Name="StartFlowContainer" IsVisible="False" Spacing="0">
                 <Border Stroke="LightGray"
                         StrokeThickness="1"
                         StrokeShape="RoundRectangle 15"
@@ -85,7 +93,7 @@
                 </Border>
             </VerticalStackLayout>
             
-            <VerticalStackLayout x:Name="RestDayContainer" Spacing="0">
+            <VerticalStackLayout x:Name="RestDayContainer" IsVisible="False" Spacing="0">
                 <Border Stroke="LightGray"
                         StrokeThickness="1"
                         StrokeShape="RoundRectangle 15"
@@ -101,16 +109,16 @@
                             FontAttributes="Bold"
                             TextColor="Black"/>
                         <Label 
-                            Text="Skipping today's work out? You can still complete your journals and mindfulness activity here."
+                            Text="Taking a day off? Log it here to keep your journal and workout history accurate."
                             FontSize="16"
                             TextColor="DarkGray"/>
 
                         <Button 
                             x:Name="RestDayButton"
-                            Text="Begin Rest Day Activity"
+                            Text="Log Rest Day"
                             Margin="0,10,0,0"
                             CornerRadius="20"
-                            BackgroundColor="#FF93B87C"
+                            BackgroundColor="#808080"
                             TextColor="White"
                             Clicked="OnRestDay_Clicked"/>
                     </VerticalStackLayout>

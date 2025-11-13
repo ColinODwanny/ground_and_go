@@ -481,17 +481,23 @@ namespace ground_and_go
             // Get the start of the user's next local day
             var localTomorrow = localToday.AddDays(1);
 
+            Console.WriteLine($"--- DEBUG: GetTodaysWorkoutLog ---");
+            Console.WriteLine($"Searching for memberId: {memberId}");
+            Console.WriteLine($"Searching from (localToday): {localToday}");
+            Console.WriteLine($"Searching to (localTomorrow): {localTomorrow}");
+
             try
             {
                 // Query the 'workout_log' table using your 'supabaseClient'
+                // This is the chained-Where() fix
                 var response = await supabaseClient.From<WorkoutLog>()
-                    .Where(log => 
-                        log.MemberId == memberId && 
-                        log.DateTime >= localToday && 
-                        log.DateTime < localTomorrow
-                    )
+                    .Where(log => log.MemberId == memberId)
+                    .Where(log => log.DateTime >= localToday)
+                    .Where(log => log.DateTime < localTomorrow)
                     .Limit(1) // We only expect one log per day
                     .Get();
+
+                Console.WriteLine($"Query found {response.Models.Count} logs.");
 
                 // Return the first log it finds, or null if none exist
                 return response.Models.FirstOrDefault();
@@ -499,7 +505,9 @@ namespace ground_and_go
             catch (Exception ex)
             {
                 // Log the error for debugging
+                Console.WriteLine($"--- DEBUG: EXCEPTION in GetTodaysWorkoutLog ---");
                 Console.WriteLine($"Error fetching today's workout log: {ex.Message}");
+                Console.WriteLine(ex.ToString()); // Print the full error
                 return null; // Return null if anything goes wrong
             }
         }
@@ -522,12 +530,24 @@ namespace ground_and_go
 
                 var response = await supabaseClient.From<WorkoutLog>()
                                                   .Insert(newLog);
+                
+                if (response.Models.Count > 0)
+                {
+                    Console.WriteLine($"--- DEBUG: CreateInitialWorkoutLog SUCCESS ---");
+                    Console.WriteLine($"Created new log with ID: {response.Models[0].LogId}");
+                }
+                else
+                {
+                    Console.WriteLine($"--- DEBUG: CreateInitialWorkoutLog FAILED TO RETURN MODEL ---");
+                }
 
                 return response.Models.FirstOrDefault();
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"--- DEBUG: EXCEPTION in CreateInitialWorkoutLog ---");
                 Console.WriteLine($"Error creating initial workout log: {ex.Message}");
+                Console.WriteLine(ex.ToString());
                 return null;
             }
         }
@@ -540,15 +560,22 @@ namespace ground_and_go
 
             try
             {
+                Console.WriteLine($"--- DEBUG: UpdateAfterJournalAsync ---");
+                Console.WriteLine($"Updating LogId: {logId} with after_journal.");
+
                 // We find the log by its 'log_id' and update only the 'after_journal' column
                 await supabaseClient.From<WorkoutLog>()
                                       .Where(log => log.LogId == logId)
                                       .Set(log => log.AfterJournal, afterJournalText)
                                       .Update();
+                
+                Console.WriteLine($"--- DEBUG: UpdateAfterJournalAsync SUCCESS ---");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"--- DEBUG: EXCEPTION in UpdateAfterJournalAsync ---");
                 Console.WriteLine($"Error updating after_journal: {ex.Message}");
+                Console.WriteLine(ex.ToString());
             }
         }
 
@@ -556,20 +583,27 @@ namespace ground_and_go
         // This function updates an existing log with the 'workout_id'
         public async Task UpdateWorkoutIdAsync(string logId, int workoutId)
         {
-            await EnsureInitializedAsync().ConfigureAwait(false);
+            await EnsureInitializedAsync();
             if (supabaseClient == null) return;
 
             try
             {
+                Console.WriteLine($"--- DEBUG: UpdateWorkoutIdAsync ---");
+                Console.WriteLine($"Updating LogId: {logId} with workout_id: {workoutId}");
+
                 // We find the log by its 'log_id' and update only the 'workout_id' column
                 await supabaseClient.From<WorkoutLog>()
                                       .Where(log => log.LogId == logId)
                                       .Set(log => log.WorkoutId, workoutId)
                                       .Update();
+                
+                Console.WriteLine($"--- DEBUG: UpdateWorkoutIdAsync SUCCESS ---");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"--- DEBUG: EXCEPTION in UpdateWorkoutIdAsync ---");
                 Console.WriteLine($"Error updating workout_id: {ex.Message}");
+                Console.WriteLine(ex.ToString());
             }
         }
     }
