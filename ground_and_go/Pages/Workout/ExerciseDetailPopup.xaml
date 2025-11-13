@@ -11,7 +11,7 @@
             BackgroundColor="White"
             Padding="25"
             WidthRequest="300"
-            HeightRequest="200">
+            >
 
         <VerticalStackLayout Spacing="20">
             <Label x:Name="ExerciseTitle"
@@ -41,6 +41,7 @@
                 FontSize="16"
                 HorizontalOptions="FillAndExpand"
                 Clicked="OnComplete_Clicked"/>
+                <BoxView HeightRequest="0" Opacity="0"/>
         </VerticalStackLayout>
     </Border>
 </toolkit:Popup>
