@@ -45,6 +45,7 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         var popup = new WorkoutOptionsPopup();
         var result = await this.ShowPopupAsync(popup);
         
+        
         // 1. Get the Log ID we saved in the previous step
         string? logId = _progressService.CurrentLogId;
 
