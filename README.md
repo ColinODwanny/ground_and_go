@@ -7,6 +7,11 @@ This project is a cross-platform fitness and mental wellness application built w
 The application uses **Supabase** for its backend database services, handling everything from user data to workout and journal entry storage.
 ## Sprint 3 Changes
 
+----------------------------------------------------------------
+* TO LOGIN, USE EMAIL sarah.lee@email.com AND A PASSWORD OF: 123
+----------------------------------------------------------------
+
+
 * Added all exercises to the database that clients needed for workouts 😀😀
 * All workouts have been formatted and they're ready to be implemented for next sprint 😀
 
@@ -20,6 +25,10 @@ The application uses **Supabase** for its backend database services, handling ev
 * Cleaned Up App Navigation: Removed the confusing middle "Activity" tab.😀 Re-architected the entire "Begin Activity" and "Rest Day" flows into a hierarchical navigation stack.
 
 * Fixed Authentication State Bug: Corrected the app's startup logic to ensure the BusinessLogic class (used by the Login page) shares the same singleton Database instance as the rest of the app.😀
+
+* UI changes improving overall aesthetic and limiting inputs to correct inputs.
+
+* Functional login logic that pulls information from Supabase to validate user authenticity. 
 
 ## Sprint 2 Changes
 
