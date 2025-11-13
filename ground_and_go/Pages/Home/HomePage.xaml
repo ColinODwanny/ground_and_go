@@ -61,7 +61,7 @@
                         <VerticalStackLayout Spacing="10">
                             <Label Text="Rest Day" FontSize="22" FontAttributes="Bold" TextColor="Black"/>
                             <Label Text="Skipping today's work out? You can still complete your journals and mindfulness activity here." FontSize="16" TextColor="DarkGray"/>
-                            <Button Text="Log Rest Day" Margin="0,10,0,0" CornerRadius="20" BackgroundColor="#D4C9BD" TextColor="White" Clicked="OnRestDay_Clicked"/>
+                            <Button Text="Log Rest Day" Margin="0,10,0,0" CornerRadius="20" BackgroundColor="#FF93B87C" TextColor="White" Clicked="OnRestDay_Clicked"/>
                         </VerticalStackLayout>
                     </Border>
                 </VerticalStackLayout>
