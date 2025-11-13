@@ -1,5 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ground_and_go.Pages.Home.HomePage"
@@ -7,7 +6,6 @@
              BackgroundColor="#F0F0F0">
 
     <ScrollView>
-
         <VerticalStackLayout Spacing="20" Padding="25">
 
             <Label 
@@ -18,103 +16,56 @@
                 TextColor="Black"
                 Margin="0,20,0,10"/>
 
-            <VerticalStackLayout x:Name="ProgressContainer" IsVisible="False" Spacing="10">
-                <Border Stroke="LightGray"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 15"
-                        BackgroundColor="White"
-                        Padding="20">
-                    <Border.Shadow>
-                        <Shadow Brush="Black" Offset="5,5" Opacity="0.2" />
-                    </Border.Shadow>
-                    
+            <ActivityIndicator IsRunning="{Binding IsLoading}" 
+                               IsVisible="{Binding IsLoading}" 
+                               Color="{StaticResource Primary}"
+                               VerticalOptions="Center"
+                               HorizontalOptions="Center"
+                               Margin="0,40,0,0" />
+
+            <VerticalStackLayout IsVisible="{Binding ShowResume}" Spacing="10">
+                <Border Stroke="LightGray" StrokeThickness="1" StrokeShape="RoundRectangle 15" BackgroundColor="White" Padding="20">
+                    <Border.Shadow><Shadow Brush="Black" Offset="5,5" Opacity="0.2" /></Border.Shadow>
                     <VerticalStackLayout Spacing="15">
-                        <Label 
-                            x:Name="ProgressLabel"
-                            Text="You've already started today's activity!"
-                            FontSize="22"
-                            FontAttributes="Bold"
-                            TextColor="Black"/>
-                        
-                        <ProgressBar x:Name="WorkoutProgressBar"
-                                     Progress="0.0" 
-                                     ProgressColor="#2196F3"/>
-                        
-                        <Button 
-                            x:Name="ResumeButton"
-                            Text="Resume Activity"
-                            Margin="0,10,0,0"
-                            CornerRadius="20"
-                            BackgroundColor="#2196F3"
-                            TextColor="White"
-                            Clicked="OnResume_Clicked"/>
+                        <Label Text="You've already started today's activity!" FontSize="22" FontAttributes="Bold" TextColor="Black"/>
+                        <ProgressBar Progress="{Binding ProgressValue}" ProgressColor="#2196F3"/>
+                        <Button x:Name="ResumeButton" Text="Resume Activity" Margin="0,10,0,0" CornerRadius="20" BackgroundColor="#2196F3" TextColor="White" Clicked="OnResume_Clicked"/>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout IsVisible="{Binding ShowComplete}" Spacing="10">
+                <Border Stroke="LightGray" StrokeThickness="1" StrokeShape="RoundRectangle 15" BackgroundColor="White" Padding="20">
+                    <Border.Shadow><Shadow Brush="Black" Offset="5,5" Opacity="0.2" /></Border.Shadow>
+                    <VerticalStackLayout Spacing="15">
+                        <Label Text="You've completed your activity for today!" FontSize="22" FontAttributes="Bold" TextColor="Black"/>
+                        <ProgressBar Progress="1.0" ProgressColor="#4CAF50"/> 
                     </VerticalStackLayout>
                 </Border>
             </VerticalStackLayout>
             
-            <VerticalStackLayout x:Name="StartFlowContainer" Spacing="0">
-                <Border Stroke="LightGray"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 15"
-                        BackgroundColor="White"
-                        Padding="20">
-                    <Border.Shadow>
-                        <Shadow Brush="Black" Offset="5,5" Opacity="0.2" />
-                    </Border.Shadow>
-                    
+            <VerticalStackLayout IsVisible="{Binding ShowStart}" Spacing="0">
+                
+                <Border Stroke="LightGray" StrokeThickness="1" StrokeShape="RoundRectangle 15" BackgroundColor="White" Padding="20">
+                    <Border.Shadow><Shadow Brush="Black" Offset="5,5" Opacity="0.2" /></Border.Shadow>
                     <VerticalStackLayout Spacing="10">
-                        <Label 
-                            Text="How do you feel?"
-                            FontSize="22"
-                            FontAttributes="Bold"
-                            TextColor="Black"/>
-                        <Label 
-                            Text="Let's check in and generate a workout tailored to how you're feeling today."
-                            FontSize="16"
-                            TextColor="DarkGray"/>
-
-                        <Button 
-                            x:Name="StartWorkoutFlowButton"
-                            Text="Begin Activity"
-                            Margin="0,10,0,0"
-                            CornerRadius="20"
-                            BackgroundColor="#2196F3"
-                            TextColor="White"
-                            Clicked="OnStartWorkoutFlow_Clicked"/>
+                        <Label Text="How do you feel?" FontSize="22" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="Let's check in and generate a workout tailored to how you're feeling today." FontSize="16" TextColor="DarkGray"/>
+                        <Button Text="Begin Activity" Margin="0,10,0,0" CornerRadius="20" BackgroundColor="#2196F3" TextColor="White" Clicked="OnStartWorkoutFlow_Clicked"/>
                     </VerticalStackLayout>
                 </Border>
-            </VerticalStackLayout>
-            
-            <VerticalStackLayout x:Name="RestDayContainer" Spacing="0">
-                <Border Stroke="LightGray"
-                        StrokeThickness="1"
-                        StrokeShape="RoundRectangle 15"
-                        BackgroundColor="White"
-                        Padding="20">
-                    <Border.Shadow>
-                        <Shadow Brush="Black" Offset="5,5" Opacity="0.2" />
-                    </Border.Shadow>
-                    <VerticalStackLayout Spacing="10">
-                        <Label 
-                            Text="Rest Day"
-                            FontSize="22"
-                            FontAttributes="Bold"
-                            TextColor="Black"/>
-                        <Label 
-                            Text="Skipping today's work out? You can still complete your journals and mindfulness activity here."
-                            FontSize="16"
-                            TextColor="DarkGray"/>
 
-                        <Button 
-                            x:Name="RestDayButton"
-                            Text="Begin Rest Day Activity"
-                            Margin="0,10,0,0"
-                            CornerRadius="20"
-                            BackgroundColor="#FF93B87C"
-                            TextColor="White"
-                            Clicked="OnRestDay_Clicked"/>
-                    </VerticalStackLayout>
-                </Border>
+                <VerticalStackLayout Padding="0,20,0,0">
+                    <Border Stroke="LightGray" StrokeThickness="1" StrokeShape="RoundRectangle 15" BackgroundColor="White" Padding="20">
+                        <Border.Shadow><Shadow Brush="Black" Offset="5,5" Opacity="0.2" /></Border.Shadow>
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Rest Day" FontSize="22" FontAttributes="Bold" TextColor="Black"/>
+                            <Label Text="Skipping today's work out? You can still complete your journals and mindfulness activity here." FontSize="16" TextColor="DarkGray"/>
+                            <Button Text="Log Rest Day" Margin="0,10,0,0" CornerRadius="20" BackgroundColor="#FF93B87C" TextColor="White" Clicked="OnRestDay_Clicked"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
             </VerticalStackLayout>
 
         </VerticalStackLayout>

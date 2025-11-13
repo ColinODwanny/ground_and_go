@@ -483,13 +483,11 @@ namespace ground_and_go
 
             try
             {
-                // Query the 'workout_log' table using your 'supabaseClient'
+                // Query the 'workout_log' table
                 var response = await supabaseClient.From<WorkoutLog>()
-                    .Where(log => 
-                        log.MemberId == memberId && 
-                        log.DateTime >= localToday && 
-                        log.DateTime < localTomorrow
-                    )
+                    .Where(log => log.MemberId == memberId)
+                    .Where(log => log.DateTime >= localToday)
+                    .Where(log => log.DateTime < localTomorrow)
                     .Limit(1) // We only expect one log per day
                     .Get();
 
@@ -522,7 +520,7 @@ namespace ground_and_go
 
                 var response = await supabaseClient.From<WorkoutLog>()
                                                   .Insert(newLog);
-
+                
                 return response.Models.FirstOrDefault();
             }
             catch (Exception ex)
@@ -556,7 +554,7 @@ namespace ground_and_go
         // This function updates an existing log with the 'workout_id'
         public async Task UpdateWorkoutIdAsync(string logId, int workoutId)
         {
-            await EnsureInitializedAsync().ConfigureAwait(false);
+            await EnsureInitializedAsync();
             if (supabaseClient == null) return;
 
             try
