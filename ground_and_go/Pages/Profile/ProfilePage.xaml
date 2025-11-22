@@ -2,6 +2,7 @@
 <!--Aidan Trusky-->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
              x:Class="ground_and_go.Pages.Profile.ProfilePage"
              Title="Profile"
              BackgroundColor="#F0F0F0">
@@ -20,16 +21,19 @@
                     <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
                 </Border.Shadow>
                 
-                <!-- Because of the block below, if you click on this region, a new page will open -->
                 <Border.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnMyWorkoutsTapped" />
                 </Border.GestureRecognizers>
 
-                <Grid ColumnDefinitions="Auto,*" Padding="20">
-                    <Label Grid.Column="0"
-                           Text="💪"
-                           FontSize="32"
-                           VerticalOptions="Center"/>
+                <!-- width column "60" instead of "Auto" to prevent collapse -->
+                <Grid ColumnDefinitions="60,*" Padding="20,0">
+                    <Image Grid.Column="0"
+                           Source="{mi:Material MonitorHeart, IconColor=Black, IconSize=32}"
+                           HeightRequest="32"
+                           WidthRequest="32"
+                           Aspect="AspectFit"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"/>
                     
                     <Label Grid.Column="1"
                            Text="My Workouts"
@@ -37,7 +41,7 @@
                            FontAttributes="Bold"
                            TextColor="Black"
                            VerticalOptions="Center"
-                           Margin="20,0,0,0"/>
+                           Margin="10,0,0,0"/>
                 </Grid>
             </Border>
 
@@ -51,16 +55,18 @@
                     <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
                 </Border.Shadow>
 
-                <!-- Because of the block below, if you click on this region, a new page will open -->
                 <Border.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnMyJournalEntriesTapped" />
                 </Border.GestureRecognizers>
                 
-                <Grid ColumnDefinitions="Auto,*" Padding="20">
-                    <Label Grid.Column="0"
-                           Text="📖"
-                           FontSize="32"
-                           VerticalOptions="Center"/>
+                <Grid ColumnDefinitions="60,*" Padding="20,0">
+                    <Image Grid.Column="0"
+                           Source="{mi:Material AutoStories, IconColor=Black, IconSize=32}"
+                           HeightRequest="32"
+                           WidthRequest="32"
+                           Aspect="AspectFit"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"/>
                     
                     <Label Grid.Column="1"
                            Text="My Journal Entries"
@@ -68,7 +74,7 @@
                            FontAttributes="Bold"
                            TextColor="Black"
                            VerticalOptions="Center"
-                           Margin="20,0,0,0"/>
+                           Margin="10,0,0,0"/>
                 </Grid>
             </Border>
 
@@ -81,16 +87,18 @@
                     <Shadow Brush="Black" Offset="0,2" Opacity="0.1" />
                 </Border.Shadow>
 
-                <!-- Because of the block below, if you click on this region, a new page will open -->
                 <Border.GestureRecognizers>
                     <TapGestureRecognizer Tapped="OnLogoutTapped" />
                 </Border.GestureRecognizers>
                 
-                <Grid ColumnDefinitions="Auto,*" Padding="20">
-                    <Label Grid.Column="0"
-                           Text="🚪"
-                           FontSize="32"
-                           VerticalOptions="Center"/>
+                <Grid ColumnDefinitions="60,*" Padding="20,0">
+                    <Image Grid.Column="0"
+                           Source="{mi:Material Logout, IconColor=Black, IconSize=32}"
+                           HeightRequest="32"
+                           WidthRequest="32"
+                           Aspect="AspectFit"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"/>
                     
                     <Label Grid.Column="1"
                            Text="Logout"
@@ -98,7 +106,7 @@
                            FontAttributes="Bold"
                            TextColor="Black"
                            VerticalOptions="Center"
-                           Margin="20,0,0,0"/>
+                           Margin="10,0,0,0"/>
                 </Grid>
             </Border>
 
