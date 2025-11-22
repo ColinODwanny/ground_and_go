@@ -37,8 +37,20 @@
             <VerticalStackLayout IsVisible="{Binding ShowComplete}" Spacing="10">
                 <Border Stroke="LightGray" StrokeThickness="1" StrokeShape="RoundRectangle 15" BackgroundColor="White" Padding="20">
                     <Border.Shadow><Shadow Brush="Black" Offset="5,5" Opacity="0.2" /></Border.Shadow>
+                    
                     <VerticalStackLayout Spacing="15">
-                        <Label Text="You've completed your activity for today!" FontSize="22" FontAttributes="Bold" TextColor="Black"/>
+                        
+                        <Label Text="You've completed your activity for today!" 
+                            FontSize="22" 
+                            FontAttributes="Bold" 
+                            TextColor="Black"
+                            HorizontalTextAlignment="Center"/>
+
+                        <Image Source="black_and_white2.webp"
+                            HeightRequest="360"
+                            Aspect="AspectFit"
+                            HorizontalOptions="Center" />
+                        
                         <ProgressBar Progress="1.0" ProgressColor="#4CAF50"/> 
                     </VerticalStackLayout>
                 </Border>

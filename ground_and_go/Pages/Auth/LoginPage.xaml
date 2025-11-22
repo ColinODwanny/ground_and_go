@@ -17,7 +17,7 @@
 
         <!-- Ground and Go Logo -->
         <Image
-            Source="black_and_white.webp"
+            Source="black_and_white2.webp"
             Grid.Row="0"
             HeightRequest="500"
             Aspect="AspectFit"/>
