@@ -31,8 +31,9 @@ namespace ground_and_go.Models
         
         public string WorkoutEquipment => WorkoutDetails?.Equipment ?? "N/A";
         
-        public string ExercisesList => WorkoutDetails?.Exercises != null ? 
-            $"[{string.Join(", ", WorkoutDetails.Exercises)}]" : "No exercises";
+        public string ExercisesList => GetExercisesDisplay();
+        
+        public string WorkoutEmotion => GetEmotionName();
         
         public bool HasBeforeJournal => !string.IsNullOrEmpty(WorkoutLog.BeforeJournal);
         
@@ -53,6 +54,47 @@ namespace ground_and_go.Models
         public WorkoutLogViewModel(WorkoutLog workoutLog)
         {
             WorkoutLog = workoutLog;
+        }
+        
+        private string GetExercisesDisplay()
+        {
+            if (WorkoutDetails?.Exercises?.Sections == null || WorkoutDetails.Exercises.Sections.Count == 0)
+                return "No exercises";
+            
+            var exerciseCount = 0;
+            var sectionNames = new List<string>();
+            
+            foreach (var section in WorkoutDetails.Exercises.Sections)
+            {
+                if (section.Exercises != null)
+                {
+                    exerciseCount += section.Exercises.Count;
+                    sectionNames.Add(section.Title ?? "Unknown Section");
+                }
+            }
+            
+            return exerciseCount > 0 ? 
+                $"{exerciseCount} exercises across {sectionNames.Count} sections" : 
+                "No exercises";
+        }
+        
+        private string GetEmotionName()
+        {
+            if (WorkoutDetails?.EmotionId == null) return "Unknown";
+            
+            var emotionMap = new Dictionary<int, string>
+            {
+                { 1, "Happy" },
+                { 2, "Neutral" },
+                { 3, "Sad" },
+                { 4, "Depressed" },
+                { 5, "Energized" },
+                { 6, "Anxious" },
+                { 7, "Angry" },
+                { 8, "Tired" }
+            };
+            
+            return emotionMap.TryGetValue(WorkoutDetails.EmotionId, out var emotion) ? emotion : "Unknown";
         }
     }
 }

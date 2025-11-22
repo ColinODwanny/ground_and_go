@@ -2,7 +2,6 @@ using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
-using Newtonsoft.Json;
 using System.Linq;
 
 namespace ground_and_go.Models
@@ -15,10 +14,9 @@ namespace ground_and_go.Models
         int _emotion_id = -1;
         string _category = "";
         int _category_num = -1;
-        string _equipment = "";
         string _impact = "";
-        string _info = "";
-        int[] _exercies = [];
+        bool? _atGym = null;
+        WorkoutExercises _exercises = new();
 
         [PrimaryKey("workout_id", true)]
         public int WorkoutId
@@ -48,11 +46,11 @@ namespace ground_and_go.Models
             set => SetProperty(ref _category_num, value);
         }
 
-        [Column("equipment")]
-        public string Equipment
+        [Column("at_gym")]
+        public bool? AtGym
         {
-            get => _equipment;
-            set => SetProperty(ref _equipment, value);
+            get => _atGym;
+            set => SetProperty(ref _atGym, value);
         }
 
         [Column("impact")]
@@ -62,32 +60,54 @@ namespace ground_and_go.Models
             set => SetProperty(ref _impact, value);
         }
 
-        [Column("info")]
-        public string Info
-        {
-            get => _info;
-            set => SetProperty(ref _info, value);
-        }
-
         [Column("exercises")]
-        public int[] Exercises
+        public WorkoutExercises Exercises
         {
-            get => _exercies;
-            set => SetProperty(ref _exercies, value);
+            get => _exercises;
+            set => SetProperty(ref _exercises, value);
         }
 
 
 
         [JsonIgnore]
-        public string ExercisesBulletedList =>
-            Exercises != null && Exercises.Length > 0 && Database.ExercisesDictionary?.Count > 0
-                ? string.Join(Environment.NewLine,
-                    Exercises.Select(id =>
-                        Database.ExercisesDictionary.TryGetValue(id, out var exercise)
-                            ? $"• {exercise.Name}"
-                            : $"• Unknown ({id})"
-                    ))
-                : "No exercises";
+        public string WorkoutDescription => Exercises?.Description ?? "No description available";
+        
+        [JsonIgnore]
+        public string EquipmentType => AtGym == true ? "Gym" : AtGym == false ? "Home" : "Any Location";
+        
+        // Backward compatibility properties for WorkoutViewModel
+        [JsonIgnore]
+        public string Equipment => EquipmentType;
+        
+        [JsonIgnore]
+        public string Info => WorkoutDescription;
+        
+        [JsonIgnore]
+        public string ExercisesBulletedList => GetExercisesBulletedList();
+        
+        private string GetExercisesBulletedList()
+        {
+            if (Exercises?.Sections == null || Exercises.Sections.Count == 0)
+                return "No exercises available";
+            
+            var sectionInfo = new List<string>();
+            
+            foreach (var section in Exercises.Sections)
+            {
+                if (section.Exercises != null && section.Exercises.Count > 0)
+                {
+                    var exerciseDetails = section.Exercises.Select(ex => 
+                        $"  - Exercise #{ex.Id}" + 
+                        (string.IsNullOrEmpty(ex.SetsDisplay) ? "" : $" ({ex.SetsDisplay} sets)") +
+                        (string.IsNullOrEmpty(ex.Reps) ? "" : $" x {ex.Reps} reps")).ToList();
+                    
+                    sectionInfo.Add($"• {section.Title ?? "Unknown Section"} ({section.Exercises.Count} exercises)");
+                    sectionInfo.AddRange(exerciseDetails);
+                }
+            }
+            
+            return sectionInfo.Count > 0 ? string.Join(Environment.NewLine, sectionInfo) : "No exercises available";
+        }
 
 
         public override bool Equals(object? obj)

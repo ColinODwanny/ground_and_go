@@ -9,17 +9,18 @@
     <Border StrokeShape="RoundRectangle 20"
             Stroke="LightGray"
             BackgroundColor="White"
-            Padding="25"
-            WidthRequest="300"
+            Padding="20"
+            WidthRequest="320"
             >
 
-        <VerticalStackLayout Spacing="20">
+        <VerticalStackLayout Spacing="15">
             <Label x:Name="ExerciseTitle"
                 Text="Exercise Name"
-                FontSize="22"
+                FontSize="20"
                 FontAttributes="Bold"
                 HorizontalOptions="Center"
-                TextColor="Black"/>
+                TextColor="Black"
+                Margin="0,0,0,5"/>
 
             <Button Text="View Exercise"
                 BackgroundColor="White"
@@ -27,8 +28,8 @@
                 BorderColor="DarkGray"
                 BorderWidth="1"
                 CornerRadius="10"
-                HeightRequest="45"
-                FontSize="16"
+                HeightRequest="40"
+                FontSize="15"
                 Clicked="OnViewExerciseClicked"
                 HorizontalOptions="FillAndExpand"/>
 
@@ -37,11 +38,10 @@
                 BackgroundColor="#4CAF50"
                 TextColor="White"
                 CornerRadius="10"
-                HeightRequest="45"
-                FontSize="16"
+                HeightRequest="40"
+                FontSize="15"
                 HorizontalOptions="FillAndExpand"
                 Clicked="OnComplete_Clicked"/>
-                <BoxView HeightRequest="0" Opacity="0"/>
         </VerticalStackLayout>
     </Border>
 </toolkit:Popup>

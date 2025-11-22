@@ -115,10 +115,11 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
         var popup = new HowDoYouFeelPopup();
         var result = await this.ShowPopupAsync(popup);
 
-        if (result is FeelingResult)
+        if (result is FeelingResult feelingResult)
         {
             var resultJSON = JsonSerializer.Serialize(result);
             _progressService.CurrentFlowType = "workout";
+            _progressService.CurrentFeelingResult = feelingResult;
 
             try
             {
@@ -136,12 +137,13 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
           var popup = new HowDoYouFeelPopup();
           var result = await this.ShowPopupAsync(popup);
 
-          if (result is FeelingResult)
+          if (result is FeelingResult feelingResult)
           {
                 var resultJSON = JsonSerializer.Serialize(result);
                 try
                 { 
                     _progressService.CurrentFlowType = "rest";
+                    _progressService.CurrentFeelingResult = feelingResult;
                     await Shell.Current.GoToAsync($"WorkoutJournalEntry?results={resultJSON}");
                 }
                   catch (Exception ex)

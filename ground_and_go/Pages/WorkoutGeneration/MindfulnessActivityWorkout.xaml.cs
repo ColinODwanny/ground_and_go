@@ -41,21 +41,59 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
     // This method now passes the flow parameter
     private async void OnNext_Clicked(object sender, EventArgs e)
     {
-        // This button will eventually save the entry and navigate
+        // Show equipment selection popup
         var popup = new WorkoutOptionsPopup();
-        var result = await this.ShowPopupAsync(popup);
+        var equipmentResult = await this.ShowPopupAsync(popup);
         
+        if (equipmentResult is not EquipmentResult equipment)
+        {
+            return; // User cancelled equipment selection
+        }
+
+        // Store equipment result in service for later use
+        _progressService.CurrentEquipmentResult = equipment;
         
         // 1. Get the Log ID we saved in the previous step
         string? logId = _progressService.CurrentLogId;
 
-        // 2. Get a workout ID (using a placeholder for now)
-        int generatedWorkoutId = 201; 
+        // 2. Generate workout based on user's emotion and equipment
+        Models.Workout? selectedWorkout = null;
+        
+        if (_progressService.CurrentFeelingResult?.Mood != null)
+        {
+            bool hasGymAccess = equipment.GymAccess;
+            string userEmotion = _progressService.CurrentFeelingResult.Mood;
+            string workoutType = equipment.WorkoutType;
+            
+            Console.WriteLine($"DEBUG: Generating workout for emotion: '{userEmotion}', gym access: {hasGymAccess}, workout type: '{workoutType}'");
+            Console.WriteLine($"DEBUG: EquipmentResult - GymAccess: {equipment.GymAccess}, HomeAccess: {equipment.HomeAccess}, WorkoutType: {workoutType}");
+            
+            Console.WriteLine($"DEBUG: About to query for: Emotion='{userEmotion}', Gym={hasGymAccess}, Type='{workoutType}'");
+            
+            selectedWorkout = await _database.GetRandomWorkoutByEmotionAndEquipment(userEmotion, hasGymAccess, workoutType);
+            
+            Console.WriteLine($"DEBUG: Selected workout result: {selectedWorkout?.WorkoutId} (Category: {selectedWorkout?.Category})");
+        }
+        else
+        {
+            Console.WriteLine($"DEBUG: No feeling result available - CurrentFeelingResult: {_progressService.CurrentFeelingResult}, Mood: {_progressService.CurrentFeelingResult?.Mood}");
+        }
 
-        // 3. Save the workout ID to the log
+        if (selectedWorkout == null)
+        {
+            await DisplayAlert("Error", "Could not generate a workout based on your preferences. Please try again.", "OK");
+            return;
+        }
+
+        // 3. Store the selected workout in the service for the workout page to access
+        _progressService.CurrentWorkout = selectedWorkout;
+        Console.WriteLine($"DEBUG: Stored workout {selectedWorkout.WorkoutId} in progress service");
+        
+        // 4. Save the workout ID to the log
         if (!string.IsNullOrEmpty(logId))
         {
-            await _database.UpdateWorkoutIdAsync(logId, generatedWorkoutId);
+            await _database.UpdateWorkoutIdAsync(logId, selectedWorkout.WorkoutId);
+            Console.WriteLine($"DEBUG: Saved workout ID {selectedWorkout.WorkoutId} to log {logId}");
         }
         else
         {
