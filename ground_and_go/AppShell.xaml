@@ -10,7 +10,12 @@
     xmlns:login="clr-namespace:ground_and_go.Pages.Auth"
     xmlns:signup="clr-namespace:ground_and_go.Pages.Auth"
     xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
-    Title="ground_and_go">
+    Title="ground_and_go"
+    
+    Shell.TabBarBackgroundColor="White"
+    Shell.TabBarForegroundColor="#2196F3"
+    Shell.TabBarTitleColor="#2196F3"
+    Shell.TabBarUnselectedColor="Gray">
 
     <ShellContent
         Title="Login"
