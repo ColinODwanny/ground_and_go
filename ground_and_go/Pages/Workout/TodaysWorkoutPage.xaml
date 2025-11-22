@@ -12,6 +12,23 @@
             <Label x:Name="ProgressStepLabel" Text="Step 4" FontAttributes="Bold" TextColor="Gray" />
             <ProgressBar x:Name="FlowProgressBar" Progress="0.0" />
 
+            <!-- Instructions for using the workout interface -->
+            <Border Stroke="LightBlue" 
+                    StrokeThickness="1" 
+                    StrokeShape="RoundRectangle 8" 
+                    BackgroundColor="#E3F2FD" 
+                    Padding="12" 
+                    Margin="0,5,0,10">
+                <Label Text="💡 Click the Begin button on any exercise to see rest periods, instructions, demo video, and mark it as complete." 
+                       FontSize="14" 
+                       TextColor="#1565C0" 
+                       HorizontalTextAlignment="Center"/>
+            </Border>
+
+            <!-- Dynamic workout content will be added here -->
+            <VerticalStackLayout x:Name="WorkoutContentStack" Spacing="8" />
+
+            <!-- Fallback static exercises (will be hidden when dynamic content loads) -->
             <Border x:Name="SquatBorder"
                     Stroke="LightGray"
                     StrokeThickness="1"

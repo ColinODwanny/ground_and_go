@@ -45,10 +45,11 @@ namespace ground_and_go.Models
         
         public string WorkoutEquipment => Workout.Equipment ?? "N/A";
         
-        public string ExercisesArray => Workout.Exercises != null ? 
-            $"[{string.Join(", ", Workout.Exercises)}]" : "No exercises";
+        public string ExercisesArray => GetExercisesDisplay();
 
         public string WorkoutInfo => string.IsNullOrEmpty(Workout.Info) ? "No description available" : Workout.Info;
+        
+        public string WorkoutEmotion => GetEmotionName();
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -60,6 +61,45 @@ namespace ground_and_go.Models
         public WorkoutViewModel(Workout workout)
         {
             Workout = workout;
+        }
+        
+        private string GetExercisesDisplay()
+        {
+            if (Workout?.Exercises?.Sections == null || Workout.Exercises.Sections.Count == 0)
+                return "No exercises";
+            
+            var exerciseCount = 0;
+            var sectionNames = new List<string>();
+            
+            foreach (var section in Workout.Exercises.Sections)
+            {
+                if (section.Exercises != null)
+                {
+                    exerciseCount += section.Exercises.Count;
+                    sectionNames.Add(section.Title ?? "Unknown Section");
+                }
+            }
+            
+            return exerciseCount > 0 ? 
+                $"{exerciseCount} exercises across {sectionNames.Count} sections" : 
+                "No exercises";
+        }
+        
+        private string GetEmotionName()
+        {
+            var emotionMap = new Dictionary<int, string>
+            {
+                { 1, "Happy" },
+                { 2, "Neutral" },
+                { 3, "Sad" },
+                { 4, "Depressed" },
+                { 5, "Energized" },
+                { 6, "Anxious" },
+                { 7, "Angry" },
+                { 8, "Tired" }
+            };
+            
+            return emotionMap.TryGetValue(Workout.EmotionId, out var emotion) ? emotion : "Unknown";
         }
     }
 }

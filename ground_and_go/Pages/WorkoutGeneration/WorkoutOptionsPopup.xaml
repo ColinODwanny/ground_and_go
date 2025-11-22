@@ -14,61 +14,119 @@
 
         <VerticalStackLayout Spacing="20">
 
-            <Label Text="What equipment do you have?"
-                   FontSize="22"
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center"
-                   HorizontalTextAlignment="Center"
-                   TextColor="Black"
-                   Margin="0,0,0,10"/>
+            <!-- Step 1: Workout Type Selection -->
+            <VerticalStackLayout x:Name="WorkoutTypeStep" Spacing="20">
+                <Label Text="What type of workout do you want?"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       TextColor="Black"
+                       Margin="0,0,0,10"/>
 
-            <!-- Flex layout of pill buttons -->
-            <FlexLayout x:Name="EquipmentFlexLayout"
-                        Wrap="Wrap"
-                        Direction="Row"
-                        JustifyContent="Center"
-                        AlignItems="Center"
-                        >
+                <FlexLayout Wrap="Wrap"
+                            Direction="Row"
+                            JustifyContent="Center"
+                            AlignItems="Center">
 
-                <Button Text="Home Equipment"
-                        x:Name="HomeButton"
-                        Clicked="OnEquipmentClicked"
-                        Margin="5"
-                        BackgroundColor="#F3F4F6"
-                        TextColor="Black"
-                        BorderColor="#E0E0E0"
-                        BorderWidth="2"
-                        CornerRadius="20"
-                        WidthRequest="160"
-                        Padding="12,6" />
+                    <Button Text="Strength Training"
+                            x:Name="StrengthButton"
+                            Clicked="OnWorkoutTypeClicked"
+                            Margin="5"
+                            BackgroundColor="#F3F4F6"
+                            TextColor="Black"
+                            BorderColor="#E0E0E0"
+                            BorderWidth="2"
+                            CornerRadius="20"
+                            WidthRequest="160"
+                            Padding="12,6" />
 
-                <Button Text="Gym Equipment"
-                        x:Name="GymButton"
-                        Clicked="OnEquipmentClicked"
-                        Margin="5"
-                        BackgroundColor="#F3F4F6"
-                        TextColor="Black"
-                        BorderColor="#E0E0E0"
-                        BorderWidth="2"
-                        CornerRadius="20"
-                        WidthRequest="160"
-                        Padding="12,6" />
+                    <Button Text="Cardio"
+                            x:Name="CardioButton"
+                            Clicked="OnWorkoutTypeClicked"
+                            Margin="5"
+                            BackgroundColor="#F3F4F6"
+                            TextColor="Black"
+                            BorderColor="#E0E0E0"
+                            BorderWidth="2"
+                            CornerRadius="20"
+                            WidthRequest="160"
+                            Padding="12,6" />
 
-            </FlexLayout>
+                </FlexLayout>
 
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button Text="Cancel"
-                        Grid.Column="0"
-                        BackgroundColor="Gray"
-                        TextColor="White"
-                        Clicked="OnCancel_Clicked" />
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Text="Cancel"
+                            Grid.Column="0"
+                            BackgroundColor="Gray"
+                            TextColor="White"
+                            Clicked="OnCancel_Clicked" />
 
-                <Button Text="Submit"
-                        Grid.Column="1"
-                        BackgroundColor="#2196F3"
-                        TextColor="White"
-                        Clicked="OnSubmit_Clicked" />
-            </Grid>
+                    <Button Text="Next"
+                            x:Name="NextButton"
+                            Grid.Column="1"
+                            BackgroundColor="#2196F3"
+                            TextColor="White"
+                            Clicked="OnNext_Clicked" />
+                </Grid>
+            </VerticalStackLayout>
+
+            <!-- Step 2: Equipment Selection (only for Strength Training) -->
+            <VerticalStackLayout x:Name="EquipmentStep" Spacing="20" IsVisible="False">
+                <Label Text="What equipment do you have?"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       TextColor="Black"
+                       Margin="0,0,0,10"/>
+
+                <FlexLayout Wrap="Wrap"
+                            Direction="Row"
+                            JustifyContent="Center"
+                            AlignItems="Center">
+
+                    <Button Text="Home Equipment"
+                            x:Name="HomeButton"
+                            Clicked="OnEquipmentClicked"
+                            Margin="5"
+                            BackgroundColor="#F3F4F6"
+                            TextColor="Black"
+                            BorderColor="#E0E0E0"
+                            BorderWidth="2"
+                            CornerRadius="20"
+                            WidthRequest="160"
+                            Padding="12,6" />
+
+                    <Button Text="Gym Equipment"
+                            x:Name="GymButton"
+                            Clicked="OnEquipmentClicked"
+                            Margin="5"
+                            BackgroundColor="#F3F4F6"
+                            TextColor="Black"
+                            BorderColor="#E0E0E0"
+                            BorderWidth="2"
+                            CornerRadius="20"
+                            WidthRequest="160"
+                            Padding="12,6" />
+
+                </FlexLayout>
+
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Text="Back"
+                            Grid.Column="0"
+                            BackgroundColor="Gray"
+                            TextColor="White"
+                            Clicked="OnBack_Clicked" />
+
+                    <Button Text="Submit"
+                            Grid.Column="1"
+                            BackgroundColor="#2196F3"
+                            TextColor="White"
+                            Clicked="OnSubmit_Clicked" />
+                </Grid>
+            </VerticalStackLayout>
+
         </VerticalStackLayout>
     </Border>
 </toolkit:Popup>

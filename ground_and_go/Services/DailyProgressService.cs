@@ -1,4 +1,5 @@
 using ground_and_go.Models;
+using ground_and_go.Pages.WorkoutGeneration;
 
 namespace ground_and_go.Services
 {
@@ -23,6 +24,13 @@ namespace ground_and_go.Services
 
         // This new property will store the ID of the log we just created
         public string? CurrentLogId { get; set; }
+
+        // Store user's workout preferences for workout generation
+        public FeelingResult? CurrentFeelingResult { get; set; }
+        public EquipmentResult? CurrentEquipmentResult { get; set; }
+        
+        // Store the currently selected workout (especially for fallback workouts)
+        public Models.Workout? CurrentWorkout { get; set; }
 
         // The service "requests" the database and mock auth service
         // and .NET MAUI gives them to us (this is dependency injection).

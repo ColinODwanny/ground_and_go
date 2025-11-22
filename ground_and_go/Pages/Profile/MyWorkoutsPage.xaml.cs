@@ -40,15 +40,28 @@ public partial class MyWorkoutsPage : ContentPage, INotifyPropertyChanged
         {
             IsLoading = true;
             
-            var workouts = await _database.GetAllWorkoutsWithDates();
+            // Get the current user's completed workouts
+            string? memberId = _database.GetAuthenticatedMemberId();
+            Console.WriteLine($"Loading workouts for member: {memberId}");
+            
+            var workouts = await _database.GetCompletedWorkoutsForUser(memberId);
             
             // Debug output
-            Console.WriteLine($"Found {workouts.Count} workouts in database");
+            Console.WriteLine($"Found {workouts.Count} completed workouts for user");
             
             Workouts.Clear();
             foreach (var workout in workouts)
             {
-                Workouts.Add(workout);
+                try
+                {
+                    Workouts.Add(workout);
+                    Console.WriteLine($"Added workout: ID={workout.Workout?.WorkoutId}, Category={workout.WorkoutCategory}, Date={workout.DisplayDate}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error adding workout {workout.Workout?.WorkoutId}: {ex.Message}");
+                    // Continue adding other workouts even if one fails
+                }
             }
         }
         catch (Exception ex)

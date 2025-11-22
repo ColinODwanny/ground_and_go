@@ -217,10 +217,49 @@ namespace ground_and_go
         public async Task<Workout?> GetWorkoutById(int workoutId)
         {
             await EnsureInitializedAsync();
-            if (supabaseClient == null) return null;
+            if (supabaseClient == null) 
+            {
+                Console.WriteLine($"GetWorkoutById({workoutId}) - supabaseClient is null");
+                return null;
+            }
 
-            var response = await supabaseClient.From<Workout>().Where(w => w.WorkoutId == workoutId).Get();
-            return response?.Models?.FirstOrDefault();
+            try
+            {
+                // First, try simplified query to avoid JSON parsing issues
+                var simpleQuery = supabaseClient.From<Workout>()
+                    .Select("workout_id, emotion_id, at_gym, category, impact")
+                    .Where(w => w.WorkoutId == workoutId);
+                
+                var simpleResponse = await simpleQuery.Get();
+                
+                if (simpleResponse?.Models?.FirstOrDefault() == null)
+                {
+                    Console.WriteLine($"GetWorkoutById({workoutId}) - No workout found with this ID");
+                    return null;
+                }
+                
+                // Now get the full workout data separately to handle JSON properly
+                var fullQuery = supabaseClient.From<Workout>()
+                    .Where(w => w.WorkoutId == workoutId);
+                var fullResponse = await fullQuery.Get();
+                
+                if (fullResponse?.Models?.FirstOrDefault() != null)
+                {
+                    var fullWorkout = fullResponse.Models.First();
+                    Console.WriteLine($"GetWorkoutById({workoutId}) - Successfully loaded workout with {fullWorkout.Exercises?.Sections?.Count ?? 0} sections");
+                    return fullWorkout;
+                }
+                else
+                {
+                    Console.WriteLine($"GetWorkoutById({workoutId}) - Full query failed, returning basic workout");
+                    return simpleResponse.Models.First();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetWorkoutById({workoutId}): {ex.Message}");
+                return null;
+            }
         }
 
         /// <summary>
@@ -293,7 +332,7 @@ namespace ground_and_go
                         try
                         {
                             var workoutResponse = await supabaseClient.From<Workout>()
-                                .Select("workout_id, emotion_id, category, category_num, equipment, impact, exercises")
+                                .Select("workout_id, emotion_id, category, category_num, at_gym, impact, exercises")
                                 .Where(w => w.WorkoutId == log.WorkoutId)
                                 .Get();
 
@@ -335,7 +374,7 @@ namespace ground_and_go
             {
                 Console.WriteLine("Querying workouts table...");
                 var workoutsResponse = await supabaseClient.From<Workout>()
-                    .Select("workout_id, emotion_id, category, category_num, equipment, impact, exercises")
+                    .Select("workout_id, emotion_id, category, category_num, at_gym, impact, exercises")
                     .Get();
                 Console.WriteLine($"Workouts response received. Models count: {workoutsResponse?.Models?.Count ?? 0}");
                 
@@ -362,7 +401,7 @@ namespace ground_and_go
                         }
                         
                         result.Add(viewModel);
-                        Console.WriteLine($"Added workout: ID={workout.WorkoutId}, Category={workout.Category}, Date={viewModel.DisplayDate}, Exercises=[{string.Join(",", workout.Exercises ?? new int[0])}]");
+                        Console.WriteLine($"Added workout: ID={workout.WorkoutId}, Category={workout.Category}, Date={viewModel.DisplayDate}, Equipment={workout.EquipmentType}");
                     }
                 }
                 else
@@ -375,6 +414,106 @@ namespace ground_and_go
                 Console.WriteLine($"Error loading workouts: {ex.Message}");
             }
             
+            return result;
+        }
+
+        /// <summary>
+        /// Gets workouts that the user has completed (has workout log entries for)
+        /// </summary>
+        /// <param name="memberId">Member ID to filter by</param>
+        /// <returns>List of WorkoutViewModel for completed workouts</returns>
+        public async Task<List<WorkoutViewModel>> GetCompletedWorkoutsForUser(string? memberId = null)
+        {
+            await EnsureInitializedAsync();
+
+            var result = new List<WorkoutViewModel>();
+            if (supabaseClient == null) 
+            {
+                Console.WriteLine("Supabase client is null");
+                return result;
+            }
+            
+            try
+            {
+                // Get workout logs for the user (or all logs if no memberId provided)
+                Console.WriteLine($"Querying workout logs for member: {memberId ?? "ALL"}");
+                
+                var query = supabaseClient.From<WorkoutLog>()
+                    .Select("workout_id, date");
+                
+                if (!string.IsNullOrEmpty(memberId))
+                {
+                    query = query.Where(log => log.MemberId == memberId);
+                }
+                
+                var workoutLogsResponse = await query.Get();
+                Console.WriteLine($"Workout logs response received. Models count: {workoutLogsResponse?.Models?.Count ?? 0}");
+                
+                if (workoutLogsResponse?.Models?.Count > 0)
+                {
+                    // Get unique workout IDs that have been completed
+                    var completedWorkoutIds = workoutLogsResponse.Models
+                        .Where(log => log.WorkoutId.HasValue)
+                        .Select(log => log.WorkoutId!.Value)
+                        .Distinct()
+                        .ToList();
+                    
+                    Console.WriteLine($"Found {completedWorkoutIds.Count} unique completed workout IDs: {string.Join(", ", completedWorkoutIds)}");
+                    
+                    // Get workout details for each completed workout
+                    foreach (var workoutId in completedWorkoutIds)
+                    {
+                        try
+                        {
+                            Console.WriteLine($"Loading details for workout ID: {workoutId}");
+                            
+                            // Use the existing GetWorkoutById method which handles JSON parsing
+                            var workout = await GetWorkoutById(workoutId);
+                            
+                            if (workout != null)
+                            {
+                                var viewModel = new WorkoutViewModel(workout);
+                                
+                                // Set the date to the most recent workout log date for this workout
+                                var mostRecentLog = workoutLogsResponse.Models
+                                    .Where(log => log.WorkoutId == workoutId)
+                                    .OrderByDescending(log => log.DateTime)
+                                    .FirstOrDefault();
+                                
+                                if (mostRecentLog != null)
+                                {
+                                    viewModel.WorkoutDate = mostRecentLog.DateTime;
+                                }
+                                
+                                result.Add(viewModel);
+                                Console.WriteLine($"Successfully added workout {workoutId} - {workout.Category}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Could not load workout details for ID: {workoutId}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error loading workout {workoutId}: {ex.Message}");
+                            // Continue with other workouts
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No workout logs found for user");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetCompletedWorkoutsForUser: {ex.Message}");
+            }
+            
+            // Sort by date, most recent first
+            result = result.OrderByDescending(w => w.WorkoutDate).ToList();
+            
+            Console.WriteLine($"Returning {result.Count} completed workouts");
             return result;
         }
 
@@ -569,6 +708,401 @@ namespace ground_and_go
             {
                 Console.WriteLine($"Error updating workout_id: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Maps emotion strings to emotion IDs used in the database
+        /// Updated to match the actual emotions table structure
+        /// </summary>
+        private static readonly Dictionary<string, int> EmotionMapping = new()
+        {
+            { "Happy", 1 },
+            { "Neutral", 2 },
+            { "Sad", 3 },
+            { "Depressed", 4 },
+            { "Energized", 5 },
+            { "Anxious", 6 },
+            { "Angry", 7 },
+            { "Tired", 8 }
+        };
+
+        /// <summary>
+        /// Debug method to check actual database data without JSON parsing
+        /// </summary>
+        public async Task TestDatabaseQueries()
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return;
+            
+            Console.WriteLine("=== TESTING DATABASE QUERIES ===");
+            
+            try
+            {
+                // First, check basic workouts table without complex JSON
+                var simpleQuery = supabaseClient.From<Models.Workout>()
+                    .Select("workout_id, emotion_id, at_gym, category, impact");
+                    
+                var simpleResponse = await simpleQuery.Get();
+                Console.WriteLine($"Found {simpleResponse?.Models?.Count ?? 0} workouts with simple query");
+                
+                if (simpleResponse?.Models != null && simpleResponse.Models.Count > 0)
+                {
+                    foreach (var w in simpleResponse.Models.Take(5))
+                    {
+                        Console.WriteLine($"Workout: ID={w.WorkoutId}, Emotion={w.EmotionId}, AtGym={w.AtGym}, Category={w.Category}");
+                    }
+                    
+                    // Test specific filters
+                    Console.WriteLine("\n--- Testing Emotion Filter (Energized = 5) ---");
+                    var energizedQuery = supabaseClient.From<Models.Workout>()
+                        .Select("workout_id, emotion_id, at_gym, category")
+                        .Where(w => w.EmotionId == 5);
+                    var energizedResponse = await energizedQuery.Get();
+                    Console.WriteLine($"Found {energizedResponse?.Models?.Count ?? 0} workouts for Energized (emotion_id=5)");
+                    
+                    Console.WriteLine("\n--- Testing Gym Filter (at_gym = true) ---");
+                    var gymQuery = supabaseClient.From<Models.Workout>()
+                        .Select("workout_id, emotion_id, at_gym, category")
+                        .Where(w => w.AtGym == true);
+                    var gymResponse = await gymQuery.Get();
+                    Console.WriteLine($"Found {gymResponse?.Models?.Count ?? 0} workouts for gym access");
+                    
+                    Console.WriteLine("\n--- Testing Combined Filter (Energized + Gym) ---");
+                    var combinedQuery = supabaseClient.From<Models.Workout>()
+                        .Select("workout_id, emotion_id, at_gym, category")
+                        .Where(w => w.EmotionId == 5)
+                        .Where(w => w.AtGym == true);
+                    var combinedResponse = await combinedQuery.Get();
+                    Console.WriteLine($"Found {combinedResponse?.Models?.Count ?? 0} workouts for Energized + Gym");
+                    
+                    if (combinedResponse?.Models != null)
+                    {
+                        foreach (var w in combinedResponse.Models)
+                        {
+                            Console.WriteLine($"Match: ID={w.WorkoutId}, Emotion={w.EmotionId}, AtGym={w.AtGym}, Category={w.Category}");
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No workouts found in database!");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in TestDatabaseQueries: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// Gets workouts filtered by emotion, equipment availability, and workout type
+        /// </summary>
+        /// <param name="emotion">The user's current emotion/mood</param>
+        /// <param name="hasGymAccess">Whether user has access to gym equipment</param>
+        /// <param name="workoutType">The type of workout (Strength Training or Cardio)</param>
+        /// <returns>List of matching workouts</returns>
+        public async Task<List<Workout>> GetWorkoutsByEmotionAndEquipment(string emotion, bool hasGymAccess, string workoutType = "Strength Training")
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return new List<Workout>();
+
+            try
+            {
+                // Get emotion ID from mapping
+                if (!EmotionMapping.TryGetValue(emotion, out int emotionId))
+                {
+                    Console.WriteLine($"Unknown emotion: {emotion}. Using default emotion ID 2 (Neutral)");
+                    emotionId = 2; // Default to neutral
+                }
+
+                Console.WriteLine($"DEBUG: Querying workouts for emotion='{emotion}', emotion_id={emotionId}, gym_access={hasGymAccess}, workout_type='{workoutType}'");
+                
+                // Try simplified query first - avoid JSON parsing issues
+                Console.WriteLine($"DEBUG: Testing simplified query to avoid JSON parsing...");
+                
+                // Query based on workout type
+                var simpleQuery = supabaseClient.From<Workout>()
+                    .Select("workout_id, emotion_id, at_gym, category, impact")
+                    .Where(w => w.EmotionId == emotionId)
+                    .Where(w => w.Category == workoutType);
+                
+                // For strength training, filter by equipment; for cardio, equipment doesn't matter
+                if (workoutType == "Strength Training")
+                {
+                    // For strength training, include workouts that match gym preference OR are null (any location)
+                    if (hasGymAccess)
+                    {
+                        // Include gym workouts or location-agnostic workouts
+                        simpleQuery = simpleQuery.Where(w => w.AtGym == true || w.AtGym == null);
+                    }
+                    else
+                    {
+                        // Include home workouts or location-agnostic workouts  
+                        simpleQuery = simpleQuery.Where(w => w.AtGym == false || w.AtGym == null);
+                    }
+                }
+
+                var simpleResponse = await simpleQuery.Get();
+                Console.WriteLine($"DEBUG: Simplified query found {simpleResponse?.Models?.Count ?? 0} matching workouts");
+                
+                if (simpleResponse?.Models?.Count > 0)
+                {
+                    // We found matching workouts! Now get the full data separately
+                    var matchingWorkouts = new List<Workout>();
+                    
+                    foreach (var basicWorkout in simpleResponse.Models)
+                    {
+                        try
+                        {
+                            // Get full workout data including exercises for each match
+                            var fullQuery = supabaseClient.From<Workout>()
+                                .Where(w => w.WorkoutId == basicWorkout.WorkoutId);
+                            var fullResponse = await fullQuery.Get();
+                            
+                            if (fullResponse?.Models?.FirstOrDefault() != null)
+                            {
+                                var fullWorkout = fullResponse.Models.First();
+                                Console.WriteLine($"DEBUG: Successfully loaded full workout {basicWorkout.WorkoutId}");
+                                Console.WriteLine($"DEBUG: Workout {basicWorkout.WorkoutId} - Exercises null? {fullWorkout.Exercises == null}");
+                                Console.WriteLine($"DEBUG: Workout {basicWorkout.WorkoutId} - Sections count: {fullWorkout.Exercises?.Sections?.Count ?? 0}");
+                                
+                                matchingWorkouts.Add(fullWorkout);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"DEBUG: Error loading full workout {basicWorkout.WorkoutId}: {ex.Message}");
+                            // Use the basic workout data as fallback
+                            matchingWorkouts.Add(basicWorkout);
+                        }
+                    }
+                    
+                    Console.WriteLine($"DEBUG: Final result: {matchingWorkouts.Count} complete workouts");
+                    return matchingWorkouts;
+                }
+                else
+                {
+                    Console.WriteLine($"DEBUG: No workouts found for emotion_id={emotionId}, at_gym={hasGymAccess}");
+                }
+
+                // If we get here, no workouts were found
+                return new List<Workout>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: Exception in GetWorkoutsByEmotionAndEquipment: {ex.Message}");
+                Console.WriteLine($"ERROR: Stack trace: {ex.StackTrace}");
+                return new List<Workout>();
+            }
+        }
+
+        /// <summary>
+        /// Selects a random workout from the filtered results
+        /// </summary>
+        /// <param name="emotion">The user's current emotion/mood</param>
+        /// <param name="hasGymAccess">Whether user has access to gym equipment</param>
+        /// <param name="workoutType">The type of workout (Strength Training or Cardio)</param>
+        /// <returns>A randomly selected workout or null if none found</returns>
+        public async Task<Workout?> GetRandomWorkoutByEmotionAndEquipment(string emotion, bool hasGymAccess, string workoutType = "Strength Training")
+        {
+            var workouts = await GetWorkoutsByEmotionAndEquipment(emotion, hasGymAccess, workoutType);
+            
+            if (workouts.Count == 0)
+            {
+                Console.WriteLine($"DEBUG: No workouts available for emotion='{emotion}', gym_access={hasGymAccess}");
+                
+                // Try alternative approaches before fallback
+                Console.WriteLine("DEBUG: Trying to find ANY workout for this emotion...");
+                var emotionOnlyWorkouts = await GetWorkoutsByEmotionOnly(emotion);
+                var emotionWorkoutsWithSections = emotionOnlyWorkouts.Where(w => w.Exercises?.Sections?.Count > 0).ToList();
+                
+                if (emotionWorkoutsWithSections.Count > 0)
+                {
+                    Console.WriteLine($"DEBUG: Found {emotionOnlyWorkouts.Count} workouts for emotion '{emotion}', {emotionWorkoutsWithSections.Count} have sections");
+                    var randomGenerator = new Random();
+                    var emotionWorkout = emotionWorkoutsWithSections[randomGenerator.Next(emotionWorkoutsWithSections.Count)];
+                    Console.WriteLine($"DEBUG: Selected emotion-based workout ID: {emotionWorkout.WorkoutId} - {emotionWorkout.Category} with {emotionWorkout.Exercises?.Sections?.Count} sections");
+                    return emotionWorkout;
+                }
+                
+                // Final fallback: try to get ANY workout with sections
+                Console.WriteLine("DEBUG: Trying final fallback - any workout with sections...");
+                var anyWorkoutWithSections = await GetAnyWorkoutWithSections();
+                if (anyWorkoutWithSections != null)
+                {
+                    Console.WriteLine($"DEBUG: Using final fallback workout ID: {anyWorkoutWithSections.WorkoutId} with {anyWorkoutWithSections.Exercises?.Sections?.Count} sections");
+                    return anyWorkoutWithSections;
+                }
+                
+                // Fallback: try to create a simple workout for testing
+                Console.WriteLine("DEBUG: Creating fallback workout for testing...");
+                return CreateFallbackWorkout(emotion, hasGymAccess);
+            }
+
+            // Filter out workouts that don't have exercise sections
+            var workoutsWithSections = workouts.Where(w => w.Exercises?.Sections?.Count > 0).ToList();
+            
+            Console.WriteLine($"DEBUG: Found {workouts.Count} total workouts, {workoutsWithSections.Count} have exercise sections");
+            
+            if (workoutsWithSections.Count == 0)
+            {
+                Console.WriteLine("DEBUG: No workouts with sections found! Using fallback...");
+                // Try to get ANY workout with sections as fallback
+                var fallbackWithSections = await GetAnyWorkoutWithSections();
+                if (fallbackWithSections != null)
+                {
+                    Console.WriteLine($"DEBUG: Using fallback workout ID: {fallbackWithSections.WorkoutId} with {fallbackWithSections.Exercises?.Sections?.Count} sections");
+                    return fallbackWithSections;
+                }
+                
+                Console.WriteLine("DEBUG: No workouts with sections exist in database!");
+                return null; // Don't return empty workouts
+            }
+
+            // Select random workout from those with sections
+            var random = new Random();
+            var selectedWorkout = workoutsWithSections[random.Next(workoutsWithSections.Count)];
+            
+            Console.WriteLine($"DEBUG: Selected workout ID: {selectedWorkout.WorkoutId} - {selectedWorkout.Category} with {selectedWorkout.Exercises?.Sections?.Count} sections");
+            return selectedWorkout;
+        }
+        
+        /// <summary>
+        /// Gets any workout that has exercise sections (fallback method)
+        /// </summary>
+        /// <returns>A workout with sections or null if none exist</returns>
+        private async Task<Workout?> GetAnyWorkoutWithSections()
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return null;
+
+            try
+            {
+                // Check the first few workouts to find one with sections
+                for (int workoutId = 1; workoutId <= 50; workoutId++)
+                {
+                    var workout = await GetWorkoutById(workoutId);
+                    if (workout?.Exercises?.Sections?.Count > 0)
+                    {
+                        Console.WriteLine($"DEBUG: Found fallback workout {workoutId} with {workout.Exercises.Sections.Count} sections");
+                        return workout;
+                    }
+                }
+                
+                Console.WriteLine("DEBUG: No workouts with sections found in first 50 workouts");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DEBUG: Error in GetAnyWorkoutWithSections: {ex.Message}");
+                return null;
+            }
+        }
+        
+        /// <summary>
+        /// Gets workouts filtered by emotion only (ignoring equipment)
+        /// </summary>
+        /// <param name="emotion">The user's current emotion/mood</param>
+        /// <returns>List of matching workouts</returns>
+        private async Task<List<Workout>> GetWorkoutsByEmotionOnly(string emotion)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return new List<Workout>();
+
+            try
+            {
+                // Get emotion ID from mapping
+                if (!EmotionMapping.TryGetValue(emotion, out int emotionId))
+                {
+                    Console.WriteLine($"Unknown emotion: {emotion}. Using default emotion ID 2 (Neutral)");
+                    emotionId = 2; // Default to neutral
+                }
+
+                Console.WriteLine($"DEBUG: Querying workouts for emotion='{emotion}', emotion_id={emotionId} (ignoring equipment)");
+
+                var query = supabaseClient.From<Workout>()
+                    .Select("workout_id, emotion_id, category, impact, at_gym")
+                    .Where(w => w.EmotionId == emotionId);
+
+                var response = await query.Get();
+                Console.WriteLine($"DEBUG: Emotion-only query returned {response?.Models?.Count ?? 0} workouts");
+
+                if (response?.Models != null && response.Models.Count > 0)
+                {
+                    // Now get the full workout data including exercises for the found workouts
+                    var fullWorkouts = new List<Workout>();
+                    foreach (var workout in response.Models)
+                    {
+                        try
+                        {
+                            var fullWorkoutQuery = supabaseClient.From<Workout>()
+                                .Where(w => w.WorkoutId == workout.WorkoutId);
+                            var fullWorkoutResponse = await fullWorkoutQuery.Get();
+                            if (fullWorkoutResponse?.Models?.FirstOrDefault() != null)
+                            {
+                                fullWorkouts.Add(fullWorkoutResponse.Models.First());
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"DEBUG: Error loading full workout {workout.WorkoutId}: {ex.Message}");
+                            // Add the partial workout anyway
+                            fullWorkouts.Add(workout);
+                        }
+                    }
+                    
+                    Console.WriteLine($"DEBUG: Successfully loaded {fullWorkouts.Count} full workouts for emotion only");
+                    return fullWorkouts;
+                }
+                else
+                {
+                    Console.WriteLine($"DEBUG: No workouts found for emotion_id={emotionId}");
+                    return new List<Workout>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: Exception in GetWorkoutsByEmotionOnly: {ex.Message}");
+                return new List<Workout>();
+            }
+        }
+        
+        /// <summary>
+        /// Creates a fallback workout for testing when database queries fail
+        /// </summary>
+        private Workout CreateFallbackWorkout(string emotion, bool hasGymAccess)
+        {
+            Console.WriteLine($"DEBUG: Creating fallback workout for {emotion} + {(hasGymAccess ? "Gym" : "Home")}");
+            
+            var fallbackWorkout = new Workout
+            {
+                WorkoutId = 999, // Use a special ID for fallback
+                EmotionId = EmotionMapping.GetValueOrDefault(emotion, 2),
+                Category = "Fallback Strength Training",
+                Impact = "High",
+                AtGym = hasGymAccess,
+                Exercises = new WorkoutExercises
+                {
+                    Description = $"A fallback workout generated for {emotion} emotion with {(hasGymAccess ? "gym" : "home")} equipment.",
+                    Sections = new List<WorkoutSection>
+                    {
+                        new WorkoutSection
+                        {
+                            Type = "main",
+                            Title = "Simple Workout",
+                            Note = "This is a fallback workout for testing purposes.",
+                            Exercises = new List<WorkoutExerciseItem>
+                            {
+                                new WorkoutExerciseItem { Id = 1, SetsRaw = 3, Reps = "10", Rest = "60 seconds" },
+                                new WorkoutExerciseItem { Id = 2, SetsRaw = 3, Reps = "12", Rest = "60 seconds" }
+                            }
+                        }
+                    }
+                }
+            };
+            
+            return fallbackWorkout;
         }
     }
 }
