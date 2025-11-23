@@ -7,6 +7,7 @@ This project is a cross-platform fitness and mental wellness application built w
 The application uses **Supabase** for its backend database services, handling everything from user data to workout and journal entry storage.
 
 <img width="345" height="312" alt="image" src="https://github.com/user-attachments/assets/96ba7570-220a-4eee-acc3-d9981f9b3194" />
+
 ## Sprint 3 Changes
 
 ----------------------------------------------------------------
