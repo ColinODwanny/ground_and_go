@@ -12,6 +12,8 @@ public partial class MindfulnessActivityRestPage : ContentPage
     public MindfulnessActivityRestPage()
     {
         InitializeComponent();
+
+        
     }
 
     protected override void OnAppearing()

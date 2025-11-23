@@ -7,7 +7,7 @@ namespace ground_and_go.Pages.WorkoutGeneration;
 public partial class HowDoYouFeelPopup : Popup
 {
     private Button _selectedMoodButton;
-    private FeelingResult feelingResult;
+    public static FeelingResult feelingResult;
 	public HowDoYouFeelPopup()
 	{
         InitializeComponent();
