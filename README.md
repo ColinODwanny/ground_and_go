@@ -50,6 +50,7 @@ The application uses **Supabase** for its backend database services, handling ev
 
   ## Ground and Go Gallery
 
-  <img width="633" height="404" alt="image" src="https://github.com/user-attachments/assets/13ffdad1-f2a1-4ad7-b470-2ec81080a026" />
+  <img width="1388" height="923" alt="image" src="https://github.com/user-attachments/assets/35c918bd-11a5-40b7-90b9-6efb5e0e669d" />
+
 
   
