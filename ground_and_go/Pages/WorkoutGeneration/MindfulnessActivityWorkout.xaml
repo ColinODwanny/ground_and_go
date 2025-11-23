@@ -11,6 +11,14 @@
             <Label x:Name="ProgressStepLabel" Text="Step 3" FontAttributes="Bold" TextColor="Gray" />
             <ProgressBar x:Name="FlowProgressBar" Progress="0.0" />
 
+            <Button Text="Watch on YouTube"
+                Clicked="OnOpenYoutubeClicked"
+                BackgroundColor="#FF0000"
+                TextColor="White"
+                CornerRadius="15"
+                HeightRequest="50"/>
+
+
             <Border Stroke="LightGray"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
