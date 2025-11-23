@@ -124,7 +124,8 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
     {
         if (!string.IsNullOrEmpty(_activity.YoutubeLink))
         {
-            await Browser.OpenAsync(_activity.YoutubeLink, BrowserLaunchMode.External);
+            // CHANGED HERE: External → SystemPreferred (works on iPhone + Android)
+            await Browser.OpenAsync(_activity.YoutubeLink, BrowserLaunchMode.SystemPreferred);
         }
     }
 
