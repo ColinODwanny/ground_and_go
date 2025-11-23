@@ -6,16 +6,11 @@ namespace ground_and_go.Pages.WorkoutGeneration;
 
 public partial class HowDoYouFeelPopup : Popup
 {
+    private Button _selectedMoodButton;
+    private FeelingResult feelingResult;
 	public HowDoYouFeelPopup()
 	{
         InitializeComponent();
-
-        //initialize neutral button as the default radio button that's clicked
-        var neutralButton = MoodFlexLayout.Children.FirstOrDefault(c => (c as RadioButton)?.Value as string == "Neutral");
-        if(neutralButton is RadioButton rb)
-        {
-            rb.IsChecked = true;
-        }
     }
 
     //close the window when cancel is clicked
@@ -27,17 +22,39 @@ public partial class HowDoYouFeelPopup : Popup
     // submit
     private void OnSubmit_Clicked(object sender, EventArgs e)
     {
-        //store mood selection
-        var selectedRadioButton = MoodFlexLayout.Children
-                                    .OfType<RadioButton>()
-                                    .FirstOrDefault(rb => rb.IsChecked);
 
+        if (_selectedMoodButton == null)
+    {
+        Application.Current.MainPage.DisplayAlert("Missing mood", "Please select a mood before submitting.", "OK");
+        return;
+    }
         var result = new FeelingResult
         {
             Rating = RatingSlider.Value,
-            Mood = selectedRadioButton?.Value as string ?? "Unknown"
+            Mood = _selectedMoodButton?.Text
         };
 
         Close(result);
+    }
+
+
+    private void OnMoodClicked(object sender, EventArgs e)
+    {
+        if (sender is Button clickedButton)
+        {
+            // Deselect previous
+            if (_selectedMoodButton != null)
+            {
+                _selectedMoodButton.BackgroundColor = Color.FromArgb("#F3F4F6");
+                _selectedMoodButton.TextColor = Colors.Black;
+                _selectedMoodButton.BorderColor = Color.FromArgb("#E0E0E0");
+            }
+
+            // Select new one
+            _selectedMoodButton = clickedButton;
+            _selectedMoodButton.BackgroundColor = Color.FromArgb("#2196F3");
+            _selectedMoodButton.TextColor = Colors.White;
+            _selectedMoodButton.BorderColor = Color.FromArgb("#2196F3");
+        }
     }
 }

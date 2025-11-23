@@ -1,31 +1,98 @@
 //Aidan Trusky
 using CommunityToolkit.Maui.Views;
 using Microsoft.Maui.Controls;
+using ground_and_go.Services;
+using ground_and_go.Models;
+using System.ComponentModel;
+using Microsoft.Maui.Controls.Shapes;
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
-public partial class TodaysWorkoutPage : ContentPage
+public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
 {
     private Dictionary<string, Border> exerciseBorders;
+    private Dictionary<string, WorkoutExerciseItem> exerciseData;
+    private Models.Workout? _currentWorkout;
 
-    public TodaysWorkoutPage()
+    // a field for the progress service
+    private readonly DailyProgressService _progressService;
+    private readonly Database _database;
+
+    public Models.Workout? CurrentWorkout
+    {
+        get => _currentWorkout;
+        set
+        {
+            _currentWorkout = value;
+            OnPropertyChanged();
+            
+            // Load workout sections on the main thread
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await LoadWorkoutSections();
+            });
+        }
+    }
+
+    public TodaysWorkoutPage(DailyProgressService progressService)
     {
         InitializeComponent();
         
+        //  Assign the service
+        _progressService = progressService;
+        _database = MauiProgram.db!;
+        
         // Initialize the dictionary to map exercise names to their buttons
         exerciseBorders = new Dictionary<string, Border>();
+        exerciseData = new Dictionary<string, WorkoutExerciseItem>();
+        
+        // Set binding context for data binding
+        BindingContext = this;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         
-        // Map exercise names to their corresponding borders
-        exerciseBorders["Push-ups"] = PushUpsBorder;
-        exerciseBorders["Squats"] = SquatsBorder;
-        exerciseBorders["Plank"] = PlankBorder;
-        exerciseBorders["Jumping Jacks"] = JumpingJacksBorder;
-        exerciseBorders["Burpees"] = BurpeesBorder;
+        Console.WriteLine("TodaysWorkoutPage OnAppearing started");
+        
+        // Hide hardcoded exercises immediately to prevent them from showing
+        HideHardcodedExercises();
+        
+        // Read the flow type directly from the service
+        // We only check for "workout" because the "rest" flow
+        // never comes to this page.
+        if (_progressService.CurrentFlowType == "workout")
+        {
+            // WORKOUT FLOW (5 steps total)
+            // Step 3 (Mindfulness) is done. This is Step 4.
+            this.Title = "Step 4 of 5: Your Workout";
+            ProgressStepLabel.Text = "Step 4 of 5: Complete your exercises";
+            FlowProgressBar.Progress = 0.60; // 3/5 complete
+        }
+
+        // Load the current workout from the database
+        await LoadCurrentWorkout();
+    }
+
+    private void HideHardcodedExercises()
+    {
+        // Hide all the hardcoded static exercises immediately
+        if (SquatBorder != null) SquatBorder.IsVisible = false;
+        if (BenchPressBorder != null) BenchPressBorder.IsVisible = false;
+        if (DeadliftBorder != null) DeadliftBorder.IsVisible = false;
+        if (PullUpBorder != null) PullUpBorder.IsVisible = false;
+        if (ShoulderPressBorder != null) ShoulderPressBorder.IsVisible = false;
+    }
+
+    private void ShowHardcodedExercises()
+    {
+        // Show the hardcoded static exercises as fallback
+        if (SquatBorder != null) SquatBorder.IsVisible = true;
+        if (BenchPressBorder != null) BenchPressBorder.IsVisible = true;
+        if (DeadliftBorder != null) DeadliftBorder.IsVisible = true;
+        if (PullUpBorder != null) PullUpBorder.IsVisible = true;
+        if (ShoulderPressBorder != null) ShoulderPressBorder.IsVisible = true;
     }
 
     private async void OnBeginExerciseClicked(object sender, EventArgs e)
@@ -33,18 +100,19 @@ public partial class TodaysWorkoutPage : ContentPage
         try
         {
             if (sender is not Button button) return;
-            
+
             var exerciseName = button.CommandParameter?.ToString();
             if (string.IsNullOrEmpty(exerciseName)) return;
-            
-            // Show the exercise detail popup
-            var popup = new ExerciseDetailPopup(exerciseName);
+
+            // Show the exercise detail popup with exercise data if available
+            var workoutExerciseData = exerciseData.ContainsKey(exerciseName) ? exerciseData[exerciseName] : null;
+            var popup = new ExerciseDetailPopup(exerciseName, workoutExerciseData);
             var result = await this.ShowPopupAsync(popup);
-            
+
             // If exercise was marked as complete, change the border color
             if (result is string completedExercise && exerciseBorders.ContainsKey(completedExercise))
             {
-                exerciseBorders[completedExercise].BackgroundColor = Color.FromArgb("#C8E6C9"); // Darker green
+                exerciseBorders[completedExercise].BackgroundColor = Color.FromArgb("#C8E6C9");
                 exerciseBorders[completedExercise].Stroke = Color.FromArgb("#4CAF50"); // Green border
             }
         }
@@ -52,5 +120,463 @@ public partial class TodaysWorkoutPage : ContentPage
         {
             await DisplayAlert("Error", $"Error: {ex.Message}", "OK");
         }
+    }
+
+    private async void OnCompleteWorkout_Clicked(object sender, EventArgs e)
+    {
+        // navigate to the new post-activity journal page
+        // The service already knows we are in the "workout" flow.
+        await Shell.Current.GoToAsync($"{nameof(PostActivityJournalEntryPage)}");
+    }
+
+    private async Task LoadCurrentWorkout()
+    {
+        try
+        {
+            Console.WriteLine($"LoadCurrentWorkout started");
+            
+            // Get the current user's member ID
+            string? memberId = _database.GetAuthenticatedMemberId();
+            
+            if (string.IsNullOrEmpty(memberId))
+            {
+                await DisplayAlert("Error", "User not logged in.", "OK");
+                return;
+            }
+
+            // Try to get today's workout log directly
+            var todaysLog = await _database.GetTodaysWorkoutLog(memberId);
+            
+            
+            if (todaysLog?.WorkoutId == null || todaysLog.WorkoutId <= 0)
+            {
+                // Try service as fallback if database has no workout
+                if (_progressService.CurrentWorkout != null && _progressService.CurrentWorkout.WorkoutId != 999)
+                {
+                    CurrentWorkout = _progressService.CurrentWorkout;
+                    return;
+                }
+                
+                await DisplayAlert("Error", "No workout assigned for today.", "OK");
+                return;
+            }
+
+            // Update the service with the current log ID if it was missing
+            if (string.IsNullOrEmpty(_progressService.CurrentLogId))
+            {
+                _progressService.CurrentLogId = todaysLog.LogId;
+            }
+            
+            // Get the workout details
+            CurrentWorkout = await _database.GetWorkoutById(todaysLog.WorkoutId.Value);
+            
+            // If this workout has no sections, it means the workout filtering in the database method
+            // should have prevented this, but log it for awareness
+            if (CurrentWorkout?.Exercises?.Sections == null || CurrentWorkout.Exercises.Sections.Count == 0)
+            {
+                Console.WriteLine($"Warning: Workout {CurrentWorkout?.WorkoutId} has no exercise sections");
+            }
+            
+            if (CurrentWorkout == null)
+            {
+                await DisplayAlert("Error", "Could not load workout details.", "OK");
+            }
+            else
+            {
+                // Update the service with the real workout to avoid future issues
+                _progressService.CurrentWorkout = CurrentWorkout;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception in LoadCurrentWorkout: {ex.Message}");
+            await DisplayAlert("Error", $"Error loading workout: {ex.Message}", "OK");
+        }
+    }
+
+    private async Task LoadWorkoutSections()
+    {
+        
+        if (CurrentWorkout == null)
+        {
+            Console.WriteLine("CurrentWorkout is null - showing hardcoded exercises");
+            ShowHardcodedExercises();
+            return;
+        }
+        
+        
+        if (CurrentWorkout.Exercises == null)
+        {
+            Console.WriteLine("CurrentWorkout.Exercises is null - showing hardcoded exercises");
+            ShowHardcodedExercises();
+            return;
+        }
+        
+        
+        if (CurrentWorkout.Exercises.Sections == null || CurrentWorkout.Exercises.Sections.Count == 0)
+        {
+            Console.WriteLine($"No sections found (count: {CurrentWorkout.Exercises.Sections?.Count ?? 0}) - showing hardcoded exercises");
+            ShowHardcodedExercises();
+            return;
+        }
+
+        Console.WriteLine($"Loading {CurrentWorkout.Exercises.Sections.Count} workout sections");
+
+        // Clear existing content and rebuild dynamically
+        WorkoutContentStack.Children.Clear();
+        exerciseBorders.Clear();
+        exerciseData.Clear();
+
+        // Debug: Check what exercises we have in the database
+        await DebugAvailableExercises();
+        
+        foreach (var section in CurrentWorkout.Exercises.Sections)
+        {
+            // Create a container for this section
+            var sectionContainer = new Border
+            {
+                Stroke = Colors.LightGray,
+                StrokeThickness = 1,
+                StrokeShape = new RoundRectangle { CornerRadius = 12 },
+                BackgroundColor = Colors.White,
+                Margin = new Thickness(0, 10, 0, 10),
+                Padding = new Thickness(15)
+            };
+
+            sectionContainer.Shadow = new Shadow
+            {
+                Brush = Colors.Black,
+                Offset = new Point(2, 2),
+                Opacity = 0.1f
+            };
+
+            var sectionLayout = new VerticalStackLayout { Spacing = 10 };
+
+            // Add section header
+            var sectionHeader = new Label
+            {
+                Text = section.Title,
+                FontSize = 22,
+                FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.Black,
+                Margin = new Thickness(0, 0, 0, 5)
+            };
+            sectionLayout.Children.Add(sectionHeader);
+
+            // Add section note if available
+            if (!string.IsNullOrEmpty(section.Note))
+            {
+                var noteLabel = new Label
+                {
+                    Text = section.Note,
+                    FontSize = 14,
+                    TextColor = Colors.Gray,
+                    FontAttributes = FontAttributes.Italic,
+                    Margin = new Thickness(0, 0, 0, 15)
+                };
+                sectionLayout.Children.Add(noteLabel);
+            }
+
+            // Add exercises for this section
+            if (section.Exercises != null)
+            {
+                
+                foreach (var exercise in section.Exercises)
+                {
+                    await AddExerciseToSection(exercise, section.Type, sectionLayout);
+                }
+            }
+
+            sectionContainer.Content = sectionLayout;
+            WorkoutContentStack.Children.Add(sectionContainer);
+        }
+    }
+
+    private async Task DebugAvailableExercises()
+    {
+        try
+        {
+            var exercisesDict = await _database.GetAllExercises();
+            var exerciseInfo = $"DB Exercises ({exercisesDict.Count}): ";
+            if (exercisesDict.Count > 0)
+            {
+                exerciseInfo += string.Join(", ", exercisesDict.Keys.Take(15));
+                if (exercisesDict.Count > 15) exerciseInfo += "...";
+            }
+            else
+            {
+                exerciseInfo += "NONE FOUND!";
+            }
+            
+            Console.WriteLine($"Available exercises: {exerciseInfo}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting exercises: {ex.Message}");
+        }
+    }
+
+    private async Task AddExerciseToSection(WorkoutExerciseItem exercise, string sectionType, VerticalStackLayout sectionLayout)
+    {
+        try
+        {
+            // Get exercise details from database
+            var exercisesDict = await _database.GetAllExercises();
+            if (!exercisesDict.TryGetValue(exercise.Id, out var exerciseInfo))
+            {
+                Console.WriteLine($"Exercise with ID {exercise.Id} not found");
+                
+                // Add a placeholder exercise so user can see there's missing data
+                var placeholderBorder = new Border
+                {
+                    Stroke = Colors.Red,
+                    StrokeThickness = 2,
+                    StrokeShape = new RoundRectangle { CornerRadius = 8 },
+                    BackgroundColor = Colors.LightPink,
+                    HeightRequest = 40,
+                    Margin = new Thickness(0, 5)
+                };
+
+                var placeholderLabel = new Label
+                {
+                    Text = $"Missing Exercise (ID: {exercise.Id}) - Sets: {exercise.SetsDisplay}, Reps: {exercise.Reps}",
+                    FontSize = 12,
+                    TextColor = Colors.DarkRed,
+                    VerticalOptions = LayoutOptions.Center,
+                    HorizontalOptions = LayoutOptions.Center
+                };
+
+                placeholderBorder.Content = placeholderLabel;
+                sectionLayout.Children.Add(placeholderBorder);
+                return;
+            }
+
+            // Create exercise UI element
+            var border = new Border
+            {
+                Stroke = Colors.LightGray,
+                StrokeThickness = 1,
+                StrokeShape = new RoundRectangle { CornerRadius = 8 },
+                BackgroundColor = Color.FromArgb("#FAFAFA"),
+                HeightRequest = 60,
+                Margin = new Thickness(0, 3)
+            };
+
+            border.Shadow = new Shadow
+            {
+                Brush = Colors.Black,
+                Offset = new Point(1, 1),
+                Opacity = 0.1f
+            };
+
+            var grid = new Grid
+            {
+                ColumnDefinitions =
+                {
+                    new ColumnDefinition { Width = GridLength.Star },
+                    new ColumnDefinition { Width = GridLength.Auto }
+                },
+                Padding = new Thickness(12),
+                Margin = new Thickness(0, 0, 8, 0)
+            };
+
+            var exerciseInfoStack = new VerticalStackLayout
+            {
+                VerticalOptions = LayoutOptions.Center,
+                Spacing = 2
+            };
+
+            var nameLabel = new Label
+            {
+                Text = exerciseInfo.Name,
+                FontSize = 16,
+                FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.Black
+            };
+
+            var detailsText = BuildExerciseDetailsText(exercise, sectionType);
+            var detailsLabel = new Label
+            {
+                Text = detailsText,
+                FontSize = 14,
+                TextColor = Colors.DarkGray
+            };
+
+            exerciseInfoStack.Children.Add(nameLabel);
+            if (!string.IsNullOrEmpty(detailsText))
+            {
+                exerciseInfoStack.Children.Add(detailsLabel);
+            }
+
+            var beginButton = new Button
+            {
+                Text = "Begin",
+                BackgroundColor = Color.FromArgb("#2196F3"),
+                TextColor = Colors.White,
+                CornerRadius = 12,
+                WidthRequest = 70,
+                HeightRequest = 32,
+                FontSize = 14,
+                CommandParameter = exerciseInfo.Name
+            };
+
+            beginButton.Clicked += OnBeginExerciseClicked;
+
+            grid.Children.Add(exerciseInfoStack);
+            grid.Children.Add(beginButton);
+            Grid.SetColumn(beginButton, 1);
+
+            border.Content = grid;
+            sectionLayout.Children.Add(border);
+
+            // Store in dictionary for completion tracking
+            exerciseBorders[exerciseInfo.Name] = border;
+            exerciseData[exerciseInfo.Name] = exercise;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding exercise to section: {ex.Message}");
+        }
+    }
+
+    private async void AddExerciseToUI(WorkoutExerciseItem exercise, string sectionType)
+    {
+        try
+        {
+            // Get exercise details from database
+            var exercisesDict = await _database.GetAllExercises();
+            if (!exercisesDict.TryGetValue(exercise.Id, out var exerciseInfo))
+            {
+                Console.WriteLine($"Exercise with ID {exercise.Id} not found");
+                
+                // Add a placeholder exercise so user can see there's missing data
+                var placeholderBorder = new Border
+                {
+                    Stroke = Colors.Red,
+                    StrokeThickness = 2,
+                    StrokeShape = new RoundRectangle { CornerRadius = 12 },
+                    BackgroundColor = Colors.LightPink,
+                    HeightRequest = 50,
+                    Margin = new Thickness(0, 5)
+                };
+
+                var placeholderLabel = new Label
+                {
+                    Text = $"Missing Exercise (ID: {exercise.Id}) - Sets: {exercise.SetsDisplay}, Reps: {exercise.Reps}",
+                    FontSize = 14,
+                    TextColor = Colors.DarkRed,
+                    VerticalOptions = LayoutOptions.Center,
+                    HorizontalOptions = LayoutOptions.Center
+                };
+
+                placeholderBorder.Content = placeholderLabel;
+                WorkoutContentStack.Children.Add(placeholderBorder);
+                return;
+            }
+
+            // Create exercise UI element
+            var border = new Border
+            {
+                Stroke = Colors.LightGray,
+                StrokeThickness = 1,
+                StrokeShape = new RoundRectangle { CornerRadius = 12 },
+                BackgroundColor = Colors.White,
+                HeightRequest = 70,
+                Margin = new Thickness(0, 5)
+            };
+
+            border.Shadow = new Shadow
+            {
+                Brush = Colors.Black,
+                Offset = new Point(3, 3),
+                Opacity = 0.1f
+            };
+
+            var grid = new Grid
+            {
+                ColumnDefinitions =
+                {
+                    new ColumnDefinition { Width = GridLength.Star },
+                    new ColumnDefinition { Width = GridLength.Auto }
+                },
+                Padding = new Thickness(10),
+                Margin = new Thickness(0, 0, 10, 0)
+            };
+
+            var exerciseInfoStack = new VerticalStackLayout
+            {
+                VerticalOptions = LayoutOptions.Center,
+                Spacing = 2
+            };
+
+            var nameLabel = new Label
+            {
+                Text = exerciseInfo.Name,
+                FontSize = 20,
+                FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.Black
+            };
+
+            var detailsText = BuildExerciseDetailsText(exercise, sectionType);
+            var detailsLabel = new Label
+            {
+                Text = detailsText,
+                FontSize = 16,
+                TextColor = Colors.DarkGray
+            };
+
+            exerciseInfoStack.Children.Add(nameLabel);
+            exerciseInfoStack.Children.Add(detailsLabel);
+
+            var beginButton = new Button
+            {
+                Text = "Begin",
+                BackgroundColor = Color.FromArgb("#2196F3"),
+                TextColor = Colors.White,
+                CornerRadius = 15,
+                WidthRequest = 90,
+                HeightRequest = 40,
+                FontSize = 16,
+                CommandParameter = exerciseInfo.Name
+            };
+
+            beginButton.Clicked += OnBeginExerciseClicked;
+
+            grid.Children.Add(exerciseInfoStack);
+            grid.Children.Add(beginButton);
+            Grid.SetColumn(beginButton, 1);
+
+            border.Content = grid;
+            WorkoutContentStack.Children.Add(border);
+
+            // Store in dictionary for completion tracking
+            exerciseBorders[exerciseInfo.Name] = border;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding exercise to UI: {ex.Message}");
+        }
+    }
+
+    private string BuildExerciseDetailsText(WorkoutExerciseItem exercise, string sectionType)
+    {
+        var details = new List<string>();
+
+        if (!string.IsNullOrEmpty(exercise.SetsDisplay))
+            details.Add($"{exercise.SetsDisplay} sets");
+
+        if (!string.IsNullOrEmpty(exercise.Reps))
+            details.Add($"{exercise.Reps} reps");
+
+        if (!string.IsNullOrEmpty(exercise.Duration))
+            details.Add($"{exercise.Duration}");
+
+        return details.Count > 0 ? string.Join(" • ", details) : "";
+    }
+
+    public new event PropertyChangedEventHandler? PropertyChanged;
+    protected new void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = "")
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

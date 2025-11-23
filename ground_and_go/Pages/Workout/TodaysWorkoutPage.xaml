@@ -1,25 +1,35 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--Aidan Trusky-->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="ground_and_go.Pages.WorkoutGeneration.TodaysWorkoutPage"
-             Title="Today's Workout"
-             BackgroundColor="#F0F0F0">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="ground_and_go.Pages.WorkoutGeneration.TodaysWorkoutPage"
+    Title="Today's Activity"
+    Shell.NavBarIsVisible="False"
+    BackgroundColor="#F0F0F0">
 
     <ScrollView>
         <VerticalStackLayout Spacing="12" Padding="20">
             
-            <!-- Page Header -->
-            <Label 
-                Text="Today's Workout"
-                FontSize="28"
-                FontAttributes="Bold"
-                HorizontalOptions="Center"
-                TextColor="Black"
-                Margin="0,10,0,20"/>
+            <Label x:Name="ProgressStepLabel" Text="Step 4" FontAttributes="Bold" TextColor="Gray" />
+            <ProgressBar x:Name="FlowProgressBar" Progress="0.0" />
 
-            <!-- Exercise 1: Push-ups -->
-            <Border x:Name="PushUpsBorder"
+            <!-- Instructions for using the workout interface -->
+            <Border Stroke="LightBlue" 
+                    StrokeThickness="1" 
+                    StrokeShape="RoundRectangle 8" 
+                    BackgroundColor="#E3F2FD" 
+                    Padding="12" 
+                    Margin="0,5,0,10">
+                <Label Text="💡 Click the Begin button on any exercise to see rest periods, instructions, demo video, and mark it as complete." 
+                       FontSize="14" 
+                       TextColor="#1565C0" 
+                       HorizontalTextAlignment="Center"/>
+            </Border>
+
+            <!-- Dynamic workout content will be added here -->
+            <VerticalStackLayout x:Name="WorkoutContentStack" Spacing="8" />
+
+            <!-- Fallback static exercises (will be hidden when dynamic content loads) -->
+            <Border x:Name="SquatBorder"
                     Stroke="LightGray"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
@@ -31,7 +41,7 @@
                 
                 <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
-                        <Label Text="Push-ups" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="Squat" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
                         <Label Text="3 sets × 12 reps" FontSize="16" TextColor="DarkGray"/>
                     </VerticalStackLayout>
                     
@@ -44,12 +54,11 @@
                             HeightRequest="40"
                             FontSize="16"
                             Clicked="OnBeginExerciseClicked"
-                            CommandParameter="Push-ups"/>
+                            CommandParameter="Squat"/>
                 </Grid>
             </Border>
 
-            <!-- Exercise 2: Squats -->
-            <Border x:Name="SquatsBorder"
+            <Border x:Name="BenchPressBorder"
                     Stroke="LightGray"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
@@ -61,8 +70,8 @@
                 
                 <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
-                        <Label Text="Squats" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
-                        <Label Text="3 sets × 15 reps" FontSize="16" TextColor="DarkGray"/>
+                        <Label Text="Bench Press" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="3 sets × 8 reps" FontSize="16" TextColor="DarkGray"/>
                     </VerticalStackLayout>
                     
                     <Button Grid.Column="1"
@@ -74,12 +83,11 @@
                             HeightRequest="40"
                             FontSize="16"
                             Clicked="OnBeginExerciseClicked"
-                            CommandParameter="Squats"/>
+                            CommandParameter="Bench Press"/>
                 </Grid>
             </Border>
 
-            <!-- Exercise 3: Plank -->
-            <Border x:Name="PlankBorder"
+            <Border x:Name="DeadliftBorder"
                     Stroke="LightGray"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
@@ -91,8 +99,8 @@
                 
                 <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
-                        <Label Text="Plank" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
-                        <Label Text="3 sets × 30 seconds" FontSize="16" TextColor="DarkGray"/>
+                        <Label Text="Deadlift" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="3 sets × 8 reps" FontSize="16" TextColor="DarkGray"/>
                     </VerticalStackLayout>
                     
                     <Button Grid.Column="1"
@@ -104,12 +112,11 @@
                             HeightRequest="40"
                             FontSize="16"
                             Clicked="OnBeginExerciseClicked"
-                            CommandParameter="Plank"/>
+                            CommandParameter="Deadlift"/>
                 </Grid>
             </Border>
 
-            <!-- Exercise 4: Jumping Jacks -->
-            <Border x:Name="JumpingJacksBorder"
+            <Border x:Name="PullUpBorder"
                     Stroke="LightGray"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
@@ -121,8 +128,8 @@
                 
                 <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
-                        <Label Text="Jumping Jacks" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
-                        <Label Text="2 sets × 20 reps" FontSize="16" TextColor="DarkGray"/>
+                        <Label Text="Pull-Up" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="3 sets × 6 reps" FontSize="16" TextColor="DarkGray"/>
                     </VerticalStackLayout>
                     
                     <Button Grid.Column="1"
@@ -134,12 +141,11 @@
                             HeightRequest="40"
                             FontSize="16"
                             Clicked="OnBeginExerciseClicked"
-                            CommandParameter="Jumping Jacks"/>
+                            CommandParameter="Pull-Up"/>
                 </Grid>
             </Border>
 
-            <!-- Exercise 5: Burpees -->
-            <Border x:Name="BurpeesBorder"
+            <Border x:Name="ShoulderPressBorder"
                     Stroke="LightGray"
                     StrokeThickness="1"
                     StrokeShape="RoundRectangle 12"
@@ -151,8 +157,8 @@
                 
                 <Grid ColumnDefinitions="*,Auto" Padding="10" Margin="0,0,10,0">
                     <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
-                        <Label Text="Burpees" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
-                        <Label Text="2 sets × 8 reps" FontSize="16" TextColor="DarkGray"/>
+                        <Label Text="Shoulder Press" FontSize="20" FontAttributes="Bold" TextColor="Black"/>
+                        <Label Text="3 sets × 10 reps" FontSize="16" TextColor="DarkGray"/>
                     </VerticalStackLayout>
                     
                     <Button Grid.Column="1"
@@ -164,11 +170,10 @@
                             HeightRequest="40"
                             FontSize="16"
                             Clicked="OnBeginExerciseClicked"
-                            CommandParameter="Burpees"/>
+                            CommandParameter="Shoulder Press"/>
                 </Grid>
             </Border>
 
-            <!-- Complete Workout Button -->
             <Button 
                 Text="Complete Workout"
                 BackgroundColor="#4CAF50"
@@ -177,7 +182,8 @@
                 HeightRequest="50"
                 FontSize="18"
                 FontAttributes="Bold"
-                Margin="0,20,0,10"/>
+                Margin="0,20,0,10"
+                Clicked="OnCompleteWorkout_Clicked"/>
 
         </VerticalStackLayout>
     </ScrollView>

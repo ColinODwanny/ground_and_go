@@ -7,4 +7,5 @@
         Text="Rest Day Page" 
         HorizontalOptions="Center" 
         VerticalOptions="Center" />
+        
 </ContentPage>
