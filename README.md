@@ -45,3 +45,11 @@ The application uses **Supabase** for its backend database services, handling ev
 * The "View Exercise" button in the workout page now plays the corresponding instructional video from the database 😀
 * The ability to pass user input as parameters to other pages has been implemented
 * Signup page has been designed and navigates similar to the login page
+
+
+
+  ## Ground and Go Gallery
+
+  <img width="633" height="404" alt="image" src="https://github.com/user-attachments/assets/13ffdad1-f2a1-4ad7-b470-2ec81080a026" />
+
+  
