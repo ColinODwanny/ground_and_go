@@ -1,4 +1,6 @@
 # Ground & Go
+<img width="345" height="312" alt="image" src="https://github.com/user-attachments/assets/96ba7570-220a-4eee-acc3-d9981f9b3194" />
+
 
 Welcome to the **Ground & Go** repository.
 
