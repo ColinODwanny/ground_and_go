@@ -9,6 +9,14 @@ using Supabase.Gotrue;
 using System.Collections.ObjectModel;
 using ground_and_go.Models;
 using Microsoft.Maui.Graphics.Text;
+using ground_and_go.enums;
+using static Supabase.Postgrest.Constants;
+
+
+
+
+
+
 
 namespace ground_and_go
 {
@@ -19,6 +27,10 @@ namespace ground_and_go
 
         public List<WorkoutLog>? WorkoutHistory { get; set; }
         public static Dictionary<int, Exercise>? ExercisesDictionary { get; set; }
+
+        public static List<MindfulnessActivity>? MindfulnessActivities {get; set;} 
+
+        
         public Database()
         {
             waitingForInitialization = InitializeSupabaseSystems();
@@ -34,7 +46,7 @@ namespace ground_and_go
             await supabaseClient.InitializeAsync();
             Console.WriteLine("after supabase client init");
 
-            await LoadExercises();
+           
         }
         
         /// <summary>
@@ -195,7 +207,7 @@ namespace ground_and_go
                     {
                         ExercisesDictionary[exercise.ExerciseId] = exercise;
                     }
-                    Console.WriteLine($"Loaded {ExercisesDictionary.Count} exercises into dictionary.");
+                    Console.WriteLine($"Loaded {ExercisesDictionary.Count} exercises into dictionary.q");
                 }
                 else
                 {
@@ -207,6 +219,70 @@ namespace ground_and_go
                 Console.WriteLine($"Error loading exercises: {ex.Message}");
             }
         }
+
+        public async Task LoadMindfulness()
+        {
+            Console.WriteLine("inside of LoadMindfulness()");
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return;
+            Console.WriteLine("inside of if statemenet");
+
+            MindfulnessActivities = new List<MindfulnessActivity>();
+
+            try
+            {
+                var response = await supabaseClient.From<MindfulnessActivity>().Get();
+                Console.WriteLine(response);
+                if (response?.Models != null)
+                {
+
+                    foreach (var activity in response.Models)
+                    {
+                        MindfulnessActivities.Add(activity);
+                    }
+                    Console.WriteLine($"Loaded {MindfulnessActivities.Count} minfulness activities into list.");
+                }
+                else
+                {
+                    Console.WriteLine("No exercises found in database.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading exercises: {ex.Message}");
+            }
+        }
+
+        public async Task<MindfulnessActivity?> GetMindfulnessActivityByEmotion(Emotion emotion)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return null;
+
+            int emotionValue = (int)emotion;
+
+            var response = await supabaseClient
+                .From<MindfulnessActivity>()
+                .Filter(
+                    "associated_emotions",
+                    Operator.Contains,
+                    new List<int> { emotionValue }
+                )
+                .Get();
+
+            var results = response.Models;
+
+            if (results == null || results.Count == 0)
+                return null;
+
+            // Pick random
+            var rng = new Random();
+            int index = rng.Next(results.Count);
+
+            return results[index];
+        }
+
+
+
 
 
         /// <summary>

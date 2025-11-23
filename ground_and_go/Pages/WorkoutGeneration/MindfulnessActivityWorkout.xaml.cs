@@ -5,6 +5,10 @@ using ground_and_go.Pages.Home;
 using ground_and_go.Services;
 using ground_and_go.Models;
 using ground_and_go;
+using ground_and_go.Models;
+using ground_and_go.Pages.WorkoutGeneration;
+using ground_and_go.enums;
+using System.Threading.Tasks;
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
@@ -16,6 +20,8 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
     private readonly Database _database;
     private readonly MockAuthService _authService;
 
+    private MindfulnessActivity _activity;
+
     //  Update constructor to receive our services
     public MindfulnessActivityWorkoutPage(Database database, MockAuthService authService, DailyProgressService progressService)
     {
@@ -23,9 +29,10 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         _database = database;
         _authService = authService;
         _progressService = progressService;
+        
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
         
@@ -36,6 +43,12 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         this.Title = "Step 3 of 5: Mindfulness";
         ProgressStepLabel.Text = "Step 3 of 5: Complete this activity";
         FlowProgressBar.Progress = 0.40; // 2/5 complete
+        Enum.TryParse<Emotion>(
+            _progressService.CurrentFeelingResult.Mood,
+            ignoreCase: true,
+            out var emotion
+        );
+        _activity = await _database.GetMindfulnessActivityByEmotion(emotion);
     }
 
     // This method now passes the flow parameter
@@ -106,4 +119,13 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         // Navigate hierarchically using the alias "TheWorkout"
         await Shell.Current.GoToAsync("TheWorkout"); 
     }
+
+    private async void OnOpenYoutubeClicked(object sender, EventArgs e)
+    {
+        if (!string.IsNullOrEmpty(_activity.YoutubeLink))
+        {
+            await Browser.OpenAsync(_activity.YoutubeLink, BrowserLaunchMode.External);
+        }
+    }
+
 }
