@@ -1,12 +1,12 @@
 # Ground & Go
-<img width="345" height="312" alt="image" src="https://github.com/user-attachments/assets/96ba7570-220a-4eee-acc3-d9981f9b3194" />
-
 
 Welcome to the **Ground & Go** repository.
 
 This project is a cross-platform fitness and mental wellness application built with **.NET MAUI**. The app is designed to help users connect their emotional state to their physical activity by providing a flow that includes mood check-ins, journaling, and tailored mindfulness exercises before generating a workout or logging a rest day.
 
 The application uses **Supabase** for its backend database services, handling everything from user data to workout and journal entry storage.
+
+<img width="345" height="312" alt="image" src="https://github.com/user-attachments/assets/96ba7570-220a-4eee-acc3-d9981f9b3194" />
 ## Sprint 3 Changes
 
 ----------------------------------------------------------------
