@@ -12,7 +12,6 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Ground and Go Logo -->
@@ -28,6 +27,7 @@
                 Stroke="LightGray"
                 StrokeThickness="1"
                 BackgroundColor="White"
+                Margin="0,0,0,10"
                 HeightRequest="70">
             <Border.StrokeShape>
                 <RoundRectangle CornerRadius="12"/>
@@ -40,27 +40,14 @@
                 <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
                     <Entry x:Name="UsernameENT"
                             Text=""
-                            Placeholder="Username/Email"
+                            Placeholder="Email"
                             FontSize="24"/>
                 </VerticalStackLayout>
             </Grid>
         </Border>
 
-        <!-- Forgot Username Link -->
-        <Button
-            Grid.Row="2"
-            x:Name="ForgotUsername"
-            Text="Forgot Username?"
-            FontSize="12"
-            HorizontalOptions="End"
-            BackgroundColor="Transparent"
-            Clicked="ForgotUsernameClicked"
-            TextColor="Gray"
-            Padding="0"
-            Margin="0,-5,0,0"/>
-
         <!-- Password -->
-        <Border Grid.Row="3"
+        <Border Grid.Row="2"
                 x:Name="PasswordBorder"
                 Stroke="LightGray"
                 StrokeThickness="1"
@@ -86,7 +73,7 @@
 
         <!-- Forgot Password Link -->
         <Button
-            Grid.Row="4"
+            Grid.Row="3"
             x:Name="ForgotPassword"
             Text="Forgot Password?"
             FontSize="12"
@@ -99,7 +86,7 @@
 
         <!-- Login Button -->
         <Button
-            Grid.Row="5"
+            Grid.Row="4"
             Text="Login"
             BackgroundColor="Black"
             TextColor="White"
@@ -112,7 +99,7 @@
 
         <!-- Create Account Link -->
         <Button
-            Grid.Row="6"
+            Grid.Row="5"
             x:Name="CreateAccount"
             Text="Don't have an account? Create one"
             FontSize="14"
