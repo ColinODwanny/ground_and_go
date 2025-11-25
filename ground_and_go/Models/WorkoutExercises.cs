@@ -9,6 +9,9 @@ namespace ground_and_go.Models
 
         [JsonProperty("sections")]
         public List<WorkoutSection> Sections { get; set; } = new();
+
+        [JsonProperty("exercises")]
+        public List<WorkoutExerciseItem> Exercises { get; set; } = new();
     }
 
     public class WorkoutSection

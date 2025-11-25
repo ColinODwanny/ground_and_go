@@ -8,8 +8,22 @@ namespace ground_and_go.Models
     {
         private bool _isExpanded = false;
 
+        private Workout? _workoutDetails;
+
         public WorkoutLog WorkoutLog { get; set; }
-        public Workout? WorkoutDetails { get; set; }
+        
+        public Workout? WorkoutDetails 
+        { 
+            get => _workoutDetails;
+            set
+            {
+                _workoutDetails = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(WorkoutEmotion)); // Notify that emotion should be recalculated
+                OnPropertyChanged(nameof(WorkoutCategory));
+                OnPropertyChanged(nameof(WorkoutEquipment));
+            }
+        }
         public ObservableCollection<Exercise> Exercises { get; set; } = new();
 
         public bool IsExpanded 
@@ -23,7 +37,7 @@ namespace ground_and_go.Models
             }
         }
 
-        public string ExpandCollapseIcon => IsExpanded ? "▼" : "▶";
+        public string ExpandCollapseIcon => IsExpanded ? "▼\uFE0E" : "▶\uFE0E";
         
         public string DisplayDate => WorkoutLog.DateTime.ToString("MMM dd, yyyy");
         
@@ -80,21 +94,35 @@ namespace ground_and_go.Models
         
         private string GetEmotionName()
         {
-            if (WorkoutDetails?.EmotionId == null) return "Unknown";
-            
-            var emotionMap = new Dictionary<int, string>
+            // Check if we have workout details with emotion ID (regular workout flow)
+            if (WorkoutDetails?.EmotionId != null)
             {
-                { 1, "Happy" },
-                { 2, "Neutral" },
-                { 3, "Sad" },
-                { 4, "Depressed" },
-                { 5, "Energized" },
-                { 6, "Anxious" },
-                { 7, "Angry" },
-                { 8, "Tired" }
-            };
+                var emotionMap = new Dictionary<int, string>
+                {
+                    { 1, "Happy" },
+                    { 2, "Neutral" },
+                    { 3, "Sad" },
+                    { 4, "Depressed" },
+                    { 5, "Energized" },
+                    { 6, "Anxious" },
+                    { 7, "Angry" },
+                    { 8, "Tired" }
+                };
+                
+                if (emotionMap.TryGetValue(WorkoutDetails.EmotionId, out var emotion))
+                {
+                    return emotion;
+                }
+            }
             
-            return emotionMap.TryGetValue(WorkoutDetails.EmotionId, out var emotion) ? emotion : "Unknown";
+            // For rest day entries (workout_id is null), show as rest day
+            if (WorkoutLog.WorkoutId == null)
+            {
+                return "Rest Day";
+            }
+            
+            // If we have a workout ID but no details loaded, show loading state
+            return "Loading...";
         }
     }
 }

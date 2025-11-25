@@ -85,28 +85,70 @@ namespace ground_and_go.Models
         [JsonIgnore]
         public string ExercisesBulletedList => GetExercisesBulletedList();
         
+        // Static field to hold exercises dictionary for name lookup
+        [JsonIgnore]
+        public static Dictionary<int, Exercise>? ExercisesDictionary { get; set; }
+        
         private string GetExercisesBulletedList()
         {
-            if (Exercises?.Sections == null || Exercises.Sections.Count == 0)
+            if (Exercises == null)
                 return "No exercises available";
             
             var sectionInfo = new List<string>();
             
-            foreach (var section in Exercises.Sections)
+            // Handle workouts with sections (e.g., Strength Training)
+            if (Exercises.Sections != null && Exercises.Sections.Count > 0)
             {
-                if (section.Exercises != null && section.Exercises.Count > 0)
+                foreach (var section in Exercises.Sections)
                 {
-                    var exerciseDetails = section.Exercises.Select(ex => 
-                        $"  - Exercise #{ex.Id}" + 
-                        (string.IsNullOrEmpty(ex.SetsDisplay) ? "" : $" ({ex.SetsDisplay} sets)") +
-                        (string.IsNullOrEmpty(ex.Reps) ? "" : $" x {ex.Reps} reps")).ToList();
-                    
-                    sectionInfo.Add($"• {section.Title ?? "Unknown Section"} ({section.Exercises.Count} exercises)");
-                    sectionInfo.AddRange(exerciseDetails);
+                    if (section.Exercises != null && section.Exercises.Count > 0)
+                    {
+                        var exerciseDetails = section.Exercises.Select(ex => 
+                        {
+                            // Try to get exercise name from dictionary, fallback to ID if not found
+                            string exerciseName = GetExerciseName(ex.Id);
+                            
+                            return $"  - {exerciseName}" + 
+                                   (string.IsNullOrEmpty(ex.SetsDisplay) ? "" : $" ({ex.SetsDisplay} sets)") +
+                                   (string.IsNullOrEmpty(ex.Reps) ? "" : $" x {ex.Reps} reps") +
+                                   (string.IsNullOrEmpty(ex.Duration) ? "" : $" for {ex.Duration}") +
+                                   (string.IsNullOrEmpty(ex.Rest) ? "" : $", rest {ex.Rest}");
+                        }).ToList();
+                        
+                        sectionInfo.Add($"• {section.Title ?? "Unknown Section"} ({section.Exercises.Count} exercises)");
+                        sectionInfo.AddRange(exerciseDetails);
+                    }
                 }
+            }
+            // Handle workouts with direct exercises (e.g., Cardio)
+            else if (Exercises.Exercises != null && Exercises.Exercises.Count > 0)
+            {
+                var exerciseDetails = Exercises.Exercises.Select(ex => 
+                {
+                    // Try to get exercise name from dictionary, fallback to ID if not found
+                    string exerciseName = GetExerciseName(ex.Id);
+                    
+                    return $"• {exerciseName}" + 
+                           (string.IsNullOrEmpty(ex.SetsDisplay) ? "" : $" ({ex.SetsDisplay} sets)") +
+                           (string.IsNullOrEmpty(ex.Reps) ? "" : $" x {ex.Reps} reps") +
+                           (string.IsNullOrEmpty(ex.Duration) ? "" : $" for {ex.Duration}") +
+                           (string.IsNullOrEmpty(ex.Rest) ? "" : $", rest {ex.Rest}");
+                }).ToList();
+                
+                sectionInfo.AddRange(exerciseDetails);
             }
             
             return sectionInfo.Count > 0 ? string.Join(Environment.NewLine, sectionInfo) : "No exercises available";
+        }
+        
+        private static string GetExerciseName(int exerciseId)
+        {
+            if (ExercisesDictionary?.TryGetValue(exerciseId, out var exercise) == true)
+            {
+                return exercise.Name ?? $"Exercise #{exerciseId}";
+            }
+            
+            return $"Exercise #{exerciseId}";
         }
 
 
