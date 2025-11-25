@@ -64,4 +64,9 @@ public class BusinessLogic
         await Database.LogOut();
         IsLoggedIn = false;
     }
+
+    public async Task<string?> ForgotPassword(string email)
+    {
+        return await Database.ForgotPassword(email);
+    }
 }

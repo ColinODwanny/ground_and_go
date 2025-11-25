@@ -1,6 +1,7 @@
 // FILE: ground_and_go/Pages/Auth/LoginPage.xaml.cs
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Maui.Views;
 using ground_and_go.Models;
 using ground_and_go.Pages.Home;
 
@@ -33,8 +34,14 @@ public partial class LoginPage : ContentPage
         try
         {
             if (sender is not Button button) return;
+            var popup = new ForgotPasswordPopup();
+            object? result = await this.ShowPopupAsync(popup);
 
-
+            if (result != null)
+            {
+                await DisplayAlert("Success", "The recovery email was sent.", "OK");
+                //TODO Create new page for changing password for current account, if result == null
+            }
         } catch (Exception ex)
         {
             await DisplayAlert("Error", $"Error: {ex.Message}", "OK");

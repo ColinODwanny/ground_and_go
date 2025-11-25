@@ -75,6 +75,7 @@
         <Button
             Grid.Row="3"
             x:Name="ForgotPassword"
+            BindingContext="ground_and_go.Pages.Auth.LoginPage"
             Text="Forgot Password?"
             FontSize="12"
             HorizontalOptions="End"
