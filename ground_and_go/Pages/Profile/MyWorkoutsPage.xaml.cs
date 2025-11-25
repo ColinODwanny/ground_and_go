@@ -40,6 +40,12 @@ public partial class MyWorkoutsPage : ContentPage, INotifyPropertyChanged
         {
             IsLoading = true;
             
+            // Load exercises dictionary first so exercise names can be displayed
+            Console.WriteLine("Loading exercises dictionary...");
+            var exercisesDictionary = await _database.GetAllExercises();
+            Models.Workout.ExercisesDictionary = exercisesDictionary;
+            Console.WriteLine($"Loaded {exercisesDictionary.Count} exercises into dictionary");
+            
             // Get the current user's completed workouts
             string? memberId = _database.GetAuthenticatedMemberId();
             Console.WriteLine($"Loading workouts for member: {memberId}");

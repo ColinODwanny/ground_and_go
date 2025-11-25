@@ -53,6 +53,14 @@ public static class MauiProgram
 
 #if DEBUG
         builder.Logging.AddDebug();
+        builder.Logging.SetMinimumLevel(LogLevel.Debug);
+        
+        // Enable more verbose logging for debugging
+        builder.Services.AddLogging(logging =>
+        {
+            logging.AddDebug();
+            logging.SetMinimumLevel(LogLevel.Debug);
+        });
 #endif
 
         // --- Build the App ---

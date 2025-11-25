@@ -12,6 +12,15 @@
             WidthRequest="320">
 
         <VerticalStackLayout Spacing="15">
+            <Label x:Name="ProgressStepLabel" 
+                   Text="Step 1" 
+                   FontAttributes="Bold" 
+                   TextColor="Gray" 
+                   HorizontalOptions="Center" />
+            
+            <ProgressBar x:Name="FlowProgressBar" 
+                         Progress="0.0" />
+            
             <Label Text="How do you feel?"
                    FontSize="22"
                    FontAttributes="Bold"

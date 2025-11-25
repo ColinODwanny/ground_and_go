@@ -24,35 +24,12 @@
                        TextColor="Black"
                        Margin="0,0,0,10"/>
 
-                <FlexLayout Wrap="Wrap"
+                <FlexLayout x:Name="WorkoutTypeButtonsLayout"
+                            Wrap="Wrap"
                             Direction="Row"
                             JustifyContent="Center"
                             AlignItems="Center">
-
-                    <Button Text="Strength Training"
-                            x:Name="StrengthButton"
-                            Clicked="OnWorkoutTypeClicked"
-                            Margin="5"
-                            BackgroundColor="#F3F4F6"
-                            TextColor="Black"
-                            BorderColor="#E0E0E0"
-                            BorderWidth="2"
-                            CornerRadius="20"
-                            WidthRequest="160"
-                            Padding="12,6" />
-
-                    <Button Text="Cardio"
-                            x:Name="CardioButton"
-                            Clicked="OnWorkoutTypeClicked"
-                            Margin="5"
-                            BackgroundColor="#F3F4F6"
-                            TextColor="Black"
-                            BorderColor="#E0E0E0"
-                            BorderWidth="2"
-                            CornerRadius="20"
-                            WidthRequest="160"
-                            Padding="12,6" />
-
+                    <!-- Dynamic buttons will be added here -->
                 </FlexLayout>
 
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10">

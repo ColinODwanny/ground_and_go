@@ -25,23 +25,14 @@ public partial class PostActivityJournalEntryPage : ContentPage
     {
         base.OnAppearing();
 
-        // Read the flow type directly from the service
-        if (_progressService.CurrentFlowType == "workout")
-        {
-            // WORKOUT FLOW (5 steps total)
-            // Step 4 (Workout) is done. This is Step 5.
-            this.Title = "Step 5 of 5: Final Reflection";
-            ProgressStepLabel.Text = "Step 5 of 5: Write a final reflection";
-            FlowProgressBar.Progress = 0.80; // 4/5 complete
-        }
-        else // "rest" flow
-        {
-            // REST FLOW (4 steps total)
-            // Step 3 (Mindfulness) is done. This is Step 4.
-            this.Title = "Step 4 of 4: Final Reflection";
-            ProgressStepLabel.Text = "Step 4 of 4: Write a final reflection";
-            FlowProgressBar.Progress = 0.75; // 3/4 complete
-        }
+        // Use dynamic step counting based on emotion type from database
+        // This is actual step 5 for the post-activity journal
+        var (displayStep, totalSteps) = await _progressService.GetDisplayStepAsync(5); 
+        double progress = await _progressService.GetProgressPercentageAsync(5);
+        
+        this.Title = $"Step {displayStep} of {totalSteps}: Final Reflection";
+        ProgressStepLabel.Text = $"Step {displayStep} of {totalSteps}: Write a final reflection";
+        FlowProgressBar.Progress = progress;
     }
 
     // This method now saves the journal entry
@@ -49,31 +40,73 @@ public partial class PostActivityJournalEntryPage : ContentPage
     {
         try
         {
+            Console.WriteLine("DEBUG: PostActivityJournalEntryPage - OnFinish_Clicked started");
+            
             // 1. Get the Log ID we saved from the service
             string? logId = _progressService.CurrentLogId;
+            Console.WriteLine($"DEBUG: CurrentLogId from service: '{logId ?? "NULL"}'");
 
+            // 2. If CurrentLogId is null, try to get today's log directly
+            if (string.IsNullOrEmpty(logId))
+            {
+                Console.WriteLine("DEBUG: CurrentLogId is null, trying to get today's log directly");
+                string? memberId = _database.GetAuthenticatedMemberId();
+                if (!string.IsNullOrEmpty(memberId))
+                {
+                    var todaysLog = await _database.GetTodaysWorkoutLog(memberId);
+                    if (todaysLog != null)
+                    {
+                        logId = todaysLog.LogId;
+                        _progressService.CurrentLogId = logId;
+                        Console.WriteLine($"DEBUG: Found today's log ID: '{logId}'");
+                    }
+                    else
+                    {
+                        Console.WriteLine("DEBUG: No today's log found!");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("DEBUG: Member ID is null - user not logged in?");
+                }
+            }
 
             if (!string.IsNullOrEmpty(logId))
             {
-                // 2. Save the final journal text to that log
-                await _database.UpdateAfterJournalAsync(logId, JournalEditor.Text);
+                Console.WriteLine($"DEBUG: Attempting to save after_journal to log ID: '{logId}'");
+                Console.WriteLine($"DEBUG: Journal text length: {JournalEditor.Text?.Length ?? 0} characters");
+                
+                // 3. Save the final journal text to that log
+                await _database.UpdateAfterJournalAsync(logId, JournalEditor.Text ?? "");
+                Console.WriteLine("DEBUG: UpdateAfterJournalAsync completed successfully");
 
-                // 3. Clear the ID now that we're done
+                // 4. Clear the ID now that we're done
                 _progressService.CurrentLogId = null;
+                Console.WriteLine("DEBUG: Cleared CurrentLogId from service");
             }
             else
             {
-                // This shouldn't happen, but just in case...
-                Console.WriteLine("Error: Could not find CurrentLogId to save the after_journal.");
+                Console.WriteLine("ERROR: Could not find CurrentLogId to save the after_journal. This will prevent completion detection!");
+                
+                // Show an alert to the user about the issue
+                await DisplayAlert("Warning", 
+                    "There was an issue saving your completion status. Your workout may not show as complete. Please contact support if this persists.", 
+                    "OK");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error saving final journal: {ex.Message}");
-            // Don't block the user, let them go home anyway
+            Console.WriteLine($"ERROR: Exception in OnFinish_Clicked: {ex.Message}");
+            Console.WriteLine($"ERROR: Stack trace: {ex.StackTrace}");
+            
+            // Show error to user but don't block navigation
+            await DisplayAlert("Error", 
+                $"There was an error saving your journal entry: {ex.Message}. Please try again.", 
+                "OK");
         }
 
-        // 4. Navigate back to the main home tab
+        Console.WriteLine("DEBUG: Navigating back to home page");
+        // 5. Navigate back to the main home tab
         await Shell.Current.GoToAsync("//home");
     }
 }
