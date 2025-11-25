@@ -122,7 +122,7 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
             return;
         }
 
-        var popup = new HowDoYouFeelPopup();
+        var popup = new HowDoYouFeelPopup("workout");
         var result = await this.ShowPopupAsync(popup);
 
         if (result is FeelingResult feelingResult)
@@ -154,7 +154,7 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
             return;
         }
 
-          var popup = new HowDoYouFeelPopup();
+          var popup = new HowDoYouFeelPopup("rest");
           var result = await this.ShowPopupAsync(popup);
 
           if (result is FeelingResult feelingResult)
