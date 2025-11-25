@@ -27,11 +27,14 @@ public partial class MindfulnessActivityRestPage : ContentPage
     {
         base.OnAppearing();
         
-        // REST DAY always has 4 steps: emotion → journal → mindfulness → post-journal (no workout)
-        // This is step 3 of 4 for mindfulness
-        this.Title = "Step 3 of 4: Mindfulness";
-        ProgressStepLabel.Text = "Step 3 of 4: Complete this activity";
-        FlowProgressBar.Progress = 0.50; // 2/4 complete
+        // Use dynamic step counting for rest day flow
+        // Mindfulness is actual step 3, should always be step 3 of 4 for rest days
+        var (displayStep, totalSteps) = await _progressService.GetDisplayStepAsync(3);
+        double progress = await _progressService.GetProgressPercentageAsync(3);
+        
+        this.Title = $"Step {displayStep} of {totalSteps}: Mindfulness";
+        ProgressStepLabel.Text = $"Step {displayStep} of {totalSteps}: Complete this activity";
+        FlowProgressBar.Progress = progress;
         
         // Load mindfulness activity from database
         Enum.TryParse<Emotion>(

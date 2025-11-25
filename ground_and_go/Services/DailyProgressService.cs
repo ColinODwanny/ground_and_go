@@ -140,9 +140,16 @@ namespace ground_and_go.Services
         /// <summary>
         /// Gets the total number of steps for the current flow (async version)
         /// </summary>
-        /// <returns>4 for emotions without mindfulness, 5 for emotions with mindfulness</returns>
+        /// <returns>4 for rest days, 4 for emotions without mindfulness in workout flow, 5 for emotions with mindfulness in workout flow</returns>
         public async Task<int> GetTotalStepsAsync()
         {
+            // Rest day flow always has 4 steps: emotion → journal → mindfulness → post-journal
+            if (CurrentFlowType == "rest")
+            {
+                return 4;
+            }
+            
+            // Workout flow: 4 or 5 steps depending on mindfulness
             bool requiresMindfulness = await RequiresMindfulnessAsync();
             return requiresMindfulness ? 5 : 4;
         }
@@ -154,6 +161,15 @@ namespace ground_and_go.Services
         /// <returns>Tuple of (displayStep, totalSteps)</returns>
         public async Task<(int displayStep, int totalSteps)> GetDisplayStepAsync(int actualStep)
         {
+            // Rest day flow: emotion(1) → journal(2) → mindfulness(3) → post-journal(4)
+            if (CurrentFlowType == "rest")
+            {
+                // For rest days, map: 1→1, 2→2, 3→3, 5→4 (no step 4 since no workout)
+                int restDisplayStep = actualStep == 5 ? 4 : actualStep; // Map post-journal (5) to step 4
+                return (restDisplayStep, 4);
+            }
+            
+            // Workout flow logic
             bool requiresMindfulness = await RequiresMindfulnessAsync();
             int totalSteps = requiresMindfulness ? 5 : 4;
             
@@ -165,7 +181,7 @@ namespace ground_and_go.Services
             else
             {
                 // Emotions without mindfulness: skip step 3 (mindfulness)
-                // actualStep 1 -> display 1, actualStep 2 -> display 2, actualStep 4 -> display 3, actualStep 5 -> display 4
+                // actualStep 1 → display 1, actualStep 2 → display 2, actualStep 4 → display 3, actualStep 5 → display 4
                 int displayStep = actualStep <= 2 ? actualStep : actualStep - 1;
                 return (displayStep, totalSteps);
             }

@@ -94,7 +94,7 @@ namespace ground_and_go.Models
         
         private string GetEmotionName()
         {
-            // Check if we have workout details with emotion ID
+            // Check if we have workout details with emotion ID (regular workout flow)
             if (WorkoutDetails?.EmotionId != null)
             {
                 var emotionMap = new Dictionary<int, string>
@@ -115,8 +115,8 @@ namespace ground_and_go.Models
                 }
             }
             
-            // Fallback: check if this is a rest day entry (no workout ID)
-            if (WorkoutLog.WorkoutId == null || WorkoutLog.WorkoutId <= 0)
+            // For rest day entries (workout_id is null), show as rest day
+            if (WorkoutLog.WorkoutId == null)
             {
                 return "Rest Day";
             }
