@@ -5,9 +5,9 @@ using ground_and_go.Pages.Home;
 using ground_and_go.Services;
 using ground_and_go.Models;
 using ground_and_go;
-using ground_and_go.Models;
 using ground_and_go.Pages.WorkoutGeneration;
 using ground_and_go.enums;
+using ground_and_go.Components;
 using System.Threading.Tasks;
 
 namespace ground_and_go.Pages.WorkoutGeneration;
@@ -36,13 +36,13 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
     {
         base.OnAppearing();
         
-        // WORKOUT FLOW (5 steps total)
-        // Step 2 (Journal) is done. This is Step 3.
-        // We don't need to check the flow type, because this page
-        // is *only* for the workout flow.
-        this.Title = "Step 3 of 5: Mindfulness";
-        ProgressStepLabel.Text = "Step 3 of 5: Complete this activity";
-        FlowProgressBar.Progress = 0.40; // 2/5 complete
+        // Use dynamic step counting based on emotion type from database
+        var (displayStep, totalSteps) = await _progressService.GetDisplayStepAsync(3); // Mindfulness is actual step 3
+        double progress = await _progressService.GetProgressPercentageAsync(3);
+        
+        this.Title = $"Step {displayStep} of {totalSteps}: Mindfulness";
+        ProgressStepLabel.Text = $"Step {displayStep} of {totalSteps}: Complete this activity";
+        FlowProgressBar.Progress = progress;
         Enum.TryParse<Emotion>(
             _progressService.CurrentFeelingResult.Mood,
             ignoreCase: true,
@@ -54,9 +54,57 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
     // This method now passes the flow parameter
     private async void OnNext_Clicked(object sender, EventArgs e)
     {
-        // Show equipment selection popup
-        var popup = new WorkoutOptionsPopup();
-        var equipmentResult = await this.ShowPopupAsync(popup);
+        string userEmotion = _progressService.CurrentFeelingResult?.Mood ?? "";
+        
+        // Note: Bad emotions go through mindfulness first, then proceed to workout selection
+
+        // Get available workout categories for this emotion
+        var availableCategories = await _database.GetWorkoutCategoriesByEmotion(userEmotion);
+        
+        if (availableCategories.Count == 0)
+        {
+            await DisplayAlert("No Workouts Available", 
+                $"No workouts are available for the emotion '{userEmotion}'. Please try a mindfulness activity instead.", 
+                "OK");
+            await Shell.Current.GoToAsync("//HomePage");
+            return;
+        }
+
+        EquipmentResult? equipmentResult = null;
+
+        if (availableCategories.Count == 1)
+        {
+            // Only one workout type available - auto-generate without popup
+            string singleWorkoutType = availableCategories[0];
+            
+            // Check if equipment selection is needed
+            bool needsEquipment = await _database.IsEquipmentSelectionNeeded(userEmotion, singleWorkoutType);
+            
+            if (needsEquipment)
+            {
+                // Still need to ask about equipment for this single category
+                var popup = new WorkoutOptionsPopup(availableCategories, userEmotion, _database);
+                equipmentResult = await this.ShowPopupAsync(popup) as EquipmentResult;
+            }
+            else
+            {
+                // Auto-generate with no equipment preference
+                equipmentResult = new EquipmentResult
+                {
+                    WorkoutType = singleWorkoutType,
+                    GymAccess = false,
+                    HomeAccess = false
+                };
+                
+                Console.WriteLine($"DEBUG: Auto-generating {singleWorkoutType} workout for {userEmotion} (no equipment needed)");
+            }
+        }
+        else
+        {
+            // Multiple workout types available - show selection popup
+            var popup = new WorkoutOptionsPopup(availableCategories, userEmotion, _database);
+            equipmentResult = await this.ShowPopupAsync(popup) as EquipmentResult;
+        }
         
         if (equipmentResult is not EquipmentResult equipment)
         {
@@ -75,7 +123,6 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
         if (_progressService.CurrentFeelingResult?.Mood != null)
         {
             bool hasGymAccess = equipment.GymAccess;
-            string userEmotion = _progressService.CurrentFeelingResult.Mood;
             string workoutType = equipment.WorkoutType;
             
             Console.WriteLine($"DEBUG: Generating workout for emotion: '{userEmotion}', gym access: {hasGymAccess}, workout type: '{workoutType}'");
@@ -83,9 +130,9 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
             
             Console.WriteLine($"DEBUG: About to query for: Emotion='{userEmotion}', Gym={hasGymAccess}, Type='{workoutType}'");
             
-            selectedWorkout = await _database.GetRandomWorkoutByEmotionAndEquipment(userEmotion, hasGymAccess, workoutType);
-            
+            selectedWorkout = await _database.GetRandomWorkoutByExactCriteria(userEmotion, hasGymAccess, workoutType);
             Console.WriteLine($"DEBUG: Selected workout result: {selectedWorkout?.WorkoutId} (Category: {selectedWorkout?.Category})");
+            
         }
         else
         {
@@ -94,7 +141,11 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
 
         if (selectedWorkout == null)
         {
-            await DisplayAlert("Error", "Could not generate a workout based on your preferences. Please try again.", "OK");
+            string equipmentText = equipment?.GymAccess == true ? "gym equipment" : "home equipment";
+            string workoutType = equipment?.WorkoutType ?? "unknown type";
+            await DisplayAlert("No Workouts Available", 
+                $"No workouts are available for {userEmotion} mood with {workoutType} using {equipmentText}.\n\nPlease go back and try:\n• A different workout type\n• Different equipment preference\n• Or try doing mindfulness activities instead", 
+                "OK");
             return;
         }
 

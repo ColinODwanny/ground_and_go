@@ -3,6 +3,7 @@ using CommunityToolkit.Maui.Views;
 using Microsoft.Maui.Controls;
 using ground_and_go.Services;
 using ground_and_go.Models;
+using ground_and_go.Components;
 using System.ComponentModel;
 using Microsoft.Maui.Controls.Shapes;
 
@@ -59,17 +60,14 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         // Hide hardcoded exercises immediately to prevent them from showing
         HideHardcodedExercises();
         
-        // Read the flow type directly from the service
-        // We only check for "workout" because the "rest" flow
-        // never comes to this page.
-        if (_progressService.CurrentFlowType == "workout")
-        {
-            // WORKOUT FLOW (5 steps total)
-            // Step 3 (Mindfulness) is done. This is Step 4.
-            this.Title = "Step 4 of 5: Your Workout";
-            ProgressStepLabel.Text = "Step 4 of 5: Complete your exercises";
-            FlowProgressBar.Progress = 0.60; // 3/5 complete
-        }
+        // Use dynamic step counting based on emotion type from database
+        // For workout, this is actual step 4 (after emotion, journal, mindfulness/skip, now workout)
+        var (displayStep, totalSteps) = await _progressService.GetDisplayStepAsync(4); 
+        double progress = await _progressService.GetProgressPercentageAsync(4);
+        
+        this.Title = $"Step {displayStep} of {totalSteps}: Your Workout";
+        ProgressStepLabel.Text = $"Step {displayStep} of {totalSteps}: Complete your exercises";
+        FlowProgressBar.Progress = progress;
 
         // Load the current workout from the database
         await LoadCurrentWorkout();
@@ -126,7 +124,7 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
     {
         // navigate to the new post-activity journal page
         // The service already knows we are in the "workout" flow.
-        await Shell.Current.GoToAsync($"{nameof(PostActivityJournalEntryPage)}");
+        await Shell.Current.GoToAsync("PostJournal");
     }
 
     private async Task LoadCurrentWorkout()
@@ -167,14 +165,25 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
                 _progressService.CurrentLogId = todaysLog.LogId;
             }
             
-            // Get the workout details
-            CurrentWorkout = await _database.GetWorkoutById(todaysLog.WorkoutId.Value);
+            // Get the workout details with loading indicator
+            var loadingPopup = new LoadingPopup("Loading your workout...");
+            this.ShowPopup(loadingPopup);
             
-            // If this workout has no sections, it means the workout filtering in the database method
-            // should have prevented this, but log it for awareness
-            if (CurrentWorkout?.Exercises?.Sections == null || CurrentWorkout.Exercises.Sections.Count == 0)
+            try
             {
-                Console.WriteLine($"Warning: Workout {CurrentWorkout?.WorkoutId} has no exercise sections");
+                CurrentWorkout = await _database.GetWorkoutById(todaysLog.WorkoutId.Value);
+            }
+            finally
+            {
+                loadingPopup.Close();
+            }
+            
+            // Check if workout has exercises in any format
+            bool hasSections = CurrentWorkout?.Exercises?.Sections?.Count > 0;
+            bool hasDirectExercises = CurrentWorkout?.Exercises?.Exercises?.Count > 0;
+            if (!hasSections && !hasDirectExercises)
+            {
+                Console.WriteLine($"Warning: Workout {CurrentWorkout?.WorkoutId} has no exercises in any format");
             }
             
             if (CurrentWorkout == null)
@@ -213,10 +222,21 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         }
         
         
-        if (CurrentWorkout.Exercises.Sections == null || CurrentWorkout.Exercises.Sections.Count == 0)
+        // Check if we have sections or direct exercises
+        bool hasSections = CurrentWorkout.Exercises.Sections != null && CurrentWorkout.Exercises.Sections.Count > 0;
+        bool hasDirectExercises = CurrentWorkout.Exercises.Exercises != null && CurrentWorkout.Exercises.Exercises.Count > 0;
+        
+        if (!hasSections && !hasDirectExercises)
         {
-            Console.WriteLine($"No sections found (count: {CurrentWorkout.Exercises.Sections?.Count ?? 0}) - showing hardcoded exercises");
+            Console.WriteLine($"No sections or exercises found - showing hardcoded exercises");
             ShowHardcodedExercises();
+            return;
+        }
+        
+        if (hasDirectExercises && !hasSections)
+        {
+            Console.WriteLine($"Loading {CurrentWorkout.Exercises.Exercises.Count} direct exercises (no sections format)");
+            await LoadDirectExercises();
             return;
         }
 
@@ -290,6 +310,57 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
             sectionContainer.Content = sectionLayout;
             WorkoutContentStack.Children.Add(sectionContainer);
         }
+    }
+
+    private async Task LoadDirectExercises()
+    {
+        // Clear existing content and rebuild dynamically
+        WorkoutContentStack.Children.Clear();
+        exerciseBorders.Clear();
+        exerciseData.Clear();
+
+        // Debug: Check what exercises we have in the database
+        await DebugAvailableExercises();
+        
+        // Create a single section container for direct exercises
+        var sectionContainer = new Border
+        {
+            BackgroundColor = Color.FromArgb("#1E1E1E"),
+            Stroke = Color.FromArgb("#333333"),
+            StrokeThickness = 1,
+            Margin = new Thickness(0, 10, 0, 10)
+        };
+
+        var sectionLayout = new VerticalStackLayout
+        {
+            Padding = new Thickness(15),
+            Spacing = 10
+        };
+
+        // Add workout description if available
+        if (!string.IsNullOrEmpty(CurrentWorkout.Exercises.Description))
+        {
+            var descriptionLabel = new Label
+            {
+                Text = CurrentWorkout.Exercises.Description,
+                TextColor = Colors.White,
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 10)
+            };
+            sectionLayout.Children.Add(descriptionLabel);
+        }
+
+        // Add exercises
+        if (CurrentWorkout.Exercises.Exercises != null)
+        {
+            foreach (var exercise in CurrentWorkout.Exercises.Exercises)
+            {
+                await AddExerciseToSection(exercise, "direct", sectionLayout);
+            }
+        }
+
+        sectionContainer.Content = sectionLayout;
+        WorkoutContentStack.Children.Add(sectionContainer);
     }
 
     private async Task DebugAvailableExercises()

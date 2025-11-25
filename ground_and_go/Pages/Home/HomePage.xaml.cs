@@ -112,6 +112,16 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
 
     private async void OnStartWorkoutFlow_Clicked(object sender, EventArgs e)
     {
+        // Check if user has already completed activity today
+        var progressState = await _progressService.GetTodaysProgressAsync();
+        if (progressState.Step >= 3)
+        {
+            await DisplayAlert("Already Complete", 
+                "You've already completed your daily activity! Come back tomorrow for a new workout.", 
+                "OK");
+            return;
+        }
+
         var popup = new HowDoYouFeelPopup();
         var result = await this.ShowPopupAsync(popup);
 
@@ -134,6 +144,16 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
 
     private async void OnRestDay_Clicked(object sender, EventArgs e)
     {
+        // Check if user has already completed activity today
+        var progressState = await _progressService.GetTodaysProgressAsync();
+        if (progressState.Step >= 3)
+        {
+            await DisplayAlert("Already Complete", 
+                "You've already completed your daily activity! Come back tomorrow for a new rest day activity.", 
+                "OK");
+            return;
+        }
+
           var popup = new HowDoYouFeelPopup();
           var result = await this.ShowPopupAsync(popup);
 

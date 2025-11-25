@@ -5,120 +5,73 @@
              Title="Mindfulness Activity"
              BackgroundColor="#F0F0F0">
 
-    <ScrollView>
-        <VerticalStackLayout Spacing="15" Padding="20">
+    <Grid RowDefinitions="Auto,*,Auto"
+          Padding="20">
 
-            <Label x:Name="ProgressStepLabel" Text="Step 3" FontAttributes="Bold" TextColor="Gray" />
-            <ProgressBar x:Name="FlowProgressBar" Progress="0.0" />
+        <!-- HEADER SECTION -->
+        <VerticalStackLayout Grid.Row="0" Spacing="6">
+            <Label x:Name="ProgressStepLabel"
+                   Text="Step 3 of 5"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   TextColor="#6A6A6A"/>
 
-            <Border Stroke="LightGray"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 12"
-                    BackgroundColor="White"
-                    Padding="15">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
-                </Border.Shadow>
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Step 1" 
-                           FontSize="18" 
-                           FontAttributes="Bold" 
-                           TextColor="#2196F3"/>
-                    <Label Text="Sit or lie comfortably, close your eyes, and take a few deep, grounding breaths."
-                           FontSize="16"
-                           TextColor="Black"
-                           LineBreakMode="WordWrap"/>
-                </VerticalStackLayout>
-            </Border>
-
-            <Border Stroke="LightGray"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 12"
-                    BackgroundColor="White"
-                    Padding="15">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
-                </Border.Shadow>
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Step 2" 
-                           FontSize="18" 
-                           FontAttributes="Bold" 
-                           TextColor="#2196F3"/>
-                    <Label Text="Visualize a soft, warm light above your head. With each inhale, imagine it gently flowing into your body."
-                           FontSize="16"
-                           TextColor="Black"
-                           LineBreakMode="WordWrap"/>
-                </VerticalStackLayout>
-            </Border>
-
-            <Border Stroke="LightGray"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 12"
-                    BackgroundColor="White"
-                    Padding="15">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
-                </Border.Shadow>
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Step 3" 
-                           FontSize="18" 
-                           FontAttributes="Bold" 
-                           TextColor="#2196F3"/>
-                    <Label Text="Picture the light filling your heart, chest, and mind — a small spark of calm and hope."
-                           FontSize="16"
-                           TextColor="Black"
-                           LineBreakMode="WordWrap"/>
-                </VerticalStackLayout>
-            </Border>
-
-            <Border Stroke="LightGray"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 12"
-                    BackgroundColor="White"
-                    Padding="15">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
-                </Border.Shadow>
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Step 4" 
-                           FontSize="18" 
-                           FontAttributes="Bold" 
-                           TextColor="#2196F3"/>
-                    <Label Text="If you feel safe, imagine it expanding around you like a bubble of support, holding you gently."
-                           FontSize="16"
-                           TextColor="Black"
-                           LineBreakMode="WordWrap"/>
-                </VerticalStackLayout>
-            </Border> <Border Stroke="LightGray"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 12"
-                    BackgroundColor="White"
-                    Padding="15">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Offset="3,3" Opacity="0.1" />
-                </Border.Shadow>
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Step 5" 
-                           FontSize="18" 
-                           FontAttributes="Bold" 
-                           TextColor="#2196F3"/>
-                    <Label Text="Repeat silently: 'I am held. I am safe. I can rest in this light.'"
-                           FontSize="16"
-                           TextColor="Black"
-                           LineBreakMode="WordWrap"/>
-                </VerticalStackLayout>
-            </Border>
-
-            <Button Text="All Done"
-                    CornerRadius="20"
-                    HeightRequest="50"
-                    FontSize="18"
-                    FontAttributes="Bold"
-                    Margin="0,20,0,10"
-                    BackgroundColor="#4CAF50"
-                    TextColor="White"
-                    Clicked="OnNext_Clicked"/>
-            
+            <ProgressBar x:Name="FlowProgressBar"
+                         Progress="0.4"
+                         HeightRequest="8"
+                         BackgroundColor="#DADADA"
+                         ProgressColor="#4CAF50"/>
         </VerticalStackLayout>
-    </ScrollView>
+
+        <!-- SCROLL CONTENT -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="20">
+
+                <Frame Margin="10,43,10,0"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
+                    CornerRadius="16"
+                    HasShadow="True"
+                    Padding="20">
+
+
+                    <VerticalStackLayout Spacing="14">
+                        <Label x:Name="ActivityNameLabel"
+                               Text="Today's Mindfulness Activity"
+                               FontSize="22"
+                               HorizontalTextAlignment="Center"
+                               FontAttributes="Bold"/>
+
+                        <Label x:Name="ActivityDescriptionLabel"
+                               Text="Most Activities are Best Experienced with Headphones."
+                               FontSize="16"
+                               TextColor="#555"
+                               HorizontalTextAlignment="Center"
+                               LineBreakMode="WordWrap"/>
+
+                        <Button
+                            x:Name="YouTubeBtn"
+                            Text="Start Activity"
+                            Clicked="OnOpenYoutubeClicked"
+                            HeightRequest="48"
+                            CornerRadius="12"
+                            BackgroundColor="#FF93B87C"
+                            TextColor="White"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- BOTTOM FIXED BUTTON -->
+        <Button Grid.Row="2"
+                Text="Continue"
+                HeightRequest="56"
+                CornerRadius="16"
+                FontSize="18"
+                FontAttributes="Bold"
+                Margin="0,8,0,8"
+                BackgroundColor="#2196F3"
+                TextColor="White"
+                Clicked="OnNext_Clicked"/>
+    </Grid>
 </ContentPage>

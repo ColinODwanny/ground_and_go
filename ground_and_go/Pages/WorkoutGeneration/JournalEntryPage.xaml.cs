@@ -1,7 +1,9 @@
 // Samuel Reynebeau
 using System.Text.Json;
 using ground_and_go.Services;
-using ground_and_go.Models;  
+using ground_and_go.Models;
+using CommunityToolkit.Maui.Views;
+using ground_and_go.Components;  
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
@@ -38,29 +40,17 @@ public partial class JournalEntryPage : ContentPage
         _progressService = progressService;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        // This makes the progress bar show the correct step
-        // based on the flow started on the HomePage
-        // Read the flow type directly from the service
-        if (_progressService.CurrentFlowType == "workout")
-        {
-            // WORKOUT FLOW (5 steps total)
-            // Step 1 (Popup) is done. This is Step 2.
-            this.Title = "Step 2 of 5: Journal";
-            ProgressStepLabel.Text = "Step 2 of 5: Write a reflection";
-            FlowProgressBar.Progress = 0.20; // 1/5 complete
-        }
-        else // "rest" flow
-        {
-            // REST FLOW (4 steps total)
-            // Step 1 (Popup) is done. This is Step 2.
-            this.Title = "Step 2 of 4: Journal";
-            ProgressStepLabel.Text = "Step 2 of 4: Write a reflection";
-            FlowProgressBar.Progress = 0.25; // 1/4 complete
-        }
+        // Use dynamic step counting based on emotion type from database
+        var (displayStep, totalSteps) = await _progressService.GetDisplayStepAsync(2); // Journal is actual step 2
+        double progress = await _progressService.GetProgressPercentageAsync(2);
+        
+        this.Title = $"Step {displayStep} of {totalSteps}: Journal";
+        ProgressStepLabel.Text = $"Step {displayStep} of {totalSteps}: Write a reflection";
+        FlowProgressBar.Progress = progress;
     }
 
     private async void OnNext_Clicked(object sender, EventArgs e)
@@ -72,6 +62,17 @@ public partial class JournalEntryPage : ContentPage
         if (string.IsNullOrEmpty(memberId))
         {
             await DisplayAlert("Error", "You are not logged in. Please restart the app.", "OK");
+            return;
+        }
+        
+        // 1b. Check if user has already completed activity today
+        var existingLog = await _database.GetTodaysWorkoutLog(memberId);
+        if (existingLog != null && !string.IsNullOrEmpty(existingLog.AfterJournal))
+        {
+            await DisplayAlert("Already Complete", 
+                "You've already completed your daily activity! Come back tomorrow for a new activity.", 
+                "OK");
+            await Shell.Current.GoToAsync("//HomePage");
             return;
         }
         
@@ -95,18 +96,144 @@ public partial class JournalEntryPage : ContentPage
         // Read the flow type directly from the service
         if (_progressService.CurrentFlowType == "workout")
         {
-            // Navigate without query parameters
-            await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityWorkoutPage)}");
+            // Check if emotion should get mindfulness in workout flow (excludes Happy/Energized)
+            string userEmotion = _progressService.CurrentFeelingResult?.Mood ?? "";
+            bool hasMindfulnessActivities = await _database.HasWorkoutMindfulnessActivitiesForEmotion(userEmotion);
+            
+            if (hasMindfulnessActivities)
+            {
+                // Emotions with workout mindfulness activities - go through mindfulness
+                Console.WriteLine($"DEBUG: WORKOUT FLOW - '{userEmotion}' should get mindfulness, navigating to mindfulness page");
+                await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityWorkoutPage)}");
+            }
+            else
+            {
+                // Emotions without workout mindfulness (Happy/Energized) - skip mindfulness
+                Console.WriteLine($"DEBUG: WORKOUT FLOW - '{userEmotion}' should skip mindfulness, going to workout selection");
+                await NavigateDirectlyToWorkout();
+            }
         }
         else if (_progressService.CurrentFlowType == "rest")
         {
-            // Navigate without query parameters
-            await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityRestPage)}");
+            // Check if emotion has mindfulness activities available in database (same logic as workout flow)
+            string userEmotion = _progressService.CurrentFeelingResult?.Mood ?? "";
+            bool hasMindfulnessActivities = await _database.HasMindfulnessActivitiesForEmotion(userEmotion);
+            
+            if (hasMindfulnessActivities)
+            {
+                // Emotions with mindfulness activities - go through mindfulness
+                Console.WriteLine($"DEBUG: REST DAY - '{userEmotion}' has mindfulness activities available, navigating to mindfulness page");
+                await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityRestPage)}");
+            }
+            else
+            {
+                // Emotions without mindfulness activities - skip mindfulness (this should be rare for rest day)
+                Console.WriteLine($"DEBUG: REST DAY - '{userEmotion}' has no mindfulness activities, skipping to post-journal");
+                await Shell.Current.GoToAsync("PostJournal");
+            }
         }
         else
         {
             // just in case
             await DisplayAlert("Error", "Could not determine navigation flow.", "OK");
         }
+    }
+
+    private async Task NavigateDirectlyToWorkout()
+    {
+        string userEmotion = _progressService.CurrentFeelingResult?.Mood ?? "";
+
+        // Get available workout categories for this emotion
+        var availableCategories = await _database.GetWorkoutCategoriesByEmotion(userEmotion);
+        
+        if (availableCategories.Count == 0)
+        {
+            await DisplayAlert("No Workouts Available", 
+                $"No workouts are available for the emotion '{userEmotion}'. Please try a different emotion.", 
+                "OK");
+            return;
+        }
+
+        EquipmentResult? equipmentResult = null;
+
+        if (availableCategories.Count == 1)
+        {
+            // Only one workout type available - auto-generate without popup
+            string singleWorkoutType = availableCategories[0];
+            
+            // Check if equipment selection is needed
+            bool needsEquipment = await _database.IsEquipmentSelectionNeeded(userEmotion, singleWorkoutType);
+            
+            if (needsEquipment)
+            {
+                // Still need to ask about equipment for this single category
+                var popup = new WorkoutOptionsPopup(availableCategories, userEmotion, _database);
+                equipmentResult = await this.ShowPopupAsync(popup) as EquipmentResult;
+            }
+            else
+            {
+                // Auto-generate with no equipment preference
+                equipmentResult = new EquipmentResult
+                {
+                    WorkoutType = singleWorkoutType,
+                    GymAccess = false,
+                    HomeAccess = false
+                };
+                
+                Console.WriteLine($"DEBUG: Auto-generating {singleWorkoutType} workout for {userEmotion} (no equipment needed)");
+            }
+        }
+        else
+        {
+            // Multiple workout types available - show selection popup
+            var popup = new WorkoutOptionsPopup(availableCategories, userEmotion, _database);
+            equipmentResult = await this.ShowPopupAsync(popup) as EquipmentResult;
+        }
+        
+        if (equipmentResult is not EquipmentResult equipment)
+        {
+            return; // User cancelled equipment selection
+        }
+
+        // Store equipment result in service for later use
+        _progressService.CurrentEquipmentResult = equipment;
+        
+        // Generate workout based on user's emotion and equipment
+        Models.Workout? selectedWorkout = null;
+        
+        if (_progressService.CurrentFeelingResult?.Mood != null)
+        {
+            bool hasGymAccess = equipment.GymAccess;
+            string workoutType = equipment.WorkoutType;
+            
+            Console.WriteLine($"DEBUG: Generating workout for emotion: '{userEmotion}', gym access: {hasGymAccess}, workout type: '{workoutType}'");
+            Console.WriteLine($"DEBUG: EquipmentResult - GymAccess: {equipment.GymAccess}, HomeAccess: {equipment.HomeAccess}, WorkoutType: {workoutType}");
+            
+            selectedWorkout = await _database.GetRandomWorkoutByExactCriteria(userEmotion, hasGymAccess, workoutType);
+            Console.WriteLine($"DEBUG: Selected workout result: {selectedWorkout?.WorkoutId} (Category: {selectedWorkout?.Category})");
+        }
+
+        if (selectedWorkout == null)
+        {
+            string equipmentText = equipment.GymAccess ? "gym equipment" : "home equipment";
+            await DisplayAlert("No Workouts Available", 
+                $"No workouts are available for {userEmotion} mood with {equipment.WorkoutType} using {equipmentText}.\n\nPlease go back and try:\n• A different workout type\n• Different equipment preference\n• Or select a different emotion", 
+                "OK");
+            return;
+        }
+
+        // Store the selected workout in the progress service
+        _progressService.CurrentWorkout = selectedWorkout;
+        
+        // Save the workout to the log
+        string? logId = _progressService.CurrentLogId;
+        if (logId != null && selectedWorkout != null)
+        {
+            await _database.UpdateWorkoutIdAsync(logId, selectedWorkout.WorkoutId);
+            Console.WriteLine($"DEBUG: Saved workout ID {selectedWorkout.WorkoutId} to log {logId}");
+        }
+
+        // Navigate directly to the workout
+        await Shell.Current.GoToAsync("TheWorkout");
     }
 }
