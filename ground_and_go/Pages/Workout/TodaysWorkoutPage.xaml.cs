@@ -26,12 +26,6 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         {
             _currentWorkout = value;
             OnPropertyChanged();
-            
-            // Load workout sections on the main thread
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                await LoadWorkoutSections();
-            });
         }
     }
 
@@ -169,9 +163,19 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
             var loadingPopup = new LoadingPopup("Loading your workout...");
             this.ShowPopup(loadingPopup);
             
+            // Give the popup time to show before starting heavy work
+            await Task.Delay(50);
+            
             try
             {
-                CurrentWorkout = await _database.GetWorkoutById(todaysLog.WorkoutId.Value);
+                var workout = await _database.GetWorkoutById(todaysLog.WorkoutId.Value);
+                
+                // Set the workout and load UI sections
+                CurrentWorkout = workout;
+                await LoadWorkoutSections();
+                
+                // Give UI time to finish rendering before closing popup
+                await Task.Delay(50);
             }
             finally
             {
@@ -325,15 +329,23 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         // Create a single section container for direct exercises
         var sectionContainer = new Border
         {
-            BackgroundColor = Color.FromArgb("#1E1E1E"),
-            Stroke = Color.FromArgb("#333333"),
+            Stroke = Colors.LightGray,
             StrokeThickness = 1,
-            Margin = new Thickness(0, 10, 0, 10)
+            StrokeShape = new RoundRectangle { CornerRadius = 12 },
+            BackgroundColor = Colors.White,
+            Margin = new Thickness(0, 10, 0, 10),
+            Padding = new Thickness(15)
+        };
+
+        sectionContainer.Shadow = new Shadow
+        {
+            Brush = Colors.Black,
+            Offset = new Point(2, 2),
+            Opacity = 0.1f
         };
 
         var sectionLayout = new VerticalStackLayout
         {
-            Padding = new Thickness(15),
             Spacing = 10
         };
 
@@ -343,9 +355,10 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
             var descriptionLabel = new Label
             {
                 Text = CurrentWorkout.Exercises.Description,
-                TextColor = Colors.White,
+                TextColor = Colors.Gray,
                 FontSize = 14,
-                Margin = new Thickness(0, 0, 0, 10)
+                FontAttributes = FontAttributes.Italic,
+                Margin = new Thickness(0, 0, 0, 15)
             };
             sectionLayout.Children.Add(descriptionLabel);
         }
