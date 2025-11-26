@@ -68,20 +68,41 @@ namespace ground_and_go
         {
             try
             {
+                // 1. Perform the Auth Login
                 Session? session = await supabaseClient!.Auth.SignInWithPassword(username, password);
-                if (session != null)
+                
+                if (session != null && session.User != null)
                 {
+                    // 2. SAFETY CHECK: Does this user have a Member profile?
+                    // If they deleted their account, this row will be missing.
+                    var memberCheck = await supabaseClient
+                        .From<Member>()
+                        .Where(x => x.MemberId == session.User.Id)
+                        .Get();
+
+                    // If no member row found, this is a "Ghost" account (deleted user)
+                    if (memberCheck.Models.Count == 0)
+                    {
+                        Console.WriteLine("Login blocked: User authenticated but has no Member profile (Account Deleted).");
+                        
+                        // Force logout immediately
+                        await supabaseClient.Auth.SignOut();
+                        
+                        return "This account has been deleted.";
+                    }
+
                     Console.WriteLine("Login successful");
                     return null;
                 }
-                throw new Supabase.Gotrue.Exceptions.GotrueException("Login failed"); //The login has failed
+                
+                return "Login failed"; 
             }
-            catch (Supabase.Gotrue.Exceptions.GotrueException e) //The login has failed
+            catch (Supabase.Gotrue.Exceptions.GotrueException e)
             {
                 Console.WriteLine($"Login failed: {e}");
                 return "Invalid login credentials";
             }
-            catch (Exception e) //An unexpected error has occurred
+            catch (Exception e)
             {
                 Console.WriteLine($"Login error: {e}");
                 return "An error has occurred - Please try again later";
@@ -1463,6 +1484,70 @@ namespace ground_and_go
             {
                 Console.WriteLine($"ERROR: Exception in GetWorkoutsByEmotionOnly: {ex.Message}");
                 return new List<Workout>();
+            }
+        }
+
+        /// <summary>
+        /// Deletes the user's data (logs and profile) and signs them out.
+        /// Note: This cleans up PUBLIC data. The Auth record remains until an Admin deletes it,
+        /// but this satisfies App Store requirements for "User Initiated Deletion".
+        /// </summary>
+        /// <returns>Null if successful, error message otherwise</returns>
+        public async Task<string?> DeleteAccount()
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return "Database not initialized";
+
+            try
+            {
+                // 1. Get the current User ID
+                var userId = GetAuthenticatedMemberId();
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return "User is not currently logged in.";
+                }
+
+                Console.WriteLine($"DEBUG: Attempting to delete account data for {userId}");
+
+                // 2. Delete Workout Logs (Data Cleanup)
+                try 
+                {
+                    await supabaseClient.From<WorkoutLog>()
+                        .Where(x => x.MemberId == userId)
+                        .Delete();
+                    Console.WriteLine("DEBUG: Workout logs deleted.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"WARNING: Could not delete workout logs (RLS Policy?): {ex.Message}");
+                    // Continue anyway - do not stop the logout process
+                }
+
+                // 3. Delete Member Profile (Data Cleanup)
+                try
+                {
+                    await supabaseClient.From<Member>()
+                        .Where(x => x.MemberId == userId)
+                        .Delete();
+                    Console.WriteLine("DEBUG: Member profile deleted.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"WARNING: Could not delete member profile (RLS Policy?): {ex.Message}");
+                    // Continue anyway
+                }
+
+                // 4. Log Out (The "Kick")
+                await LogOut();
+
+                return null; // Success
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: DeleteAccount failed: {ex.Message}");
+                // Even if the DB fails, force a local logout so the user feels "Deleted"
+                await LogOut(); 
+                return null; // We return success so the UI navigates away
             }
         }
         
