@@ -33,10 +33,10 @@
 		<array>
 			<dict>
 				<key>CFBundleURLName</key>
-				<string>ground_and_go</string>
+				<string>groundandgo</string>
 				<key>CFBundleURLSchemes</key>
 				<array>
-					<string>ground_and_go</string>
+					<string>groundandgo</string>
 				</array>
 			</dict>
 		</array>

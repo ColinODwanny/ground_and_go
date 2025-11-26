@@ -13,7 +13,7 @@ public partial class App : Application
     public App()
     {
         InitializeComponent();
-        
+
         // Get logger service if available
         try
         {
@@ -23,7 +23,7 @@ public partial class App : Application
         {
             // Logger not available yet during construction
         }
-        
+
         // Multiple logging approaches for debugging
         Console.WriteLine("✓ Ground & Go App Constructor - Debug logging test");
         Debug.WriteLine("✓ Ground & Go App Constructor - Debug.WriteLine test");
@@ -35,22 +35,22 @@ public partial class App : Application
         base.OnAppLinkRequestReceived(uri);
 
         var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
-        var action = queryParams["action"];
+        var type = queryParams["type"];
         var token = queryParams["token"];
 
 
-        if (string.IsNullOrEmpty(action) || string.IsNullOrEmpty(token))
+        if (string.IsNullOrEmpty(type) || string.IsNullOrEmpty(token))
         {
             // Missing parameters - show error or navigate to a safe page
             await Shell.Current.DisplayAlert("Error", "Invalid link. Missing required information.", "OK");
-            await Shell.Current.GoToAsync("//LoginPage");
+            await Shell.Current.GoToAsync("//login");
             return;
         }
-        await HandleEmailConfirmation(action, token);
+        await HandleEmailConfirmation(type, token);
     }
 
 
-    private async Task HandleEmailConfirmation(string action, string token)
+    private async Task HandleEmailConfirmation(string type, string token)
     {
         try
         {
@@ -58,20 +58,20 @@ public partial class App : Application
             var httpClient = new HttpClient();
             var response = await httpClient.PostAsync(
                 "https://irekjohmgsjicpszbgus.supabase.co/auth/v1/verify",
-                new StringContent($"{{\"token\":\"{token}\",\"type\":\"{action}\"}}", Encoding.UTF8, "application/json")
+                new StringContent($"{{\"token\":\"{token}\",\"type\":\"{type}\"}}", Encoding.UTF8, "application/json")
             );
 
             if (response.IsSuccessStatusCode)
             {
-                if (action == "recovery")
+                if (type == "recovery")
                 {
                     // Success - Navigate to Reset Password page
-                    await Shell.Current.GoToAsync("//LoginPage"); //TODO Replace with new page
+                    await Shell.Current.GoToAsync("//login"); //TODO Replace with new page
                 }
                 else
                 {
                     // Success - Navigate to login page
-                    await Shell.Current.GoToAsync("//LoginPage");
+                    await Shell.Current.GoToAsync("//login");
                 }
             }
             else
@@ -113,11 +113,11 @@ public partial class App : Application
 
         Console.WriteLine("✓ Database service found, initializing...");
         _logger?.LogInformation("✓ Database service found, initializing...");
-        
+
         await db.EnsureInitializedAsync();
         await db.LoadExercises();
         await db.LoadMindfulness();
-        
+
         Console.WriteLine("✓ Database initialization completed successfully");
         _logger?.LogInformation("✓ Database initialization completed successfully");
     }

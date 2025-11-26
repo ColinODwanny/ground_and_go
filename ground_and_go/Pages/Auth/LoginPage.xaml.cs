@@ -30,7 +30,6 @@ public partial class LoginPage : ContentPage
     
     private async void ForgotPasswordClicked(object sender, EventArgs e)
     {
-        //TODO: This takes user to a pop-up, where they can provide their email
         try
         {
             if (sender is not Button button) return;
@@ -39,7 +38,7 @@ public partial class LoginPage : ContentPage
 
             if (result != null)
             {
-                await DisplayAlert("Success", "The recovery email was sent.", "OK");
+                await DisplayAlert("Success", "If an account exists, a recovery email will be sent.", "OK");
                 //TODO Create new page for changing password for current account, if result == null
             }
         } catch (Exception ex)
