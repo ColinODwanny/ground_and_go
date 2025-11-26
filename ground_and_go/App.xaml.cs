@@ -14,6 +14,9 @@ public partial class App : Application
     {
         InitializeComponent();
 
+        // force light theme
+        UserAppTheme = AppTheme.Light;
+        
         // Get logger service if available
         try
         {

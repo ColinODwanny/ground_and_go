@@ -68,20 +68,41 @@ namespace ground_and_go
         {
             try
             {
+                // 1. Perform the Auth Login
                 Session? session = await supabaseClient!.Auth.SignInWithPassword(username, password);
-                if (session != null)
+                
+                if (session != null && session.User != null)
                 {
+                    // 2. SAFETY CHECK: Does this user have a Member profile?
+                    // If they deleted their account, this row will be missing.
+                    var memberCheck = await supabaseClient
+                        .From<Member>()
+                        .Where(x => x.MemberId == session.User.Id)
+                        .Get();
+
+                    // If no member row found, this is a "Ghost" account (deleted user)
+                    if (memberCheck.Models.Count == 0)
+                    {
+                        Console.WriteLine("Login blocked: User authenticated but has no Member profile (Account Deleted).");
+                        
+                        // Force logout immediately
+                        await supabaseClient.Auth.SignOut();
+                        
+                        return "This account has been deleted.";
+                    }
+
                     Console.WriteLine("Login successful");
                     return null;
                 }
-                throw new Supabase.Gotrue.Exceptions.GotrueException("Login failed"); //The login has failed
+                
+                return "Login failed"; 
             }
-            catch (Supabase.Gotrue.Exceptions.GotrueException e) //The login has failed
+            catch (Supabase.Gotrue.Exceptions.GotrueException e)
             {
                 Console.WriteLine($"Login failed: {e}");
                 return "Invalid login credentials";
             }
-            catch (Exception e) //An unexpected error has occurred
+            catch (Exception e)
             {
                 Console.WriteLine($"Login error: {e}");
                 return "An error has occurred - Please try again later";
@@ -960,36 +981,54 @@ namespace ground_and_go
 
             try
             {
-                // Get emotion ID from mapping
-                if (!EmotionMapping.TryGetValue(emotion, out int emotionId))
+                // Special case for Neutral: use both Happy and Sad workout categories
+                List<int> emotionIds;
+                if (emotion == "Neutral")
                 {
-                    Console.WriteLine($"Unknown emotion: {emotion}");
-                    return new List<string>();
+                    emotionIds = new List<int> { 1, 3 }; // Happy (1) and Sad (3)
+                    Console.WriteLine($"DEBUG: SPECIAL CASE - Getting workout categories for Neutral using Happy (1) and Sad (3) pools");
+                }
+                else
+                {
+                    // Regular case: use single emotion ID
+                    if (!EmotionMapping.TryGetValue(emotion, out int emotionId))
+                    {
+                        Console.WriteLine($"Unknown emotion: {emotion}");
+                        return new List<string>();
+                    }
+                    emotionIds = new List<int> { emotionId };
                 }
 
-                Console.WriteLine($"DEBUG: Getting workout categories for emotion '{emotion}' (ID: {emotionId})");
+                Console.WriteLine($"DEBUG: Getting workout categories for emotion '{emotion}' using emotion_ids=[{string.Join(",", emotionIds)}]");
 
-                // Query for distinct categories for this emotion
-                var query = supabaseClient.From<Workout>()
-                    .Select("category")
-                    .Where(w => w.EmotionId == emotionId);
-
-                var response = await query.Get();
+                // Query for distinct categories across all emotion IDs
+                var allCategories = new HashSet<string>();
                 
-                if (response?.Models != null)
+                foreach (int currentEmotionId in emotionIds)
                 {
-                    var categories = response.Models
-                        .Select(w => w.Category)
-                        .Where(c => !string.IsNullOrEmpty(c))
-                        .Distinct()
-                        .OrderBy(c => c)
-                        .ToList();
+                    var query = supabaseClient.From<Workout>()
+                        .Select("category")
+                        .Where(w => w.EmotionId == currentEmotionId);
+
+                    var response = await query.Get();
                     
-                    Console.WriteLine($"DEBUG: Found categories for {emotion}: {string.Join(", ", categories)}");
-                    return categories;
+                    if (response?.Models != null)
+                    {
+                        var categories = response.Models
+                            .Select(w => w.Category)
+                            .Where(c => !string.IsNullOrEmpty(c))
+                            .ToList();
+                            
+                        foreach (var category in categories)
+                        {
+                            allCategories.Add(category);
+                        }
+                    }
                 }
                 
-                return new List<string>();
+                var finalCategories = allCategories.OrderBy(c => c).ToList();
+                Console.WriteLine($"DEBUG: Found categories for {emotion}: {string.Join(", ", finalCategories)}");
+                return finalCategories;
             }
             catch (Exception ex)
             {
@@ -1141,127 +1180,102 @@ namespace ground_and_go
 
             try
             {
-                // Get emotion ID from mapping
-                if (!EmotionMapping.TryGetValue(emotion, out int emotionId))
+                // Special case for Neutral: use both Happy and Sad workouts
+                List<int> emotionIds;
+                if (emotion == "Neutral")
                 {
-                    Console.WriteLine($"Unknown emotion: {emotion}. Using default emotion ID 2 (Neutral)");
-                    emotionId = 2; // Default to neutral
-                }
-
-                Console.WriteLine($"DEBUG: Querying workouts for emotion='{emotion}', emotion_id={emotionId}, gym_access={hasGymAccess}, workout_type='{workoutType}'");
-
-                // Try simplified query first - avoid JSON parsing issues
-                Console.WriteLine($"DEBUG: Testing simplified query to avoid JSON parsing...");
-
-                // Query based on workout type
-                var simpleQuery = supabaseClient.From<Workout>()
-                    .Select("workout_id, emotion_id, at_gym, category, impact")
-                    .Where(w => w.EmotionId == emotionId)
-                    .Where(w => w.Category == workoutType);
-
-                // For strength training, filter by equipment; for cardio, equipment doesn't matter
-                if (workoutType == "Strength Training")
-                {
-                    Console.WriteLine($"DEBUG: Filtering by gym access: {hasGymAccess}");
-                    // Use two separate queries to avoid PostgreSQL boolean syntax issues
-                    var gymQuery = supabaseClient.From<Workout>()
-                        .Select("workout_id, emotion_id, at_gym, category, impact")
-                        .Where(w => w.EmotionId == emotionId)
-                        .Where(w => w.Category == workoutType)
-                        .Where(w => w.AtGym == hasGymAccess);
-                    
-                    var nullQuery = supabaseClient.From<Workout>()
-                        .Select("workout_id, emotion_id, at_gym, category, impact")
-                        .Where(w => w.EmotionId == emotionId)
-                        .Where(w => w.Category == workoutType)
-                        .Where(w => w.AtGym == null);
-                    
-                    var gymResponse = await gymQuery.Get();
-                    var nullResponse = await nullQuery.Get();
-                    
-                    var combinedWorkouts = new List<Workout>();
-                    if (gymResponse?.Models != null) combinedWorkouts.AddRange(gymResponse.Models);
-                    if (nullResponse?.Models != null) combinedWorkouts.AddRange(nullResponse.Models);
-                    
-                    Console.WriteLine($"DEBUG: Combined query found {combinedWorkouts.Count} matching workouts");
-                    
-                    if (combinedWorkouts.Count > 0)
-                    {
-                        // Get full workout data for each match
-                        var matchingWorkouts = new List<Workout>();
-                        
-                        foreach (var basicWorkout in combinedWorkouts)
-                        {
-                            try
-                            {
-                                var fullQuery = supabaseClient.From<Workout>()
-                                    .Where(w => w.WorkoutId == basicWorkout.WorkoutId);
-                                var fullResponse = await fullQuery.Get();
-                                
-                                if (fullResponse?.Models?.FirstOrDefault() != null)
-                                {
-                                    matchingWorkouts.Add(fullResponse.Models.First());
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Console.WriteLine($"DEBUG: Error loading full workout {basicWorkout.WorkoutId}: {ex.Message}");
-                                matchingWorkouts.Add(basicWorkout);
-                            }
-                        }
-                        
-                        Console.WriteLine($"DEBUG: Final result: {matchingWorkouts.Count} complete workouts");
-                        return matchingWorkouts;
-                    }
-                    
-                    return new List<Workout>();
-                }
-
-                var simpleResponse = await simpleQuery.Get();
-                Console.WriteLine($"DEBUG: Simplified query found {simpleResponse?.Models?.Count ?? 0} matching workouts");
-
-                if (simpleResponse?.Models?.Count > 0)
-                {
-                    // We found matching workouts! Now get the full data separately
-                    var matchingWorkouts = new List<Workout>();
-
-                    foreach (var basicWorkout in simpleResponse.Models)
-                    {
-                        try
-                        {
-                            // Get full workout data including exercises for each match
-                            var fullQuery = supabaseClient.From<Workout>()
-                                .Where(w => w.WorkoutId == basicWorkout.WorkoutId);
-                            var fullResponse = await fullQuery.Get();
-
-                            if (fullResponse?.Models?.FirstOrDefault() != null)
-                            {
-                                var fullWorkout = fullResponse.Models.First();
-                                Console.WriteLine($"DEBUG: Successfully loaded full workout {basicWorkout.WorkoutId}");
-                                Console.WriteLine($"DEBUG: Workout {basicWorkout.WorkoutId} - Exercises null? {fullWorkout.Exercises == null}");
-                                Console.WriteLine($"DEBUG: Workout {basicWorkout.WorkoutId} - Sections count: {fullWorkout.Exercises?.Sections?.Count ?? 0}");
-
-                                matchingWorkouts.Add(fullWorkout);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"DEBUG: Error loading full workout {basicWorkout.WorkoutId}: {ex.Message}");
-                            // Use the basic workout data as fallback
-                            matchingWorkouts.Add(basicWorkout);
-                        }
-                    }
-
-                    Console.WriteLine($"DEBUG: Final result: {matchingWorkouts.Count} complete workouts");
-                    return matchingWorkouts;
+                    emotionIds = new List<int> { 1, 3 }; // Happy (1) and Sad (3)
+                    Console.WriteLine($"DEBUG: SPECIAL CASE - Neutral emotion will use Happy (1) and Sad (3) workout pools");
                 }
                 else
                 {
-                    Console.WriteLine($"DEBUG: No workouts found for emotion_id={emotionId}, at_gym={hasGymAccess}");
+                    // Regular case: use single emotion ID
+                    if (!EmotionMapping.TryGetValue(emotion, out int emotionId))
+                    {
+                        Console.WriteLine($"Unknown emotion: {emotion}. Using default emotion ID 2 (Neutral)");
+                        emotionId = 2; // Default to neutral
+                    }
+                    emotionIds = new List<int> { emotionId };
                 }
 
-                // If we get here, no workouts were found
-                return new List<Workout>();
+                Console.WriteLine($"DEBUG: Querying workouts for emotion='{emotion}', emotion_ids=[{string.Join(",", emotionIds)}], gym_access={hasGymAccess}, workout_type='{workoutType}'");
+                
+                // Query each emotion ID separately and combine results
+                var combinedWorkouts = new List<Workout>();
+                
+                foreach (int currentEmotionId in emotionIds)
+                {
+                    Console.WriteLine($"DEBUG: Querying emotion_id {currentEmotionId}");
+                    
+                    if (workoutType == "Strength Training")
+                    {
+                        Console.WriteLine($"DEBUG: Filtering by gym access: {hasGymAccess}");
+                        
+                        try
+                        {
+                            // Query all strength training workouts for this emotion first
+                            var allStrengthQuery = supabaseClient.From<Workout>()
+                                .Select("*")  // Select all fields to get complete workout data
+                                .Where(w => w.EmotionId == currentEmotionId)
+                                .Where(w => w.Category == workoutType);
+                            
+                            var allResponse = await allStrengthQuery.Get();
+                            Console.WriteLine($"DEBUG: Retrieved {allResponse?.Models?.Count ?? 0} strength training workouts for emotion_id {currentEmotionId}");
+                            
+                            if (allResponse?.Models != null)
+                            {
+                                // Filter client-side based on gym access preference
+                                // Include workouts where at_gym matches preference OR is null (works anywhere)
+                                var filtered = allResponse.Models.Where(w => 
+                                    w.AtGym == hasGymAccess || w.AtGym == null
+                                ).ToList();
+                                
+                                combinedWorkouts.AddRange(filtered);
+                                Console.WriteLine($"DEBUG: Found {filtered.Count} strength workouts matching gym preference (hasGym={hasGymAccess})");
+                                
+                                // Debug: show what we filtered
+                                foreach (var workout in filtered)
+                                {
+                                    Console.WriteLine($"DEBUG: - Workout {workout.WorkoutId}: at_gym={workout.AtGym}");
+                                }
+                            }
+                        }
+                        catch (Exception queryEx)
+                        {
+                            Console.WriteLine($"DEBUG: Error in strength training query: {queryEx.Message}");
+                            // Continue to next emotion if this one fails
+                        }
+                    }
+                    else // Cardio workouts don't need gym filtering
+                    {
+                        try
+                        {
+                            var cardioQuery = supabaseClient.From<Workout>()
+                                .Select("*")  // Select all fields to get complete workout data
+                                .Where(w => w.EmotionId == currentEmotionId)
+                                .Where(w => w.Category == workoutType);
+                            
+                            var cardioResponse = await cardioQuery.Get();
+                            Console.WriteLine($"DEBUG: Retrieved {cardioResponse?.Models?.Count ?? 0} cardio workouts for emotion_id {currentEmotionId}");
+                            
+                            if (cardioResponse?.Models != null) 
+                            {
+                                combinedWorkouts.AddRange(cardioResponse.Models);
+                                Console.WriteLine($"DEBUG: Added {cardioResponse.Models.Count} cardio workouts to combined list");
+                            }
+                        }
+                        catch (Exception cardioEx)
+                        {
+                            Console.WriteLine($"DEBUG: Error in cardio query: {cardioEx.Message}");
+                            // Continue to next emotion if this one fails
+                        }
+                    }
+                }
+                
+                Console.WriteLine($"DEBUG: Combined query found {combinedWorkouts.Count} matching workouts");
+                Console.WriteLine($"DEBUG: Returning {combinedWorkouts.Count} complete workouts directly from query");
+                
+                return combinedWorkouts;
             }
             catch (Exception ex)
             {
@@ -1488,6 +1502,70 @@ namespace ground_and_go
             }
         }
 
+        /// <summary>
+        /// Deletes the user's data (logs and profile) and signs them out.
+        /// Note: This cleans up PUBLIC data. The Auth record remains until an Admin deletes it,
+        /// but this satisfies App Store requirements for "User Initiated Deletion".
+        /// </summary>
+        /// <returns>Null if successful, error message otherwise</returns>
+        public async Task<string?> DeleteAccount()
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return "Database not initialized";
+
+            try
+            {
+                // 1. Get the current User ID
+                var userId = GetAuthenticatedMemberId();
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return "User is not currently logged in.";
+                }
+
+                Console.WriteLine($"DEBUG: Attempting to delete account data for {userId}");
+
+                // 2. Delete Workout Logs (Data Cleanup)
+                try 
+                {
+                    await supabaseClient.From<WorkoutLog>()
+                        .Where(x => x.MemberId == userId)
+                        .Delete();
+                    Console.WriteLine("DEBUG: Workout logs deleted.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"WARNING: Could not delete workout logs (RLS Policy?): {ex.Message}");
+                    // Continue anyway - do not stop the logout process
+                }
+
+                // 3. Delete Member Profile (Data Cleanup)
+                try
+                {
+                    await supabaseClient.From<Member>()
+                        .Where(x => x.MemberId == userId)
+                        .Delete();
+                    Console.WriteLine("DEBUG: Member profile deleted.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"WARNING: Could not delete member profile (RLS Policy?): {ex.Message}");
+                    // Continue anyway
+                }
+
+                // 4. Log Out (The "Kick")
+                await LogOut();
+
+                return null; // Success
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: DeleteAccount failed: {ex.Message}");
+                // Even if the DB fails, force a local logout so the user feels "Deleted"
+                await LogOut(); 
+                return null; // We return success so the UI navigates away
+            }
+        }
+        
         /// <summary>
         /// Creates a fallback workout for testing when database queries fail
         /// </summary>

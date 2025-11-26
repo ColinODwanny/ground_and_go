@@ -110,6 +110,37 @@
                 </Grid>
             </Border>
 
+            <Border Stroke="Red"
+                    StrokeThickness="1"
+                    BackgroundColor="#FFF0F0"
+                    HeightRequest="80"
+                    Margin="0,20,0,20"> <Border.Shadow>
+                    <Shadow Brush="Red" Offset="0,2" Opacity="0.1" />
+                </Border.Shadow>
+
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnDeleteAccountTapped" />
+                </Border.GestureRecognizers>
+
+                <Grid ColumnDefinitions="60,*" Padding="20,0">
+                    <Image Grid.Column="0"
+                           Source="{mi:Material Delete, IconColor=Red, IconSize=32}"
+                           HeightRequest="32"
+                           WidthRequest="32"
+                           Aspect="AspectFit"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"/>
+
+                    <Label Grid.Column="1"
+                           Text="Delete Account"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="Red"
+                           VerticalOptions="Center"
+                           Margin="10,0,0,0"/>
+                </Grid>
+            </Border>
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

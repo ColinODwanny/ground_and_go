@@ -65,6 +65,22 @@ public class BusinessLogic
         IsLoggedIn = false;
     }
 
+    /// <summary>
+    /// Deletes the user account and data, then logs out.
+    /// </summary>
+    /// <returns>Null if successful, error message otherwise</returns>
+    public async Task<String?> DeleteAccount()
+    {
+        // 1. Call the database layer to handle the data wipe
+        // Note: You will need to add this method to your Database.cs next!
+        String? result = await Database.DeleteAccount();
+
+        // 2. Regardless of server success, log out locally to clear state
+        IsLoggedIn = false;
+        
+        return result;
+    }
+
     public async Task<string?> ForgotPassword(string email)
     {
         return await Database.ForgotPassword(email);
