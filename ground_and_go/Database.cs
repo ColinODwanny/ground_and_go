@@ -59,6 +59,20 @@ namespace ground_and_go
         }
 
         /// <summary>
+        /// Sets a Supabase session for when the user is redirected back to app
+        /// </summary>
+        /// <param name="accessToken">The accessToken passed from the email link</param>
+        /// <param name="refreshToken">The refreshToken passed from the email link</param>
+        public async void SetSupabaseSession(string accessToken, string refreshToken)
+        {
+            if (supabaseClient != null)
+            {
+                await supabaseClient.Auth.SetSession(accessToken, refreshToken, true);
+            }
+        }
+
+
+        /// <summary>
         /// Communicates with Supabase to log the user in with the given credentials
         /// </summary>
         /// <param name="username">The email to log the user in with</param>
@@ -70,7 +84,7 @@ namespace ground_and_go
             {
                 // 1. Perform the Auth Login
                 Session? session = await supabaseClient!.Auth.SignInWithPassword(username, password);
-                
+
                 if (session != null && session.User != null)
                 {
                     // 2. SAFETY CHECK: Does this user have a Member profile?
@@ -84,18 +98,18 @@ namespace ground_and_go
                     if (memberCheck.Models.Count == 0)
                     {
                         Console.WriteLine("Login blocked: User authenticated but has no Member profile (Account Deleted).");
-                        
+
                         // Force logout immediately
                         await supabaseClient.Auth.SignOut();
-                        
+
                         return "This account has been deleted.";
                     }
 
                     Console.WriteLine("Login successful");
                     return null;
                 }
-                
-                return "Login failed"; 
+
+                return "Login failed";
             }
             catch (Supabase.Gotrue.Exceptions.GotrueException e)
             {
@@ -149,6 +163,11 @@ namespace ground_and_go
             }
         }
 
+        /// <summary>
+        /// Sends an email to the user for resetting their password
+        /// </summary>
+        /// <param name="email">The email of the user</param>
+        /// <returns>Null if successful, the appropriate error string otherwise</returns>
         public async Task<string?> ForgotPassword(string email)
         {
             try
@@ -161,6 +180,34 @@ namespace ground_and_go
             {
                 Console.WriteLine($"Password reset error: {e.Message}");
                 return "An error has occurred while resetting password.";
+            }
+        }
+
+        /// <summary>
+        /// Changes the user's password in Supabase
+        /// </summary>
+        /// <param name="password">The new password to replace the old one</param>
+        /// <returns>Null if successful, the appropriate error string otherwise</returns>
+        public async Task<string?> ChangePassword(string password)
+        {
+            try
+            {
+                var result = await supabaseClient!.Auth.Update(
+                    new Supabase.Gotrue.UserAttributes
+                    {
+                        Password = password,
+                    }
+                );
+                if (result == null) //Returned user is null - an error occurred
+                {
+                    return "User was not found.";
+                }
+                return null;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Password change error: {e.Message}");
+                return "An error has occurred while changing password.";
             }
         }
 
@@ -350,7 +397,7 @@ namespace ground_and_go
 
                 bool hasActivities = response.Models != null && response.Models.Count > 0;
                 Console.WriteLine($"DEBUG: Found {response.Models?.Count ?? 0} mindfulness activities for '{emotionString}'");
-                
+
                 return hasActivities;
             }
             catch (Exception ex)
@@ -422,7 +469,7 @@ namespace ground_and_go
                     var sectionCount = fullWorkout.Exercises?.Sections?.Count ?? 0;
                     var exerciseCount = fullWorkout.Exercises?.Exercises?.Count ?? 0;
                     Console.WriteLine($"GetWorkoutById({workoutId}) - Successfully loaded workout with {sectionCount} sections, {exerciseCount} direct exercises");
-                    
+
                     // Debug: Log exercises JSON structure
                     if (fullWorkout.Exercises != null)
                     {
@@ -433,7 +480,7 @@ namespace ground_and_go
                     {
                         Console.WriteLine($"DEBUG: Exercises object is null for workout {workoutId}");
                     }
-                    
+
                     return fullWorkout;
                 }
                 else
@@ -527,7 +574,7 @@ namespace ground_and_go
                                     .Get();
 
                                 viewModel.WorkoutDetails = workoutResponse?.Models?.FirstOrDefault();
-                                
+
                                 if (viewModel.WorkoutDetails != null)
                                 {
                                     Console.WriteLine($"Successfully loaded workout details: Category={viewModel.WorkoutDetails.Category}, EmotionId={viewModel.WorkoutDetails.EmotionId}");
@@ -827,7 +874,7 @@ namespace ground_and_go
             try
             {
                 Console.WriteLine($"DEBUG: GetTodaysWorkoutLog - Looking for logs between {localToday} and {localTomorrow} for member {memberId}");
-                
+
                 // Query the 'workout_log' table, ordered by date_time descending to get the most recent entry
                 var response = await supabaseClient.From<WorkoutLog>()
                     .Where(log => log.MemberId == memberId)
@@ -890,7 +937,7 @@ namespace ground_and_go
         public async Task UpdateAfterJournalAsync(string logId, string afterJournalText)
         {
             await EnsureInitializedAsync();
-            if (supabaseClient == null) 
+            if (supabaseClient == null)
             {
                 Console.WriteLine("ERROR: UpdateAfterJournalAsync - supabaseClient is null");
                 return;
@@ -899,20 +946,20 @@ namespace ground_and_go
             try
             {
                 Console.WriteLine($"DEBUG: UpdateAfterJournalAsync - Updating log ID '{logId}' with after_journal text (length: {afterJournalText?.Length ?? 0})");
-                
+
                 // We find the log by its 'log_id' and update only the 'after_journal' column
                 var result = await supabaseClient.From<WorkoutLog>()
                                       .Where(log => log.LogId == logId)
                                       .Set(log => log.AfterJournal, afterJournalText)
                                       .Update();
-                                      
+
                 Console.WriteLine($"DEBUG: UpdateAfterJournalAsync - Update operation completed, affected {result?.Models?.Count ?? 0} records");
-                
+
                 // Verify the update worked by fetching the log again
                 var updatedLogQuery = await supabaseClient.From<WorkoutLog>()
                     .Where(log => log.LogId == logId)
                     .Get();
-                    
+
                 var updatedLog = updatedLogQuery?.Models?.FirstOrDefault();
                 if (updatedLog != null)
                 {
@@ -1003,7 +1050,7 @@ namespace ground_and_go
 
                 // Query for distinct categories across all emotion IDs
                 var allCategories = new HashSet<string>();
-                
+
                 foreach (int currentEmotionId in emotionIds)
                 {
                     var query = supabaseClient.From<Workout>()
@@ -1011,21 +1058,21 @@ namespace ground_and_go
                         .Where(w => w.EmotionId == currentEmotionId);
 
                     var response = await query.Get();
-                    
+
                     if (response?.Models != null)
                     {
                         var categories = response.Models
                             .Select(w => w.Category)
                             .Where(c => !string.IsNullOrEmpty(c))
                             .ToList();
-                            
+
                         foreach (var category in categories)
                         {
                             allCategories.Add(category);
                         }
                     }
                 }
-                
+
                 var finalCategories = allCategories.OrderBy(c => c).ToList();
                 Console.WriteLine($"DEBUG: Found categories for {emotion}: {string.Join(", ", finalCategories)}");
                 return finalCategories;
@@ -1077,16 +1124,16 @@ namespace ground_and_go
                     .Where(w => w.Category == workoutCategory);
 
                 var response = await query.Get();
-                
+
                 if (response?.Models != null && response.Models.Count > 0)
                 {
                     // Check if any workout has non-null at_gym value
                     bool hasNonNullAtGym = response.Models.Any(w => w.AtGym != null);
-                    
+
                     Console.WriteLine($"DEBUG: Found {response.Models.Count} workouts for {emotion}+{workoutCategory}, equipment selection needed: {hasNonNullAtGym}");
                     return hasNonNullAtGym;
                 }
-                
+
                 // If no workouts found, equipment selection is not needed
                 return false;
             }
@@ -1199,18 +1246,18 @@ namespace ground_and_go
                 }
 
                 Console.WriteLine($"DEBUG: Querying workouts for emotion='{emotion}', emotion_ids=[{string.Join(",", emotionIds)}], gym_access={hasGymAccess}, workout_type='{workoutType}'");
-                
+
                 // Query each emotion ID separately and combine results
                 var combinedWorkouts = new List<Workout>();
-                
+
                 foreach (int currentEmotionId in emotionIds)
                 {
                     Console.WriteLine($"DEBUG: Querying emotion_id {currentEmotionId}");
-                    
+
                     if (workoutType == "Strength Training")
                     {
                         Console.WriteLine($"DEBUG: Filtering by gym access: {hasGymAccess}");
-                        
+
                         try
                         {
                             // Query all strength training workouts for this emotion first
@@ -1218,21 +1265,21 @@ namespace ground_and_go
                                 .Select("*")  // Select all fields to get complete workout data
                                 .Where(w => w.EmotionId == currentEmotionId)
                                 .Where(w => w.Category == workoutType);
-                            
+
                             var allResponse = await allStrengthQuery.Get();
                             Console.WriteLine($"DEBUG: Retrieved {allResponse?.Models?.Count ?? 0} strength training workouts for emotion_id {currentEmotionId}");
-                            
+
                             if (allResponse?.Models != null)
                             {
                                 // Filter client-side based on gym access preference
                                 // Include workouts where at_gym matches preference OR is null (works anywhere)
-                                var filtered = allResponse.Models.Where(w => 
+                                var filtered = allResponse.Models.Where(w =>
                                     w.AtGym == hasGymAccess || w.AtGym == null
                                 ).ToList();
-                                
+
                                 combinedWorkouts.AddRange(filtered);
                                 Console.WriteLine($"DEBUG: Found {filtered.Count} strength workouts matching gym preference (hasGym={hasGymAccess})");
-                                
+
                                 // Debug: show what we filtered
                                 foreach (var workout in filtered)
                                 {
@@ -1254,11 +1301,11 @@ namespace ground_and_go
                                 .Select("*")  // Select all fields to get complete workout data
                                 .Where(w => w.EmotionId == currentEmotionId)
                                 .Where(w => w.Category == workoutType);
-                            
+
                             var cardioResponse = await cardioQuery.Get();
                             Console.WriteLine($"DEBUG: Retrieved {cardioResponse?.Models?.Count ?? 0} cardio workouts for emotion_id {currentEmotionId}");
-                            
-                            if (cardioResponse?.Models != null) 
+
+                            if (cardioResponse?.Models != null)
                             {
                                 combinedWorkouts.AddRange(cardioResponse.Models);
                                 Console.WriteLine($"DEBUG: Added {cardioResponse.Models.Count} cardio workouts to combined list");
@@ -1271,10 +1318,10 @@ namespace ground_and_go
                         }
                     }
                 }
-                
+
                 Console.WriteLine($"DEBUG: Combined query found {combinedWorkouts.Count} matching workouts");
                 Console.WriteLine($"DEBUG: Returning {combinedWorkouts.Count} complete workouts directly from query");
-                
+
                 return combinedWorkouts;
             }
             catch (Exception ex)
@@ -1295,7 +1342,7 @@ namespace ground_and_go
         public async Task<Workout?> GetRandomWorkoutByExactCriteria(string emotion, bool hasGymAccess, string workoutType)
         {
             var workouts = await GetWorkoutsByEmotionAndEquipment(emotion, hasGymAccess, workoutType);
-            
+
             if (workouts.Count == 0)
             {
                 Console.WriteLine($"DEBUG: No workouts available for exact criteria - emotion='{emotion}', gym_access={hasGymAccess}, type='{workoutType}'");
@@ -1303,13 +1350,13 @@ namespace ground_and_go
             }
 
             // Filter out workouts that don't have exercise sections or exercises
-            var workoutsWithExercises = workouts.Where(w => 
-                (w.Exercises?.Sections?.Count > 0) || 
+            var workoutsWithExercises = workouts.Where(w =>
+                (w.Exercises?.Sections?.Count > 0) ||
                 (w.Exercises?.Exercises?.Count > 0)
             ).ToList();
-            
+
             Console.WriteLine($"DEBUG: Found {workouts.Count} total workouts, {workoutsWithExercises.Count} have exercises for exact criteria");
-            
+
             if (workoutsWithExercises.Count == 0)
             {
                 Console.WriteLine($"DEBUG: No workouts with exercises found for exact criteria");
@@ -1319,7 +1366,7 @@ namespace ground_and_go
             // Select random workout from those with exercises
             var random = new Random();
             var selectedWorkout = workoutsWithExercises[random.Next(workoutsWithExercises.Count)];
-            
+
             var sectionCount = selectedWorkout.Exercises?.Sections?.Count ?? 0;
             var exerciseCount = selectedWorkout.Exercises?.Exercises?.Count ?? 0;
             Console.WriteLine($"DEBUG: Selected workout ID: {selectedWorkout.WorkoutId} - {selectedWorkout.Category} with {sectionCount} sections, {exerciseCount} exercises (exact criteria)");
@@ -1370,13 +1417,13 @@ namespace ground_and_go
             }
 
             // Filter out workouts that don't have exercises (either sections or exercises array)
-            var workoutsWithExercises = workouts.Where(w => 
-                (w.Exercises?.Sections?.Count > 0) || 
+            var workoutsWithExercises = workouts.Where(w =>
+                (w.Exercises?.Sections?.Count > 0) ||
                 (w.Exercises?.Exercises?.Count > 0)
             ).ToList();
-            
+
             Console.WriteLine($"DEBUG: Found {workouts.Count} total workouts, {workoutsWithExercises.Count} have exercises");
-            
+
             if (workoutsWithExercises.Count == 0)
             {
                 Console.WriteLine("DEBUG: No workouts with sections found! Using fallback...");
@@ -1395,7 +1442,7 @@ namespace ground_and_go
             // Select random workout from those with exercises
             var random = new Random();
             var selectedWorkout = workoutsWithExercises[random.Next(workoutsWithExercises.Count)];
-            
+
             var sectionCount = selectedWorkout.Exercises?.Sections?.Count ?? 0;
             var exerciseCount = selectedWorkout.Exercises?.Exercises?.Count ?? 0;
             Console.WriteLine($"DEBUG: Selected workout ID: {selectedWorkout.WorkoutId} - {selectedWorkout.Category} with {sectionCount} sections, {exerciseCount} exercises");
@@ -1525,7 +1572,7 @@ namespace ground_and_go
                 Console.WriteLine($"DEBUG: Attempting to delete account data for {userId}");
 
                 // 2. Delete Workout Logs (Data Cleanup)
-                try 
+                try
                 {
                     await supabaseClient.From<WorkoutLog>()
                         .Where(x => x.MemberId == userId)
@@ -1561,11 +1608,11 @@ namespace ground_and_go
             {
                 Console.WriteLine($"ERROR: DeleteAccount failed: {ex.Message}");
                 // Even if the DB fails, force a local logout so the user feels "Deleted"
-                await LogOut(); 
+                await LogOut();
                 return null; // We return success so the UI navigates away
             }
         }
-        
+
         /// <summary>
         /// Creates a fallback workout for testing when database queries fail
         /// </summary>

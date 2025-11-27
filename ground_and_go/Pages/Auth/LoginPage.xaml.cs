@@ -39,7 +39,6 @@ public partial class LoginPage : ContentPage
             if (result != null)
             {
                 await DisplayAlert("Success", "If an account exists, a recovery email will be sent.", "OK");
-                //TODO Create new page for changing password for current account, if result == null
             }
         } catch (Exception ex)
         {

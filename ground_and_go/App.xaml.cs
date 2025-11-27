@@ -16,7 +16,7 @@ public partial class App : Application
 
         // force light theme
         UserAppTheme = AppTheme.Light;
-        
+
         // Get logger service if available
         try
         {
@@ -40,47 +40,32 @@ public partial class App : Application
         var queryParams = System.Web.HttpUtility.ParseQueryString(uri.Query);
         var type = queryParams["type"];
         var token = queryParams["token"];
+        var refreshToken = queryParams["refresh_token"];
 
 
-        if (string.IsNullOrEmpty(type) || string.IsNullOrEmpty(token))
+        if (string.IsNullOrEmpty(type) || string.IsNullOrEmpty(token) || string.IsNullOrEmpty(refreshToken))
         {
             // Missing parameters - show error or navigate to a safe page
             await Shell.Current.DisplayAlert("Error", "Invalid link. Missing required information.", "OK");
             await Shell.Current.GoToAsync("//login");
             return;
         }
-        await HandleEmailConfirmation(type, token);
-    }
 
-
-    private async Task HandleEmailConfirmation(string type, string token)
-    {
         try
         {
-            // Calls backend API to confirm the email
-            var httpClient = new HttpClient();
-            var response = await httpClient.PostAsync(
-                "https://irekjohmgsjicpszbgus.supabase.co/auth/v1/verify",
-                new StringContent($"{{\"token\":\"{token}\",\"type\":\"{type}\"}}", Encoding.UTF8, "application/json")
-            );
-
-            if (response.IsSuccessStatusCode)
+            if (type == "recovery")
             {
-                if (type == "recovery")
-                {
-                    // Success - Navigate to Reset Password page
-                    await Shell.Current.GoToAsync("//login"); //TODO Replace with new page
-                }
-                else
-                {
-                    // Success - Navigate to login page
-                    await Shell.Current.GoToAsync("//login");
-                }
+
+                var db = IPlatformApplication.Current.Services.GetService<Database>();
+                db?.SetSupabaseSession(token, refreshToken);
+
+                // Navigate to Reset Password page
+                await Shell.Current.GoToAsync("//forgotpassword");
             }
             else
             {
-                // Show error
-                await Shell.Current.DisplayAlert("Error", "Invalid or expired token.", "OK");
+                // Navigate to login page
+                await Shell.Current.GoToAsync("//login");
             }
         }
         catch (Exception ex)
