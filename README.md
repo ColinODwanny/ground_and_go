@@ -8,6 +8,10 @@ The application uses **Supabase** for its backend database services, handling ev
 
 ## Sprint 4 Changes
 
+----------------------------------------------------------------
+* TO LOGIN, USE EMAIL sarah.lee@email.com AND A PASSWORD OF: 123
+----------------------------------------------------------------
+
 * Added the workout generation functionailty ✅
 * Added the rest day full flow ✅
 * Profile page logs now have all the correctly mapped data ✅
@@ -23,10 +27,6 @@ The application uses **Supabase** for its backend database services, handling ev
 
 
 ## Sprint 3 Changes
-
-----------------------------------------------------------------
-* TO LOGIN, USE EMAIL sarah.lee@email.com AND A PASSWORD OF: 123
-----------------------------------------------------------------
 
 
 * Added all exercises to the database that clients needed for workouts 😀😀
