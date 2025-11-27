@@ -22,6 +22,9 @@ The application uses **Supabase** for its backend database services, handling ev
 * Created a button to delete an account. ✅
 * Updated App Icon with a little color. ✅
 * Users can resume flow when they log out and log back in
+* Converted Mindfulness Activities from text to video.
+* Integrated Mindfullness activities into app.
+* Mindfulness activities are selected correctly from the database based on the user's entered emotion.
 
   Users being able to resume flow upon login is a feature that's actively being worked on. As there were many issues with getting other things up and running there was no time for it in this sprint. 
 
