@@ -17,6 +17,9 @@ The application uses **Supabase** for its backend database services, handling ev
 * Forced light mode so pages wouldn't get scrambled. ✅
 * Created a button to delete an account. ✅
 * Updated App Icon with a little color. ✅
+* Users can resume flow when they log out and log back in
+
+  Users being able to resume flow upon login is a feature that's actively being worked on. As there were many issues with getting other things up and running there was no time for it in this sprint. 
 
 
 ## Sprint 3 Changes
