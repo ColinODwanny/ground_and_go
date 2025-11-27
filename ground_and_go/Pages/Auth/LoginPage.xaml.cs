@@ -1,6 +1,7 @@
 // FILE: ground_and_go/Pages/Auth/LoginPage.xaml.cs
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Maui.Core;
+using CommunityToolkit.Maui.Views;
 using ground_and_go.Models;
 using ground_and_go.Pages.Home;
 
@@ -26,15 +27,23 @@ public partial class LoginPage : ContentPage
             await DisplayAlert("Error", $"Error: {ex.Message}", "OK");
         }
     }
-
-    private async void ForgotUsernameClicked(object sender, EventArgs e)
-    {
-        //TODO: This takes user to a pop-up, where they can provide their email
-    }
     
     private async void ForgotPasswordClicked(object sender, EventArgs e)
     {
-        //TODO: This takes user to a pop-up, where they can provide their email
+        try
+        {
+            if (sender is not Button button) return;
+            var popup = new ForgotPasswordPopup();
+            object? result = await this.ShowPopupAsync(popup);
+
+            if (result != null)
+            {
+                await DisplayAlert("Success", "If an account exists, a recovery email will be sent.", "OK");
+            }
+        } catch (Exception ex)
+        {
+            await DisplayAlert("Error", $"Error: {ex.Message}", "OK");
+        }
     }
 
     private async void LoginClicked(object sender, EventArgs e)

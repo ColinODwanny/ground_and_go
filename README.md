@@ -11,7 +11,7 @@ The application uses **Supabase** for its backend database services, handling ev
 ----------------------------------------------------------------
 * TO LOGIN, USE EMAIL sarah.lee@email.com AND A PASSWORD OF: 123
 ----------------------------------------------------------------
-
+* Added forgot password functionality ✅
 * Added the workout generation functionailty ✅
 * Added the rest day full flow ✅
 * Profile page logs now have all the correctly mapped data ✅

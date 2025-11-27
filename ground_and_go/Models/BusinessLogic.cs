@@ -80,4 +80,34 @@ public class BusinessLogic
         
         return result;
     }
+
+    /// <summary>
+    /// Sends a password reset email to the user
+    /// </summary>
+    /// <param name="email">The user's email</param>
+    /// <returns>Null if successful, error message otherwise</returns>
+    public async Task<string?> ForgotPassword(string email)
+    {
+        return await Database.ForgotPassword(email);
+    }
+
+    /// <summary>
+    /// Changes the user's password
+    /// </summary>
+    /// <param name="password">The new password to replace the old one</param>
+    /// <param name="repeatPassword">The password to confirm the given password is correct and intentional</param>
+    /// <returns>Null if successful, error message otherwise</returns>
+    public async Task<string?> ChangePassword(string password, string repeatPassword)
+    {
+        if (password == "")
+            return "Please enter a password";
+        if (repeatPassword == "")
+            return "Please re-enter your password";
+        if (password.Length < 6)
+            return "Your password must be at least 6 characters long";
+        if (password != repeatPassword)
+            return "The passwords do not match";
+        
+        return await Database.ChangePassword(password);
+    }
 }
