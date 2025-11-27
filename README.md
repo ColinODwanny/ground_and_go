@@ -13,10 +13,10 @@ The application uses **Supabase** for its backend database services, handling ev
 * Profile page logs now have all the correctly mapped data 😀
 * Updated the workout display to handle different categories of workouts 😀
 * Activity complete pop up is now functional when completing activities 😀😀😀😀
-* Icons in Profile page instead of emojis. 😀😀😀
-* Forced light mode so pages wouldn't get scrambled. 😀😀
+* Icons in Profile page instead of emojis. 
+* Forced light mode so pages wouldn't get scrambled. 
 * Created a button to delete an account. 😀😀😀
-* Updated App Icon with a little color. 😀
+* Updated App Icon with a little color. 
 
 
 ## Sprint 3 Changes
