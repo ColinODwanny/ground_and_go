@@ -8,17 +8,25 @@ The application uses **Supabase** for its backend database services, handling ev
 
 ## Sprint 4 Changes
 
-* Added the workout generation functionailty 😀😀😀😀
-* Added the rest day full flow 😀😀
-* Profile page logs now have all the correctly mapped data 😀
-* Updated the workout display to handle different categories of workouts 😀
-
-
-## Sprint 3 Changes
-
 ----------------------------------------------------------------
 * TO LOGIN, USE EMAIL sarah.lee@email.com AND A PASSWORD OF: 123
 ----------------------------------------------------------------
+
+* Added the workout generation functionailty ✅
+* Added the rest day full flow ✅
+* Profile page logs now have all the correctly mapped data ✅
+* Updated the workout display to handle different categories of workouts ✅
+* Activity complete pop up is now functional when completing activities ✅
+* Icons in Profile page instead of emojis. ✅
+* Forced light mode so pages wouldn't get scrambled. ✅
+* Created a button to delete an account. ✅
+* Updated App Icon with a little color. ✅
+* Users can resume flow when they log out and log back in
+
+  Users being able to resume flow upon login is a feature that's actively being worked on. As there were many issues with getting other things up and running there was no time for it in this sprint. 
+
+
+## Sprint 3 Changes
 
 
 * Added all exercises to the database that clients needed for workouts 😀😀
