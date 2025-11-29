@@ -1,9 +1,9 @@
 // FILE: ground_and_go/Pages/WorkoutGeneration/MindfulnessActivityRest.xaml.cs
-// Devlin Delegard
 using ground_and_go.Pages.Home;
 using ground_and_go.Services;
 using ground_and_go.Models;
 using ground_and_go.enums;
+using System.Text.Json; // Needed for JSON
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 
@@ -21,6 +21,31 @@ public partial class MindfulnessActivityRestPage : ContentPage
         InitializeComponent();
         _database = database;
         _progressService = progressService;
+
+        // Override the Top-Left UI Back Button
+        Shell.SetBackButtonBehavior(this, new BackButtonBehavior
+        {
+            Command = new Command(async () => await NavigateBackToJournal())
+        });
+    }
+
+    // Override the Hardware Back Button (Android)
+    protected override bool OnBackButtonPressed()
+    {
+        // Use discard (_) to fire-and-forget the async task
+        _ = NavigateBackToJournal();
+        
+        return true; // We handled it
+    }
+
+    private async Task NavigateBackToJournal()
+    {
+        // Re-package the feeling result so the Journal Page can render the header
+        var result = _progressService.CurrentFeelingResult;
+        var json = JsonSerializer.Serialize(result);
+        
+        // Manually navigate "Back" to Step 2
+        await Shell.Current.GoToAsync($"//home/WorkoutJournalEntry?flow=rest&results={json}");
     }
 
     protected override async void OnAppearing()

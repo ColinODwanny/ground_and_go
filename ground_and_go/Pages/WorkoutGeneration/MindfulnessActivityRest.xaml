@@ -8,7 +8,6 @@
     <Grid RowDefinitions="Auto,*,Auto"
           Padding="20">
 
-        <!-- HEADER SECTION -->
         <VerticalStackLayout Grid.Row="0" Spacing="6">
             <Label x:Name="ProgressStepLabel"
                    Text="Step 3 of 5"
@@ -23,16 +22,18 @@
                          ProgressColor="#4CAF50"/>
         </VerticalStackLayout>
 
-        <!-- SCROLL CONTENT -->
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Spacing="20">
 
-                <Frame Margin="10,43,10,0"
-                    BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
-                    CornerRadius="16"
-                    HasShadow="True"
-                    Padding="20">
-
+                <Border Margin="10,43,10,0"
+                        Stroke="Transparent"
+                        StrokeShape="RoundRectangle 16"
+                        BackgroundColor="{AppThemeBinding Light=White, Dark=#2A2A2A}"
+                        Padding="20">
+                    
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,5" Opacity="0.2" Radius="5"/>
+                    </Border.Shadow>
 
                     <VerticalStackLayout Spacing="14">
                         <Label x:Name="ActivityNameLabel"
@@ -48,21 +49,19 @@
                                HorizontalTextAlignment="Center"
                                LineBreakMode="WordWrap"/>
 
-                        <Button
-                            x:Name="YouTubeBtn"
-                            Text="Start Activity"
-                            Clicked="OnOpenYoutubeClicked"
-                            HeightRequest="48"
-                            CornerRadius="12"
-                            BackgroundColor="#FF93B87C"
-                            TextColor="White"/>
+                        <Button x:Name="YouTubeBtn"
+                                Text="Start Activity"
+                                Clicked="OnOpenYoutubeClicked"
+                                HeightRequest="48"
+                                CornerRadius="12"
+                                BackgroundColor="#FF93B87C"
+                                TextColor="White"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
 
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- BOTTOM FIXED BUTTON -->
         <Button Grid.Row="2"
                 Text="Continue"
                 HeightRequest="56"

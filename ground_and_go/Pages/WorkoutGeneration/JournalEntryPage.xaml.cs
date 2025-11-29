@@ -38,6 +38,41 @@ public partial class JournalEntryPage : ContentPage
         _authService = authService;
         // Assign the new service ***
         _progressService = progressService;
+
+        // Override the Top-Left UI Back Button
+        // If the user hits back here, they want to change their emotion.
+        // We must cancel the current flow (delete the log) so they aren't trapped in "Resume".
+        Shell.SetBackButtonBehavior(this, new BackButtonBehavior
+        {
+            Command = new Command(async () => await CancelAndReturnHome())
+        });
+    }
+
+    // Override the Hardware Back Button (Android)
+    protected override bool OnBackButtonPressed()
+    {
+        _ = CancelAndReturnHome();
+        return true; 
+    }
+
+    private async Task CancelAndReturnHome()
+    {
+        // 1. Get the current Log ID (created in Step 1)
+        string? logId = _progressService.CurrentLogId;
+
+        // 2. Delete it from the database
+        // This removes the "Resume" state, allowing the user to start fresh from Home.
+        // This ONLY happens if they click Back. If they Logout/Crash, this doesn't run, so Resume remains safe.
+        if (!string.IsNullOrEmpty(logId))
+        {
+            await _database.DeleteWorkoutLog(logId);
+        }
+
+        // 3. Clear local service state
+        _progressService.ResetDailyState();
+
+        // 4. Go back to Home
+        await Shell.Current.GoToAsync("//home");
     }
 
     protected override async void OnAppearing()
@@ -66,22 +101,18 @@ public partial class JournalEntryPage : ContentPage
             return;
         }
 
-        // 1b. Check if user has already completed activity today
-        // Note: With the new "Resume" logic, we usually update the existing log rather than blocking here,
-        // but checking the final completion status is still good safety.
-        // (Skipped here to prioritize the update logic below)
-
         // 2. Save the journal entry to the database
+        // We check the service first to see if a log was already started (Step 1)
         string? logId = _progressService.CurrentLogId;
 
-        // If we already have a Log ID (from the temporary state created in Step 1), update it.
         if (!string.IsNullOrEmpty(logId))
         {
+            // Update the existing log (replacing the "STATE:..." placeholder)
             await _database.UpdateBeforeJournal(logId, JournalEntry.Text);
         }
         else
         {
-            // Fallback: If no temporary log exists, create a new one now.
+            // Fallback: Create initial log if for some reason it doesn't exist
             var newLog = await _database.CreateInitialWorkoutLog(memberId, JournalEntry.Text);
             if (newLog != null)
             {
@@ -98,9 +129,11 @@ public partial class JournalEntryPage : ContentPage
         }
 
         // 4. Navigate to the next page
-        // Read the configuration from the service to decide the path
-        bool requiresMindfulness = await _progressService.RequiresMindfulnessAsync();
+        // Read the flow type directly from the service
         string currentFlow = _progressService.CurrentFlowType ?? "workout";
+        
+        // Determine if we need mindfulness based on flow and emotion
+        bool requiresMindfulness = await _progressService.RequiresMindfulnessAsync();
 
         if (currentFlow == "workout")
         {
@@ -112,32 +145,14 @@ public partial class JournalEntryPage : ContentPage
             else
             {
                 // Emotions without workout mindfulness (Happy/Energized) - skip mindfulness
-                // Go straight to workout generation
+                // Go directly to workout selection/generation
                 await NavigateDirectlyToWorkout();
             }
         }
         else if (currentFlow == "rest")
         {
-            if (requiresMindfulness)
-            {
-                // Emotions with mindfulness activities - go through mindfulness
-                await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityRestPage)}");
-            }
-            else
-            {
-                // FIX: Emotions without mindfulness in Rest Flow (Happy/Energized)
-                // We skip Step 3 (Mindfulness) and go straight to Step 4 (Post-Journal).
-                
-                // CRITICAL: We must save "STATE:Pending" to after_journal now.
-                // If we don't, logging out here will make the app think we are still on Step 3 
-                // because after_journal is null.
-                if (!string.IsNullOrEmpty(logId))
-                {
-                    await _database.UpdateAfterJournalAsync(logId, "STATE:Pending");
-                }
-
-                await Shell.Current.GoToAsync("PostJournal");
-            }
+            
+            await Shell.Current.GoToAsync($"{nameof(MindfulnessActivityRestPage)}");
         }
         else
         {

@@ -1,3 +1,4 @@
+// FILE: ground_and_go/Pages/WorkoutGeneration/PostActivityJournalEntryPage.xaml.cs
 // Samuel Reynebeau
 using ground_and_go.Models;
 using ground_and_go.Services;
@@ -6,7 +7,6 @@ namespace ground_and_go.Pages.WorkoutGeneration;
 
 public partial class PostActivityJournalEntryPage : ContentPage
 {
-    
     private readonly Database _database;
     private readonly MockAuthService _authService;
     // progress service
@@ -19,6 +19,37 @@ public partial class PostActivityJournalEntryPage : ContentPage
         _database = database;
         _authService = authService;
         _progressService = progressService; // Assign the service
+
+        // Override UI Back Button (Top Left)
+        Shell.SetBackButtonBehavior(this, new BackButtonBehavior
+        {
+            Command = new Command(async () => await NavigateBackToPreviousStep())
+        });
+    }
+
+    // Override Hardware Back Button (Android)
+    protected override bool OnBackButtonPressed()
+    {
+        // Use discard (_) to suppress the async warning
+        _ = NavigateBackToPreviousStep();
+        return true; // We handled the navigation manually
+    }
+
+    private async Task NavigateBackToPreviousStep()
+    {
+        string flow = _progressService.CurrentFlowType;
+        
+        if (flow == "workout")
+        {
+            // Workout Flow: Always go back to Workout (Step 4)
+            await Shell.Current.GoToAsync($"//home/TheWorkout");
+        }
+        else // Rest Flow
+        {
+            // Rest Flow: Always go back to Mindfulness (Step 3)
+            // (Since we forced mindfulness to be included for Rest Days)
+            await Shell.Current.GoToAsync($"//home/{nameof(MindfulnessActivityRestPage)}");
+        }
     }
 
     protected override async void OnAppearing()
@@ -46,7 +77,7 @@ public partial class PostActivityJournalEntryPage : ContentPage
             string? logId = _progressService.CurrentLogId;
             Console.WriteLine($"DEBUG: CurrentLogId from service: '{logId ?? "NULL"}'");
 
-            // 2. If CurrentLogId is null, try to get today's log directly
+            // 2. If CurrentLogId is null, try to get today's log directly (Recovery Logic)
             if (string.IsNullOrEmpty(logId))
             {
                 Console.WriteLine("DEBUG: CurrentLogId is null, trying to get today's log directly");
