@@ -1,245 +1,235 @@
+// FILE: ground_and_go/Services/DailyProgressService.cs
 using ground_and_go.Models;
 using ground_and_go.Pages.WorkoutGeneration;
+using System.Text.Json;
 
 namespace ground_and_go.Services
 {
-    // This is the helper class. It just holds the result.
-    // Any page can ask the service "What's the progress?" and
-    // it will get one of these objects back.
     public class DailyProgressState
     {
         public int Step { get; set; }
         public double Progress { get; set; }
-        public WorkoutLog? TodaysLog { get; set; } // pass the log along for convenience
+        public WorkoutLog? TodaysLog { get; set; }
     }
 
-    // This is the main "brain" service
     public class DailyProgressService
     {
         private readonly Database _database;
         private readonly MockAuthService _authService;
 
-        // This property will store our flow state
-        public string? CurrentFlowType { get; set; }
-
-        // This new property will store the ID of the log we just created
-        public string? CurrentLogId { get; set; }
-
-        // Store user's workout preferences for workout generation
-        public FeelingResult? CurrentFeelingResult { get; set; }
-        public EquipmentResult? CurrentEquipmentResult { get; set; }
+        // --- HYBRID STATE (Preferences) ---
         
-        // Store the currently selected workout (especially for fallback workouts)
-        public Models.Workout? CurrentWorkout { get; set; }
+        public string CurrentFlowType
+        {
+            get => Preferences.Get(nameof(CurrentFlowType), "workout"); 
+            set => Preferences.Set(nameof(CurrentFlowType), value ?? "workout");
+        }
 
-        // The service "requests" the database and mock auth service
-        // and .NET MAUI gives them to us (this is dependency injection).
+        public string? CurrentLogId
+        {
+            get => Preferences.Get(nameof(CurrentLogId), null);
+            set
+            {
+                if (value == null) Preferences.Remove(nameof(CurrentLogId));
+                else Preferences.Set(nameof(CurrentLogId), value);
+            }
+        }
+
+        public FeelingResult? CurrentFeelingResult
+        {
+            get
+            {
+                string json = Preferences.Get(nameof(CurrentFeelingResult), string.Empty);
+                return string.IsNullOrEmpty(json) ? null : JsonSerializer.Deserialize<FeelingResult>(json);
+            }
+            set
+            {
+                if (value == null) Preferences.Remove(nameof(CurrentFeelingResult));
+                else Preferences.Set(nameof(CurrentFeelingResult), JsonSerializer.Serialize(value));
+            }
+        }
+
+        public EquipmentResult? CurrentEquipmentResult { get; set; }
+        public Models.Workout? CurrentWorkout { get; set; } 
+
         public DailyProgressService(Database database, MockAuthService authService)
         {
             _database = database;
             _authService = authService;
         }
 
-        // This is the main public function our pages will call
+        public void ResetDailyState()
+        {
+            Preferences.Remove(nameof(CurrentFlowType));
+            Preferences.Remove(nameof(CurrentLogId));
+            Preferences.Remove(nameof(CurrentFeelingResult));
+            CurrentWorkout = null;
+            CurrentEquipmentResult = null;
+        }
+
+        // --- CORE LOGIC ---
+
         public async Task<DailyProgressState> GetTodaysProgressAsync()
         {
-            Console.WriteLine("DEBUG: DailyProgressService.GetTodaysProgressAsync() called");
-            
-            // 1. Get the (fake) logged-in user
             string? memberId = _database.GetAuthenticatedMemberId();
-            Console.WriteLine($"DEBUG: Member ID: '{memberId ?? "NULL"}'");
-
-            // 2. Ask the database for this user's log for today
-            
-            // if memberId is null, user isn't logged in, so no log.
-            if (string.IsNullOrEmpty(memberId))
-            {
-                Console.WriteLine("DEBUG: Member ID is null, returning Step 0");
-                 return new DailyProgressState { Step = 0, Progress = 0.0, TodaysLog = null };
-            }
+            if (string.IsNullOrEmpty(memberId)) return new DailyProgressState { Step = 0, Progress = 0.0 };
             
             WorkoutLog? log = await _database.GetTodaysWorkoutLog(memberId);
-            Console.WriteLine($"DEBUG: Today's workout log found: {log != null}");
 
-            // 3. Figure out the progress step based on the log
-            
             // STEP 0: NOT STARTED
-            // No log exists for this user today.
             if (log == null)
             {
-                Console.WriteLine("DEBUG: No log found for today, returning Step 0");
-                return new DailyProgressState { Step = 0, Progress = 0.0, TodaysLog = null };
+                ResetDailyState(); 
+                return new DailyProgressState { Step = 0, Progress = 0.0 };
             }
 
-            Console.WriteLine($"DEBUG: Log details - LogId: '{log.LogId}', WorkoutId: {log.WorkoutId}, BeforeJournal: {!string.IsNullOrEmpty(log.BeforeJournal)}, AfterJournal: {!string.IsNullOrEmpty(log.AfterJournal)}");
-            Console.WriteLine($"DEBUG: AfterJournal content: '{log.AfterJournal?.Substring(0, Math.Min(50, log.AfterJournal?.Length ?? 0))}...'");
-
-            // STEP 1: PRE-JOURNAL COMPLETE
-            // A log row exists, 'before_journal' is filled, but 'workout_id' is null (or -1, based on your model)
-            if (!string.IsNullOrEmpty(log.BeforeJournal) && log.WorkoutId <= 0) // Using <= 0 to be safe
+            // RECOVERY LOGIC: If App Restarted, Local State (Preferences) might be stale or empty.
+            // We need to re-populate CurrentFeelingResult so 'Resume' knows where to go.
+            if (CurrentFeelingResult == null)
             {
-                Console.WriteLine("DEBUG: Step 1 - Pre-journal complete, no workout yet");
-                // We've found an existing log, so let's save its ID just in case
-                CurrentLogId = log.LogId;
-                return new DailyProgressState { Step = 1, Progress = 0.33, TodaysLog = log };
+                await RecoverStateFromLog(log);
             }
 
-            // STEP 2: WORKOUT GENERATED
-            // A 'workout_id' has been saved, but the 'after_journal' is still empty.
+            // Ensure Log ID is tracked
+            if (CurrentLogId == null) CurrentLogId = log.LogId;
+
+            // CHECK: Is this a "Temporary State" log? (User is on Step 2)
+            bool isTempState = log.BeforeJournal != null && log.BeforeJournal.StartsWith("STATE:");
+
+            // STEP 1 COMPLETE -> USER IS ON STEP 2 (Journal Page)
+            if (isTempState)
+            {
+                // We return Step 2.
+                double progress = await GetProgressPercentageAsync(2); 
+                return new DailyProgressState { Step = 2, Progress = progress, TodaysLog = log };
+            }
+
+            // STEP 2 COMPLETE -> USER IS ON STEP 3 (Mindfulness/Workout)
+            // BeforeJournal is real text (not null, not STATE:) AND WorkoutId is not set yet
+            if (!string.IsNullOrEmpty(log.BeforeJournal) && !isTempState && (log.WorkoutId == null || log.WorkoutId <= 0))
+            {
+                // We are at "Step 3" (Mindfulness or Workout Selection)
+                double progress = await GetProgressPercentageAsync(3); 
+                return new DailyProgressState { Step = 3, Progress = progress, TodaysLog = log };
+            }
+
+            // STEP 3/4 COMPLETE -> USER IS ON WORKOUT OR POST-JOURNAL
             if (log.WorkoutId > 0 && string.IsNullOrEmpty(log.AfterJournal))
             {
-                Console.WriteLine("DEBUG: Step 2 - Workout generated, awaiting completion");
-                // We've found an existing log, so let's save its ID
-                CurrentLogId = log.LogId;
-                return new DailyProgressState { Step = 2, Progress = 0.66, TodaysLog = log };
+                // We are at "Step 4" (Workout In Progress)
+                double progress = await GetProgressPercentageAsync(4);
+                return new DailyProgressState { Step = 4, Progress = progress, TodaysLog = log };
             }
 
-            // STEP 3: ALL COMPLETE
-            // The 'after_journal' is filled. The user is done for the day.
+            // STEP 5 COMPLETE -> DONE
             if (!string.IsNullOrEmpty(log.AfterJournal))
             {
-                Console.WriteLine("DEBUG: Step 3 - All complete! After journal is filled");
-                // We're all done, so we can clear the ID
-                CurrentLogId = null;
-                return new DailyProgressState { Step = 3, Progress = 1.0, TodaysLog = log };
+                return new DailyProgressState { Step = 5, Progress = 1.0, TodaysLog = log };
             }
 
-            Console.WriteLine("DEBUG: Unexpected state - falling back to Step 0");
-            Console.WriteLine($"DEBUG: Unexpected state details - BeforeJournal empty: {string.IsNullOrEmpty(log.BeforeJournal)}, WorkoutId: {log.WorkoutId}, AfterJournal empty: {string.IsNullOrEmpty(log.AfterJournal)}");
-            // Failsafe, in case of a weird state we didn't predict
             return new DailyProgressState { Step = 0, Progress = 0.0, TodaysLog = log };
         }
 
-        /// <summary>
-        /// Determines if the current emotion requires mindfulness by checking database
-        /// Uses workout-specific logic that excludes Happy/Energized from mindfulness
-        /// </summary>
-        /// <returns>True if mindfulness activities exist for this emotion, false if skipped</returns>
+        private async Task RecoverStateFromLog(WorkoutLog log)
+        {
+            // STRATEGY 1: Extract from "STATE:{...}" string in BeforeJournal
+            if (log.BeforeJournal != null && log.BeforeJournal.StartsWith("STATE:"))
+            {
+                try 
+                {
+                    string json = log.BeforeJournal.Substring(6); // Remove "STATE:"
+                    var stateData = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                    
+                    if (stateData != null)
+                    {
+                        if (stateData.ContainsKey("Flow")) CurrentFlowType = stateData["Flow"];
+                        if (stateData.ContainsKey("Mood")) 
+                        {
+                            CurrentFeelingResult = new FeelingResult { Mood = stateData["Mood"], Rating = 5 };
+                        }
+                    }
+                }
+                catch { /* Ignore parse errors */ }
+            }
+            // STRATEGY 2: Infer from Workout ID (DB Relationship)
+            else if (log.WorkoutId.HasValue && log.WorkoutId > 0)
+            {
+                string? emotion = await _database.GetEmotionNameByWorkoutId(log.WorkoutId.Value);
+                
+                if (!string.IsNullOrEmpty(emotion))
+                {
+                    CurrentFeelingResult = new FeelingResult { Mood = emotion, Rating = 5 };
+                    CurrentFlowType = "workout"; // Assume workout if ID exists
+                    
+                    // Also reload the workout object
+                    CurrentWorkout = await _database.GetWorkoutById(log.WorkoutId.Value);
+                }
+            }
+            // STRATEGY 3: Fallback if we have real journal text but no workout ID yet (Rare edge case)
+            // We assume "Rest" flow if we can't prove otherwise, or generic workout flow
+            else if (!string.IsNullOrEmpty(log.BeforeJournal))
+            {
+                // Best guess default so Resume doesn't crash
+                if (CurrentFeelingResult == null) 
+                    CurrentFeelingResult = new FeelingResult { Mood = "Neutral", Rating = 5 };
+            }
+        }
+
         public async Task<bool> RequiresMindfulnessAsync()
         {
-            if (CurrentFeelingResult?.Mood == null) return false;
+            if (CurrentFeelingResult?.Mood == null) return true;
             
-            // Use workout-specific logic that excludes Happy/Energized
-            return await _database.HasWorkoutMindfulnessActivitiesForEmotion(CurrentFeelingResult.Mood);
-        }
-        
-        /// <summary>
-        /// Determines if the current emotion requires mindfulness (synchronous version for backward compatibility)
-        /// NOTE: This will be deprecated - use RequiresMindfulnessAsync instead
-        /// </summary>
-        /// <returns>True if mindfulness is required, false if skipped</returns>
-        public bool IsNegativeEmotion()
-        {
-            // For now, keep the old logic as fallback, but this should be replaced with async calls
-            if (CurrentFeelingResult?.Mood == null) return false;
-            
-            var negativeEmotions = new HashSet<string> { "Sad", "Depressed", "Tired", "Angry", "Anxious" };
-            return negativeEmotions.Contains(CurrentFeelingResult.Mood);
-        }
+            string mood = CurrentFeelingResult.Mood;
 
-        /// <summary>
-        /// Gets the total number of steps for the current flow (async version)
-        /// </summary>
-        /// <returns>4 for rest days, 4 for emotions without mindfulness in workout flow, 5 for emotions with mindfulness in workout flow</returns>
-        public async Task<int> GetTotalStepsAsync()
-        {
-            // Rest day flow always has 4 steps: emotion → journal → mindfulness → post-journal
+            // 1. Rest Day Logic
             if (CurrentFlowType == "rest")
             {
-                return 4;
+                 return await _database.HasMindfulnessActivitiesForEmotion(mood);
             }
-            
-            // Workout flow: 4 or 5 steps depending on mindfulness
-            bool requiresMindfulness = await RequiresMindfulnessAsync();
-            return requiresMindfulness ? 5 : 4;
+
+            // 2. Workout Day Logic (Skip for Happy/Energized)
+            var positiveMoods = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Happy", "Energized" };
+            return !positiveMoods.Contains(mood);
         }
 
-        /// <summary>
-        /// Gets the display step number and total for a given actual step (async version)
-        /// </summary>
-        /// <param name="actualStep">The actual step number (1=emotion, 2=journal, 3=mindfulness, 4=workout, 5=post-journal)</param>
-        /// <returns>Tuple of (displayStep, totalSteps)</returns>
         public async Task<(int displayStep, int totalSteps)> GetDisplayStepAsync(int actualStep)
         {
-            // Rest day flow: emotion(1) → journal(2) → mindfulness(3) → post-journal(4)
-            if (CurrentFlowType == "rest")
-            {
-                // For rest days, map: 1→1, 2→2, 3→3, 5→4 (no step 4 since no workout)
-                int restDisplayStep = actualStep == 5 ? 4 : actualStep; // Map post-journal (5) to step 4
-                return (restDisplayStep, 4);
-            }
-            
-            // Workout flow logic
             bool requiresMindfulness = await RequiresMindfulnessAsync();
-            int totalSteps = requiresMindfulness ? 5 : 4;
             
+            // Total Steps Calculation
+            int totalSteps;
+            if (CurrentFlowType == "rest") totalSteps = requiresMindfulness ? 4 : 3;
+            else totalSteps = requiresMindfulness ? 5 : 4; 
+
             if (requiresMindfulness)
             {
-                // Emotions with mindfulness: all steps are displayed as-is
+                // REST: Map 5 -> 4.
+                if (CurrentFlowType == "rest" && actualStep == 5) return (4, totalSteps);
                 return (actualStep, totalSteps);
             }
             else
             {
-                // Emotions without mindfulness: skip step 3 (mindfulness)
-                // actualStep 1 → display 1, actualStep 2 → display 2, actualStep 4 → display 3, actualStep 5 → display 4
-                int displayStep = actualStep <= 2 ? actualStep : actualStep - 1;
-                return (displayStep, totalSteps);
+                // NO MINDFULNESS (Skip Step 3)
+                if (actualStep <= 2) return (actualStep, totalSteps);
+                
+                // REST (No Work, No Mind): Map 5 -> 3.
+                if (CurrentFlowType == "rest")
+                {
+                    if (actualStep == 5) return (3, totalSteps);
+                }
+                
+                // WORKOUT: Skip index 3
+                if (actualStep >= 4) return (actualStep - 1, totalSteps);
             }
+
+            return (actualStep, totalSteps);
         }
 
-        /// <summary>
-        /// Gets the progress percentage for a given step (async version)
-        /// </summary>
-        /// <param name="actualStep">The actual step number</param>
-        /// <returns>Progress percentage (0.0 to 1.0)</returns>
         public async Task<double> GetProgressPercentageAsync(int actualStep)
         {
             var (displayStep, totalSteps) = await GetDisplayStepAsync(actualStep);
-            return (displayStep - 1) / (double)totalSteps;
-        }
-
-        /// <summary>
-        /// Gets the total number of steps for the current flow (synchronous fallback)
-        /// </summary>
-        /// <returns>4 for good emotions, 5 for bad emotions</returns>
-        public int GetTotalSteps()
-        {
-            return IsNegativeEmotion() ? 5 : 4;
-        }
-
-        /// <summary>
-        /// Gets the display step number and total for a given actual step (synchronous fallback)
-        /// </summary>
-        /// <param name="actualStep">The actual step number (1=emotion, 2=journal, 3=mindfulness, 4=workout, 5=post-journal)</param>
-        /// <returns>Tuple of (displayStep, totalSteps)</returns>
-        public (int displayStep, int totalSteps) GetDisplayStep(int actualStep)
-        {
-            bool isNegative = IsNegativeEmotion();
-            int totalSteps = isNegative ? 5 : 4;
-            
-            if (isNegative)
-            {
-                // Bad emotions: all steps are displayed as-is
-                return (actualStep, totalSteps);
-            }
-            else
-            {
-                // Good emotions: skip step 3 (mindfulness)
-                // actualStep 1 -> display 1, actualStep 2 -> display 2, actualStep 4 -> display 3, actualStep 5 -> display 4
-                int displayStep = actualStep <= 2 ? actualStep : actualStep - 1;
-                return (displayStep, totalSteps);
-            }
-        }
-
-        /// <summary>
-        /// Gets the progress percentage for a given step (synchronous fallback)
-        /// </summary>
-        /// <param name="actualStep">The actual step number</param>
-        /// <returns>Progress percentage (0.0 to 1.0)</returns>
-        public double GetProgressPercentage(int actualStep)
-        {
-            var (displayStep, totalSteps) = GetDisplayStep(actualStep);
-            return (displayStep - 1) / (double)totalSteps;
+            if (totalSteps == 0) return 0.0;
+            return (double)(displayStep - 1) / totalSteps;
         }
     }
 }
