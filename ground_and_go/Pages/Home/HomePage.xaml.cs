@@ -1,4 +1,5 @@
 ﻿// FILE: ground_and_go/Pages/Home/HomePage.xaml.cs
+// Samuel Reynebeau
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using CommunityToolkit.Maui.Views;
@@ -14,6 +15,7 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
     private readonly DailyProgressService _progressService;
     private readonly Database _database; 
     
+    // UI State Properties
     private bool _isLoading = true;
     private bool _showStart = false;
     private bool _showResume = false;
@@ -45,15 +47,17 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
         IsLoading = true;
         ShowStart = false; ShowResume = false; ShowComplete = false;
 
-        // The Service now handles all recovery logic internally!
-        // We just ask "What Step are we on?"
+        // The Service handles all recovery logic internally now.
+        // It will parse the "STATE:" string or check the Workout ID to populate CurrentFlowType/Mood.
         var progressState = await _progressService.GetTodaysProgressAsync();
 
+        // 1. UI STATE
         if (progressState.Step == 0)
         {
             ShowStart = true;
         }
-        else if (progressState.Step < 5)
+        // FIX: The new completion step is 6 (Real Text in AfterJournal)
+        else if (progressState.Step < 6)
         {
             ShowResume = true;
             ProgressValue = progressState.Progress;
@@ -61,6 +65,7 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
         }
         else
         {
+            // Step 6 means Post-Journal is filled -> Activity Complete
             ShowComplete = true;
             ProgressValue = 1.0;
         }
@@ -73,6 +78,7 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
         if (sender is not Button button || button.CommandParameter is not DailyProgressState state) return;
 
         // 1. Get Configuration from Service
+        // The service has already recovered the FlowType and Mood during GetTodaysProgressAsync
         bool includesMindfulness = await _progressService.RequiresMindfulnessAsync();
         string currentFlow = _progressService.CurrentFlowType;
         int currentStep = state.Step;
@@ -90,6 +96,10 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
         {
             // Resume to Journal Page. We need to pass the result json so it renders the header.
             var result = _progressService.CurrentFeelingResult;
+            
+            // If result is null (edge case), default it to prevent crash
+            if (result == null) result = new FeelingResult { Mood = "Neutral", Rating = 5 };
+
             var json = JsonSerializer.Serialize(result);
             await Shell.Current.GoToAsync($"WorkoutJournalEntry?flow={currentFlow}&results={json}");
         }
@@ -121,6 +131,11 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
                 await Shell.Current.GoToAsync("TheWorkout");
             }
         }
+        // --- STEP 5: GOING TO POST-JOURNAL ---
+        else if (currentStep == 5)
+        {
+             await Shell.Current.GoToAsync("PostJournal");
+        }
     }
 
     private async void OnStartWorkoutFlow_Clicked(object sender, EventArgs e)
@@ -144,7 +159,7 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
     private async Task<bool> CheckIfComplete()
     {
         var progressState = await _progressService.GetTodaysProgressAsync();
-        if (progressState.Step >= 5)
+        if (progressState.Step >= 6)
         {
             await DisplayAlert("Already Complete", "You've already completed your daily activity!", "OK");
             return true;
