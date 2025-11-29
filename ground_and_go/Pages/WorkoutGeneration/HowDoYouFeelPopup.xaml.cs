@@ -7,10 +7,8 @@ namespace ground_and_go.Pages.WorkoutGeneration;
 
 public partial class HowDoYouFeelPopup : Popup
 {
-    
     private Button? _selectedMoodButton;
     private string _flowType;
-    
     public static FeelingResult? feelingResult;
     
     public HowDoYouFeelPopup(string flowType = "workout")
@@ -42,9 +40,7 @@ public partial class HowDoYouFeelPopup : Popup
             Mood = _selectedMoodButton?.Text
         };
 
-        // Update the static field just in case other parts of your app use it
         feelingResult = result;
-
         Close(result);
     }
 
@@ -52,7 +48,6 @@ public partial class HowDoYouFeelPopup : Popup
     {
         if (sender is Button clickedButton)
         {
-            // Deselect previous
             if (_selectedMoodButton != null)
             {
                 _selectedMoodButton.BackgroundColor = Color.FromArgb("#F3F4F6");
@@ -60,13 +55,11 @@ public partial class HowDoYouFeelPopup : Popup
                 _selectedMoodButton.BorderColor = Color.FromArgb("#E0E0E0");
             }
 
-            // Select new one
             _selectedMoodButton = clickedButton;
             _selectedMoodButton.BackgroundColor = Color.FromArgb("#2196F3");
             _selectedMoodButton.TextColor = Colors.White;
             _selectedMoodButton.BorderColor = Color.FromArgb("#2196F3");
             
-            // Update progress display based on selected emotion
             UpdateProgressDisplay(clickedButton.Text);
         }
     }
@@ -76,26 +69,23 @@ public partial class HowDoYouFeelPopup : Popup
         int totalSteps;
         
         var emotionsSkippingMindfulness = new HashSet<string> { "Happy", "Energized" };
-        bool skipsMindfulness = emotionsSkippingMindfulness.Contains(selectedMood);
+        bool isPositiveMood = emotionsSkippingMindfulness.Contains(selectedMood);
 
         if (_flowType == "rest")
         {
-            // Rest Flow:
-            // Standard: 4 Steps (Emotion -> Journal -> Mindfulness -> Post-Journal)
-            // Happy/Energized: 3 Steps (Emotion -> Journal -> Post-Journal)
-            totalSteps = skipsMindfulness ? 3 : 4;
+            // FIX: Rest Day ALWAYS includes mindfulness now, regardless of emotion.
+            // Emotion(1) -> Journal(2) -> Mindfulness(3) -> Post-Journal(4)
+            totalSteps = 4;
         }
         else
         {
-            // Workout Flow:
-            // Standard: 5 Steps (Emotion -> Journal -> Mindfulness -> Workout -> Post-Journal)
-            // Happy/Energized: 4 Steps (Emotion -> Journal -> Workout -> Post-Journal)
-            totalSteps = skipsMindfulness ? 4 : 5;
+            // Workout Flow Logic:
+            // Positive = 4 steps (Skip Mind)
+            // Negative = 5 steps (Do Mind)
+            totalSteps = isPositiveMood ? 4 : 5;
         }
         
         ProgressStepLabel.Text = $"Step 1 of {totalSteps}: Choose your emotion";
         FlowProgressBar.Progress = 0.0;
-        
-        Console.WriteLine($"DEBUG: Updated progress display for '{selectedMood}' in {_flowType} flow - {totalSteps} total steps");
     }
 }

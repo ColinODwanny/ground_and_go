@@ -80,23 +80,15 @@ namespace ground_and_go.Services
             }
 
             // STEP 3: MINDFULNESS / SELECTION (Resume)
-            // Condition: Before journal done, NO temp flags, NO workout ID yet (Rest Day / Start of Workout flow).
-            // FIX: Added '&& string.IsNullOrEmpty(log.AfterJournal)' 
-            // This prevents a completed Rest Day (which has no workout ID) from being caught here.
-            if (!string.IsNullOrEmpty(log.BeforeJournal) && 
-                !isBeforeTemp && 
-                !isAfterTemp && 
-                string.IsNullOrEmpty(log.AfterJournal) &&
-                (log.WorkoutId == null || log.WorkoutId <= 0))
+            if (!string.IsNullOrEmpty(log.BeforeJournal) && !isBeforeTemp && !isAfterTemp && string.IsNullOrEmpty(log.AfterJournal) && (log.WorkoutId == null || log.WorkoutId <= 0))
             {
                 double progress = await GetProgressPercentageAsync(3); 
                 return new DailyProgressState { Step = 3, Progress = progress, TodaysLog = log };
             }
 
-            // STEP 5 (Mapped): POST-JOURNAL PAGE (Resume)
+            // STEP 5: POST-JOURNAL PAGE (Resume)
             if (isAfterTemp)
             {
-                // We are at Step 5 (Final Reflection)
                 return new DailyProgressState { Step = 5, Progress = 0.95, TodaysLog = log };
             }
 
@@ -108,7 +100,6 @@ namespace ground_and_go.Services
             }
 
             // STEP 6: ALL COMPLETE
-            // If we have AfterJournal text and it's NOT the temp state, we are done.
             if (!string.IsNullOrEmpty(log.AfterJournal) && !isAfterTemp)
             {
                 return new DailyProgressState { Step = 6, Progress = 1.0, TodaysLog = log };
@@ -141,7 +132,6 @@ namespace ground_and_go.Services
             }
             else if (!string.IsNullOrEmpty(log.BeforeJournal))
             {
-                 // Fallback: If no workout ID, likely a Rest flow.
                  if (CurrentFlowType == "workout" && log.WorkoutId == null) CurrentFlowType = "rest";
                  if (CurrentFeelingResult == null) CurrentFeelingResult = new FeelingResult { Mood = "Neutral", Rating = 5 };
             }
@@ -152,28 +142,28 @@ namespace ground_and_go.Services
             if (CurrentFeelingResult?.Mood == null) return true;
             string mood = CurrentFeelingResult.Mood;
 
-            // Positive emotions skip mindfulness in ALL flows
-            var positiveMoods = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Happy", "Energized" };
-            if (positiveMoods.Contains(mood)) return false;
-
-            // For Rest flow, double check DB for activities
+            // FIX: Rest Day logic - ALWAYS require mindfulness, regardless of emotion.
             if (CurrentFlowType == "rest")
-                 return await _database.HasMindfulnessActivitiesForEmotion(mood);
+            {
+                 return true; 
+            }
 
-            return true; 
+            // Workout Day Logic: Skip for Happy/Energized
+            var positiveMoods = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Happy", "Energized" };
+            return !positiveMoods.Contains(mood);
         }
 
         public async Task<int> GetTotalStepsAsync()
         {
             bool requiresMindfulness = await RequiresMindfulnessAsync();
             
-            // Dynamic steps for Rest Flow
             if (CurrentFlowType == "rest")
             {
-                return requiresMindfulness ? 4 : 3;
+                // Rest Day is always 4 steps now (Emotion, Journal, Mind, Post)
+                return 4;
             }
             
-            // Workout Flow
+            // Workout Flow: 5 if Sad, 4 if Happy
             return requiresMindfulness ? 5 : 4;
         }
 
@@ -182,28 +172,19 @@ namespace ground_and_go.Services
             bool requiresMindfulness = await RequiresMindfulnessAsync();
             int totalSteps = await GetTotalStepsAsync();
 
-            // Map Step 6 (Complete) to 100%
             if (actualStep >= 6) return (totalSteps, totalSteps);
-
-            // Step 5 (Post Journal) is always the last step
             if (actualStep == 5) return (totalSteps, totalSteps);
 
             if (requiresMindfulness)
             {
-                // REST with Mindfulness: 1,2,3,5 -> Map 5 to 4.
+                // REST: 1,2,3,5 -> Map 5 to 4.
                 if (CurrentFlowType == "rest" && actualStep == 5) return (4, totalSteps);
-                
                 return (actualStep, totalSteps);
             }
             else
             {
-                // NO MINDFULNESS (Skip Step 3)
+                // NO MINDFULNESS (Workout Flow Happy/Energized)
                 if (actualStep <= 2) return (actualStep, totalSteps);
-                
-                // REST (Short): 1, 2, 5. Map 5 -> 3.
-                if (CurrentFlowType == "rest" && actualStep >= 5) return (3, totalSteps);
-                
-                // WORKOUT (Short): 1, 2, 4, 5. Map 4->3, 5->4.
                 if (actualStep >= 4) return (actualStep - 1, totalSteps);
             }
             return (actualStep, totalSteps);
