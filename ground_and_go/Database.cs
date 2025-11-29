@@ -1717,6 +1717,27 @@ namespace ground_and_go
                 Console.WriteLine($"Error updating before journal: {ex.Message}");
             }
         }
+
+                /// <summary>
+        /// Deletes a specific workout log. Used when cancelling a flow (e.g. hitting back from Journal).
+        /// </summary>
+        public async Task DeleteWorkoutLog(string logId)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return;
+
+            try
+            {
+                Console.WriteLine($"DEBUG: Deleting log {logId} (User cancelled flow)");
+                await supabaseClient.From<WorkoutLog>()
+                                    .Where(x => x.LogId == logId)
+                                    .Delete();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting log: {ex.Message}");
+            }
+        }
     }
 
     [Table("emotions")]

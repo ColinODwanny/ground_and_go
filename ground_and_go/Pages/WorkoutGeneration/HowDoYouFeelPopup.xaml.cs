@@ -73,7 +73,6 @@ public partial class HowDoYouFeelPopup : Popup
 
         if (_flowType == "rest")
         {
-            // FIX: Rest Day ALWAYS includes mindfulness now, regardless of emotion.
             // Emotion(1) -> Journal(2) -> Mindfulness(3) -> Post-Journal(4)
             totalSteps = 4;
         }

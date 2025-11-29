@@ -142,7 +142,7 @@ namespace ground_and_go.Services
             if (CurrentFeelingResult?.Mood == null) return true;
             string mood = CurrentFeelingResult.Mood;
 
-            // FIX: Rest Day logic - ALWAYS require mindfulness, regardless of emotion.
+            // Rest Day logic 
             if (CurrentFlowType == "rest")
             {
                  return true; 

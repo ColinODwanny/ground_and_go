@@ -87,7 +87,6 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         if (ShoulderPressBorder != null) ShoulderPressBorder.IsVisible = true;
     }
 
-    // FIX: Added '?' to sender to match EventHandler signature
     private async void OnBeginExerciseClicked(object? sender, EventArgs e)
     {
         try
@@ -238,7 +237,7 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         
         if (hasDirectExercises && !hasSections)
         {
-            // FIX: Added Null Coalescing operators (?. and ??) to fix the CS8602 warning
+            // Added Null Coalescing operators (?. and ??) to fix the CS8602 warning
             int count = CurrentWorkout?.Exercises?.Exercises?.Count ?? 0;
             Console.WriteLine($"Loading {count} direct exercises (no sections format)");
             await LoadDirectExercises();
@@ -318,7 +317,6 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
 
     private async Task LoadDirectExercises()
     {
-        // FIX: Guard Clause to prevent Null Reference Exception
         if (CurrentWorkout == null || CurrentWorkout.Exercises == null) return;
 
         // Clear existing content and rebuild dynamically

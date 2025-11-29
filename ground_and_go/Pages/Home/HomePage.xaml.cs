@@ -56,7 +56,7 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
         {
             ShowStart = true;
         }
-        // FIX: The new completion step is 6 (Real Text in AfterJournal)
+        // The new completion step is 6 (Real Text in AfterJournal)
         else if (progressState.Step < 6)
         {
             ShowResume = true;
