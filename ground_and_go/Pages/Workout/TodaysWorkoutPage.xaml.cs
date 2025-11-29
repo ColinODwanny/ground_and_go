@@ -1,4 +1,5 @@
-//Aidan Trusky
+// FILE: ground_and_go/Pages/WorkoutGeneration/TodaysWorkoutPage.xaml.cs
+// Aidan Trusky
 using CommunityToolkit.Maui.Views;
 using Microsoft.Maui.Controls;
 using ground_and_go.Services;
@@ -15,7 +16,7 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
     private Dictionary<string, WorkoutExerciseItem> exerciseData;
     private Models.Workout? _currentWorkout;
 
-    // a field for the progress service
+    // Fields for services
     private readonly DailyProgressService _progressService;
     private readonly Database _database;
 
@@ -29,19 +30,18 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         }
     }
 
-    public TodaysWorkoutPage(DailyProgressService progressService)
+    // UPDATED CONSTRUCTOR: Inject both DailyProgressService AND Database
+    public TodaysWorkoutPage(DailyProgressService progressService, Database database)
     {
         InitializeComponent();
         
-        //  Assign the service
         _progressService = progressService;
-        _database = MauiProgram.db!;
+        _database = database; 
         
-        // Initialize the dictionary to map exercise names to their buttons
+        // Initialize dictionaries
         exerciseBorders = new Dictionary<string, Border>();
         exerciseData = new Dictionary<string, WorkoutExerciseItem>();
         
-        // Set binding context for data binding
         BindingContext = this;
     }
 
@@ -55,7 +55,7 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         HideHardcodedExercises();
         
         // Use dynamic step counting based on emotion type from database
-        // For workout, this is actual step 4 (after emotion, journal, mindfulness/skip, now workout)
+        // For workout, this is actual Step 4
         var (displayStep, totalSteps) = await _progressService.GetDisplayStepAsync(4); 
         double progress = await _progressService.GetProgressPercentageAsync(4);
         
@@ -87,7 +87,8 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         if (ShoulderPressBorder != null) ShoulderPressBorder.IsVisible = true;
     }
 
-    private async void OnBeginExerciseClicked(object sender, EventArgs e)
+    // FIX: Added '?' to sender to match EventHandler signature
+    private async void OnBeginExerciseClicked(object? sender, EventArgs e)
     {
         try
         {
@@ -114,10 +115,19 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         }
     }
 
-    private async void OnCompleteWorkout_Clicked(object sender, EventArgs e)
+    // UPDATED: Saves "STATE:Pending" before navigation to fix Resume logic
+    private async void OnCompleteWorkout_Clicked(object? sender, EventArgs e)
     {
+        string? logId = _progressService.CurrentLogId;
+        
+        if (!string.IsNullOrEmpty(logId))
+        {
+            // SAVE TEMP STATE "STATE:Pending" to `after_journal`
+            // This signals that the workout is done (Step 4), but the journal is pending (Step 5).
+            await _database.UpdateAfterJournalAsync(logId, "STATE:Pending");
+        }
+
         // navigate to the new post-activity journal page
-        // The service already knows we are in the "workout" flow.
         await Shell.Current.GoToAsync("PostJournal");
     }
 
@@ -138,7 +148,6 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
 
             // Try to get today's workout log directly
             var todaysLog = await _database.GetTodaysWorkoutLog(memberId);
-            
             
             if (todaysLog?.WorkoutId == null || todaysLog.WorkoutId <= 0)
             {
@@ -209,22 +218,12 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
 
     private async Task LoadWorkoutSections()
     {
-        
-        if (CurrentWorkout == null)
+        if (CurrentWorkout == null || CurrentWorkout.Exercises == null)
         {
             Console.WriteLine("CurrentWorkout is null - showing hardcoded exercises");
             ShowHardcodedExercises();
             return;
         }
-        
-        
-        if (CurrentWorkout.Exercises == null)
-        {
-            Console.WriteLine("CurrentWorkout.Exercises is null - showing hardcoded exercises");
-            ShowHardcodedExercises();
-            return;
-        }
-        
         
         // Check if we have sections or direct exercises
         bool hasSections = CurrentWorkout.Exercises.Sections != null && CurrentWorkout.Exercises.Sections.Count > 0;
@@ -239,12 +238,14 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         
         if (hasDirectExercises && !hasSections)
         {
-            Console.WriteLine($"Loading {CurrentWorkout.Exercises.Exercises.Count} direct exercises (no sections format)");
+            // FIX: Added Null Coalescing operators (?. and ??) to fix the CS8602 warning
+            int count = CurrentWorkout?.Exercises?.Exercises?.Count ?? 0;
+            Console.WriteLine($"Loading {count} direct exercises (no sections format)");
             await LoadDirectExercises();
             return;
         }
 
-        Console.WriteLine($"Loading {CurrentWorkout.Exercises.Sections.Count} workout sections");
+        Console.WriteLine($"Loading {CurrentWorkout?.Exercises?.Sections?.Count} workout sections");
 
         // Clear existing content and rebuild dynamically
         WorkoutContentStack.Children.Clear();
@@ -304,7 +305,6 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
             // Add exercises for this section
             if (section.Exercises != null)
             {
-                
                 foreach (var exercise in section.Exercises)
                 {
                     await AddExerciseToSection(exercise, section.Type, sectionLayout);
@@ -318,6 +318,9 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
 
     private async Task LoadDirectExercises()
     {
+        // FIX: Guard Clause to prevent Null Reference Exception
+        if (CurrentWorkout == null || CurrentWorkout.Exercises == null) return;
+
         // Clear existing content and rebuild dynamically
         WorkoutContentStack.Children.Clear();
         exerciseBorders.Clear();
@@ -520,125 +523,6 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         catch (Exception ex)
         {
             Console.WriteLine($"Error adding exercise to section: {ex.Message}");
-        }
-    }
-
-    private async void AddExerciseToUI(WorkoutExerciseItem exercise, string sectionType)
-    {
-        try
-        {
-            // Get exercise details from database
-            var exercisesDict = await _database.GetAllExercises();
-            if (!exercisesDict.TryGetValue(exercise.Id, out var exerciseInfo))
-            {
-                Console.WriteLine($"Exercise with ID {exercise.Id} not found");
-                
-                // Add a placeholder exercise so user can see there's missing data
-                var placeholderBorder = new Border
-                {
-                    Stroke = Colors.Red,
-                    StrokeThickness = 2,
-                    StrokeShape = new RoundRectangle { CornerRadius = 12 },
-                    BackgroundColor = Colors.LightPink,
-                    HeightRequest = 50,
-                    Margin = new Thickness(0, 5)
-                };
-
-                var placeholderLabel = new Label
-                {
-                    Text = $"Missing Exercise (ID: {exercise.Id}) - Sets: {exercise.SetsDisplay}, Reps: {exercise.Reps}",
-                    FontSize = 14,
-                    TextColor = Colors.DarkRed,
-                    VerticalOptions = LayoutOptions.Center,
-                    HorizontalOptions = LayoutOptions.Center
-                };
-
-                placeholderBorder.Content = placeholderLabel;
-                WorkoutContentStack.Children.Add(placeholderBorder);
-                return;
-            }
-
-            // Create exercise UI element
-            var border = new Border
-            {
-                Stroke = Colors.LightGray,
-                StrokeThickness = 1,
-                StrokeShape = new RoundRectangle { CornerRadius = 12 },
-                BackgroundColor = Colors.White,
-                HeightRequest = 70,
-                Margin = new Thickness(0, 5)
-            };
-
-            border.Shadow = new Shadow
-            {
-                Brush = Colors.Black,
-                Offset = new Point(3, 3),
-                Opacity = 0.1f
-            };
-
-            var grid = new Grid
-            {
-                ColumnDefinitions =
-                {
-                    new ColumnDefinition { Width = GridLength.Star },
-                    new ColumnDefinition { Width = GridLength.Auto }
-                },
-                Padding = new Thickness(10),
-                Margin = new Thickness(0, 0, 10, 0)
-            };
-
-            var exerciseInfoStack = new VerticalStackLayout
-            {
-                VerticalOptions = LayoutOptions.Center,
-                Spacing = 2
-            };
-
-            var nameLabel = new Label
-            {
-                Text = exerciseInfo.Name,
-                FontSize = 20,
-                FontAttributes = FontAttributes.Bold,
-                TextColor = Colors.Black
-            };
-
-            var detailsText = BuildExerciseDetailsText(exercise, sectionType);
-            var detailsLabel = new Label
-            {
-                Text = detailsText,
-                FontSize = 16,
-                TextColor = Colors.DarkGray
-            };
-
-            exerciseInfoStack.Children.Add(nameLabel);
-            exerciseInfoStack.Children.Add(detailsLabel);
-
-            var beginButton = new Button
-            {
-                Text = "Begin",
-                BackgroundColor = Color.FromArgb("#2196F3"),
-                TextColor = Colors.White,
-                CornerRadius = 15,
-                WidthRequest = 90,
-                HeightRequest = 40,
-                FontSize = 16,
-                CommandParameter = exerciseInfo.Name
-            };
-
-            beginButton.Clicked += OnBeginExerciseClicked;
-
-            grid.Children.Add(exerciseInfoStack);
-            grid.Children.Add(beginButton);
-            Grid.SetColumn(beginButton, 1);
-
-            border.Content = grid;
-            WorkoutContentStack.Children.Add(border);
-
-            // Store in dictionary for completion tracking
-            exerciseBorders[exerciseInfo.Name] = border;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error adding exercise to UI: {ex.Message}");
         }
     }
 

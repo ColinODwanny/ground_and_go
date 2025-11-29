@@ -12,12 +12,6 @@ using Microsoft.Maui.Graphics.Text;
 using ground_and_go.enums;
 using static Supabase.Postgrest.Constants;
 
-
-
-
-
-
-
 namespace ground_and_go
 {
     public class Database
@@ -260,7 +254,7 @@ namespace ground_and_go
             Console.WriteLine("WARNING: LoadWorkoutHistory is using an 'int' memberId, but schema is 'uuid'. This method will not work.");
             // if (response?.Models?.Any() == true)
             // {
-            //     WorkoutHistory = response.Models;
+            //      WorkoutHistory = response.Models;
             // }
         }
 
@@ -949,9 +943,9 @@ namespace ground_and_go
 
                 // We find the log by its 'log_id' and update only the 'after_journal' column
                 var result = await supabaseClient.From<WorkoutLog>()
-                                      .Where(log => log.LogId == logId)
-                                      .Set(log => log.AfterJournal, afterJournalText)
-                                      .Update();
+                                                 .Where(log => log.LogId == logId)
+                                                 .Set(log => log.AfterJournal, afterJournalText)
+                                                 .Update();
 
                 Console.WriteLine($"DEBUG: UpdateAfterJournalAsync - Update operation completed, affected {result?.Models?.Count ?? 0} records");
 
@@ -990,9 +984,9 @@ namespace ground_and_go
             {
                 // We find the log by its 'log_id' and update only the 'workout_id' column
                 await supabaseClient.From<WorkoutLog>()
-                                      .Where(log => log.LogId == logId)
-                                      .Set(log => log.WorkoutId, workoutId)
-                                      .Update();
+                                    .Where(log => log.LogId == logId)
+                                    .Set(log => log.WorkoutId, workoutId)
+                                    .Update();
             }
             catch (Exception ex)
             {
@@ -1649,5 +1643,89 @@ namespace ground_and_go
 
             return fallbackWorkout;
         }
+
+        public async Task<string?> GetEmotionNameByWorkoutId(int workoutId)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return null;
+
+            try
+            {
+                // 1. Get the workout to find the emotion_id
+                // We use a simple select to avoid JSON parsing issues with the full object
+                var workoutResponse = await supabaseClient.From<Workout>()
+                                           .Select("emotion_id")
+                                           .Where(x => x.WorkoutId == workoutId)
+                                           .Single();
+
+                if (workoutResponse == null) return null;
+
+                // 2. Get the emotion text using the ID
+                var emotionData = await supabaseClient.From<EmotionModel>()
+                                           .Where(x => x.Id == workoutResponse.EmotionId)
+                                           .Single();
+
+                return emotionData?.Emotion;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error recovering emotion from DB: {ex.Message}");
+                return null;
+            }
+        }
+
+        // Create the log immediately with temporary state data
+        public async Task<WorkoutLog?> StartDailyLog(string memberId, string tempStateJson)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return null;
+
+            try
+            {
+                var newLog = new WorkoutLog
+                {
+                    MemberId = memberId,
+                    BeforeJournal = "STATE:" + tempStateJson, // Prefix to identify it's not a real journal yet
+                    DateTime = DateTime.Now 
+                };
+
+                var response = await supabaseClient.From<WorkoutLog>().Insert(newLog);
+                return response.Models.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error starting daily log: {ex.Message}");
+                return null;
+            }
+        }
+
+        // Update the 'before_journal' when user actually submits the text
+        public async Task UpdateBeforeJournal(string logId, string journalText)
+        {
+            await EnsureInitializedAsync();
+            if (supabaseClient == null) return;
+
+            try
+            {
+                await supabaseClient.From<WorkoutLog>()
+                                    .Where(log => log.LogId == logId)
+                                    .Set(log => log.BeforeJournal, journalText)
+                                    .Update();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating before journal: {ex.Message}");
+            }
+        }
+    }
+
+    [Table("emotions")]
+    public class EmotionModel : BaseModel
+    {
+        [PrimaryKey("id")]
+        public int Id { get; set; }
+
+        [Column("emotion")]
+        public string Emotion { get; set; } = string.Empty;
     }
 }
