@@ -70,7 +70,6 @@ namespace ground_and_go.Services
             if (CurrentLogId == null) CurrentLogId = log.LogId;
 
             bool isBeforeTemp = log.BeforeJournal != null && log.BeforeJournal.StartsWith("STATE:");
-            // NEW: Check if AfterJournal has our temp marker
             bool isAfterTemp = log.AfterJournal != null && log.AfterJournal.StartsWith("STATE:");
 
             // STEP 2: JOURNAL PAGE (Resume)
@@ -81,18 +80,23 @@ namespace ground_and_go.Services
             }
 
             // STEP 3: MINDFULNESS / SELECTION (Resume)
-            if (!string.IsNullOrEmpty(log.BeforeJournal) && !isBeforeTemp && (log.WorkoutId == null || log.WorkoutId <= 0))
+            // Condition: Before journal done, NO temp flags, NO workout ID yet (Rest Day / Start of Workout flow).
+            // FIX: Added '&& string.IsNullOrEmpty(log.AfterJournal)' 
+            // This prevents a completed Rest Day (which has no workout ID) from being caught here.
+            if (!string.IsNullOrEmpty(log.BeforeJournal) && 
+                !isBeforeTemp && 
+                !isAfterTemp && 
+                string.IsNullOrEmpty(log.AfterJournal) &&
+                (log.WorkoutId == null || log.WorkoutId <= 0))
             {
                 double progress = await GetProgressPercentageAsync(3); 
                 return new DailyProgressState { Step = 3, Progress = progress, TodaysLog = log };
             }
 
-            // STEP 5: POST-JOURNAL PAGE (Resume) -- [NEW LOGIC HERE]
-            // We check this BEFORE Step 4 logic because if it has STATE:Pending, we are past the workout.
+            // STEP 5 (Mapped): POST-JOURNAL PAGE (Resume)
             if (isAfterTemp)
             {
-                // We are at Step 5 (Final Reflection).
-                // Use 0.95 or similar to show bar is almost full.
+                // We are at Step 5 (Final Reflection)
                 return new DailyProgressState { Step = 5, Progress = 0.95, TodaysLog = log };
             }
 
@@ -104,7 +108,7 @@ namespace ground_and_go.Services
             }
 
             // STEP 6: ALL COMPLETE
-            // Use Step 6 to represent "Done" now.
+            // If we have AfterJournal text and it's NOT the temp state, we are done.
             if (!string.IsNullOrEmpty(log.AfterJournal) && !isAfterTemp)
             {
                 return new DailyProgressState { Step = 6, Progress = 1.0, TodaysLog = log };
@@ -135,11 +139,10 @@ namespace ground_and_go.Services
                     CurrentWorkout = await _database.GetWorkoutById(log.WorkoutId.Value);
                 }
             }
-            // Fallback for "Rest Day with No Workout ID yet" scenario
             else if (!string.IsNullOrEmpty(log.BeforeJournal))
             {
-                 // If we have a journal but no workout ID, and no temp state, it's ambiguous.
-                 // Safe default prevents crashes.
+                 // Fallback: If no workout ID, likely a Rest flow.
+                 if (CurrentFlowType == "workout" && log.WorkoutId == null) CurrentFlowType = "rest";
                  if (CurrentFeelingResult == null) CurrentFeelingResult = new FeelingResult { Mood = "Neutral", Rating = 5 };
             }
         }
@@ -148,15 +151,36 @@ namespace ground_and_go.Services
         {
             if (CurrentFeelingResult?.Mood == null) return true;
             string mood = CurrentFeelingResult.Mood;
-            if (CurrentFlowType == "rest") return await _database.HasMindfulnessActivitiesForEmotion(mood);
+
+            // Positive emotions skip mindfulness in ALL flows
             var positiveMoods = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Happy", "Energized" };
-            return !positiveMoods.Contains(mood);
+            if (positiveMoods.Contains(mood)) return false;
+
+            // For Rest flow, double check DB for activities
+            if (CurrentFlowType == "rest")
+                 return await _database.HasMindfulnessActivitiesForEmotion(mood);
+
+            return true; 
+        }
+
+        public async Task<int> GetTotalStepsAsync()
+        {
+            bool requiresMindfulness = await RequiresMindfulnessAsync();
+            
+            // Dynamic steps for Rest Flow
+            if (CurrentFlowType == "rest")
+            {
+                return requiresMindfulness ? 4 : 3;
+            }
+            
+            // Workout Flow
+            return requiresMindfulness ? 5 : 4;
         }
 
         public async Task<(int displayStep, int totalSteps)> GetDisplayStepAsync(int actualStep)
         {
             bool requiresMindfulness = await RequiresMindfulnessAsync();
-            int totalSteps = (CurrentFlowType == "rest" ? (requiresMindfulness ? 4 : 3) : (requiresMindfulness ? 5 : 4));
+            int totalSteps = await GetTotalStepsAsync();
 
             // Map Step 6 (Complete) to 100%
             if (actualStep >= 6) return (totalSteps, totalSteps);
@@ -166,13 +190,20 @@ namespace ground_and_go.Services
 
             if (requiresMindfulness)
             {
+                // REST with Mindfulness: 1,2,3,5 -> Map 5 to 4.
+                if (CurrentFlowType == "rest" && actualStep == 5) return (4, totalSteps);
+                
                 return (actualStep, totalSteps);
             }
             else
             {
-                // NO MINDFULNESS MAPPING
+                // NO MINDFULNESS (Skip Step 3)
                 if (actualStep <= 2) return (actualStep, totalSteps);
+                
+                // REST (Short): 1, 2, 5. Map 5 -> 3.
                 if (CurrentFlowType == "rest" && actualStep >= 5) return (3, totalSteps);
+                
+                // WORKOUT (Short): 1, 2, 4, 5. Map 4->3, 5->4.
                 if (actualStep >= 4) return (actualStep - 1, totalSteps);
             }
             return (actualStep, totalSteps);
