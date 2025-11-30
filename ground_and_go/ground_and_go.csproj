@@ -15,8 +15,8 @@
 
         <ApplicationId>com.companyname.ground_and_go</ApplicationId>
 
-        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-        <ApplicationVersion>1</ApplicationVersion>
+        <ApplicationDisplayVersion>1.1</ApplicationDisplayVersion>
+        <ApplicationVersion>2</ApplicationVersion>
 
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
@@ -26,7 +26,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <MauiIcon Include="Resources\AppIcon\appicon.svg" />
+        <MauiIcon Include="Resources\AppIcon\appicon.png" 
+          Color="#FFFFFF"
+          BaseSize="128,128" />
 
         <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#FF93B87C" BaseSize="128,128" />
 
