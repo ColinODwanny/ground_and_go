@@ -66,7 +66,9 @@ public partial class MindfulnessActivityRestPage : ContentPage
             true,
             out var emotion
         );
-        _activity = await _database.GetMindfulnessActivityByEmotion(emotion);
+        if(_activity == null){
+            _activity = await _database.GetMindfulnessActivityByEmotion(emotion);
+        }
         
         // Update UI with activity details if found
         if (_activity != null)
