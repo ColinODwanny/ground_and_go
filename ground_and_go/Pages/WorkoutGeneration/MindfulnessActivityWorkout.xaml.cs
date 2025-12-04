@@ -69,10 +69,10 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
             true,
             out var emotion
         );
-        
-        // This assignment is now safe because _activity is nullable (?)
-        _activity = await _database.GetMindfulnessActivityByEmotion(emotion);
-        
+        if(_activity == null){
+            // This assignment is now safe because _activity is nullable (?)
+            _activity = await _database.GetMindfulnessActivityByEmotion(emotion);
+        }
         if (_activity != null)
         {
             ActivityNameLabel.Text = _activity.ActivityName;
