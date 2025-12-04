@@ -15,6 +15,7 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
     private Dictionary<string, Border> exerciseBorders;
     private Dictionary<string, WorkoutExerciseItem> exerciseData;
     private Models.Workout? _currentWorkout;
+    private ground_and_go.Models.Workout? workout;
 
     // Fields for services
     private readonly DailyProgressService _progressService;
@@ -168,27 +169,35 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
             }
             
             // Get the workout details with loading indicator
-            var loadingPopup = new LoadingPopup("Loading your workout...");
-            this.ShowPopup(loadingPopup);
-            
-            // Give the popup time to show before starting heavy work
-            await Task.Delay(50);
-            
-            try
-            {
-                var workout = await _database.GetWorkoutById(todaysLog.WorkoutId.Value);
+            if(workout == null){
+                var loadingPopup = new LoadingPopup("Loading your workout...");
+                this.ShowPopup(loadingPopup);
                 
-                // Set the workout and load UI sections
-                CurrentWorkout = workout;
-                await LoadWorkoutSections();
                 
-                // Give UI time to finish rendering before closing popup
+                // Give the popup time to show before starting heavy work
                 await Task.Delay(50);
+                
+                try
+                {
+                    workout = await _database.GetWorkoutById(todaysLog.WorkoutId.Value);
+                    
+                    // Set the workout and load UI sections
+                    CurrentWorkout = workout;
+                    await LoadWorkoutSections();
+                    
+                    // Give UI time to finish rendering before closing popup
+                    await Task.Delay(50);
+                } catch (Exception e)
+                    {
+                        await DisplayAlert("Technical Difficulties", "There was an issue loading your workout from the Database", "OK");
+                    }
+                finally
+                {
+                    loadingPopup.Close();
+                }
             }
-            finally
-            {
-                loadingPopup.Close();
-            }
+            
+            
             
             // Check if workout has exercises in any format
             bool hasSections = CurrentWorkout?.Exercises?.Sections?.Count > 0;
