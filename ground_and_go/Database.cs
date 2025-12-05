@@ -174,6 +174,7 @@ namespace ground_and_go
             try
             {
                 await supabaseClient!.Auth.SignOut();
+                SecureStorage.Remove("login_session");
                 Console.WriteLine("Logout successful");
             }
             catch (Exception e)

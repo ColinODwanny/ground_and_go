@@ -28,7 +28,6 @@ public partial class ProfilePage : ContentPage
     {
         // navigate back to the login page
         await businessLogic.LogOut();
-        SecureStorage.Remove("login_session");
 		await Shell.Current.GoToAsync("//login");
 	}
 
