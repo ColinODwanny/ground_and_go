@@ -92,12 +92,6 @@ public partial class App : Application
                 if (session != null)
                 {
                     db!.SetSupabaseSession(session.AccessToken!, session.RefreshToken!); //Starts a session with Supabase
-
-                    if (session.Expired())
-                    {
-                        db!.refreshSupabaseSession();
-                    }
-
                     await Shell.Current.GoToAsync("//home");
                     return;
                 }
