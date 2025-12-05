@@ -11,6 +11,7 @@ using ground_and_go.Models;
 using Microsoft.Maui.Graphics.Text;
 using ground_and_go.enums;
 using static Supabase.Postgrest.Constants;
+using System.Text.Json;
 
 namespace ground_and_go
 {
@@ -65,6 +66,27 @@ namespace ground_and_go
             }
         }
 
+        /// <summary>
+        /// Refreshes a Supabase session for when the user comes back to the app while logged in
+        /// </summary>
+        public async void refreshSupabaseSession()
+        {
+            if (supabaseClient != null)
+            {
+                await supabaseClient.Auth.RefreshSession();
+            }
+        }
+
+        /// <summary>
+        /// Confirms that the logged-in user has a valid Supabase session
+        /// </summary>
+        /// <returns>True if the user has a valid session, false otherwise</returns>
+        public bool HasValidSession()
+        {
+            supabaseClient!.Auth.LoadSession();
+            return supabaseClient!.Auth.CurrentSession != null;
+        }
+
 
         /// <summary>
         /// Communicates with Supabase to log the user in with the given credentials
@@ -98,6 +120,9 @@ namespace ground_and_go
 
                         return "This account has been deleted.";
                     }
+
+                    var sessionJson = JsonSerializer.Serialize(session);
+                    await SecureStorage.SetAsync("login_session", sessionJson);
 
                     Console.WriteLine("Login successful");
                     return null;
@@ -149,6 +174,7 @@ namespace ground_and_go
             try
             {
                 await supabaseClient!.Auth.SignOut();
+                SecureStorage.Remove("login_session");
                 Console.WriteLine("Logout successful");
             }
             catch (Exception e)

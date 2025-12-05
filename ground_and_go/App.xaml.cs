@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 
 namespace ground_and_go;
 
@@ -56,7 +57,7 @@ public partial class App : Application
             if (type == "recovery")
             {
 
-                var db = IPlatformApplication.Current.Services.GetService<Database>();
+                var db = IPlatformApplication.Current!.Services.GetService<Database>();
                 db?.SetSupabaseSession(token, refreshToken);
 
                 // Navigate to Reset Password page
@@ -79,7 +80,26 @@ public partial class App : Application
     {
         Console.WriteLine("✓ Creating main window...");
         _logger?.LogInformation("✓ Creating main window...");
-        return new Window(new AppShell());
+        var db = IPlatformApplication.Current!.Services.GetService<Database>();
+        var window = new Window(new AppShell());
+
+        window.Dispatcher.Dispatch(async () =>
+        {
+            var sessionJson = await SecureStorage.GetAsync("login_session"); //Takes the user's login token
+            if (sessionJson != null)
+            {
+                var session = JsonSerializer.Deserialize<Supabase.Gotrue.Session>(sessionJson);
+                if (session != null)
+                {
+                    db!.SetSupabaseSession(session.AccessToken!, session.RefreshToken!); //Starts a session with Supabase
+                    await Shell.Current.GoToAsync("//home");
+                    return;
+                }
+            }
+
+            await Shell.Current.GoToAsync("//login");
+        });
+        return window;
     }
 
     protected override async void OnStart()
@@ -88,7 +108,7 @@ public partial class App : Application
         Debug.WriteLine("✓ App OnStart() called - Initializing database services...");
         _logger?.LogInformation("✓ App OnStart() called - Initializing database services...");
 
-        var db = IPlatformApplication.Current.Services.GetService<Database>();
+        var db = IPlatformApplication.Current!.Services.GetService<Database>();
 
         if (db is null)
         {
