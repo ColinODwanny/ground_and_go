@@ -57,8 +57,8 @@ public partial class MindfulnessActivityWorkoutPage : ContentPage
     {
         base.OnAppearing();
         
-        var (displayStep, totalSteps) = await _progressService.GetDisplayStepAsync(3); 
-        double progress = await _progressService.GetProgressPercentageAsync(3);
+        var (displayStep, totalSteps) = _progressService.GetDisplayStep(3); 
+        double progress = _progressService.GetProgressPercentage(3);
         
         this.Title = $"Step {displayStep} of {totalSteps}: Mindfulness";
         ProgressStepLabel.Text = $"Step {displayStep} of {totalSteps}: Complete this activity";

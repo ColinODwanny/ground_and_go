@@ -14,6 +14,7 @@ public partial class HowDoYouFeelPopup : Popup
     public HowDoYouFeelPopup(string flowType = "workout")
     {
         InitializeComponent();
+        BindingContext = this;
         _flowType = flowType;
         
         // Set initial step display

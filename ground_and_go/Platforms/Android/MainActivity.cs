@@ -10,19 +10,19 @@ namespace ground_and_go;
 public class MainActivity : MauiAppCompatActivity
 {
 
-    protected override void OnCreate(Bundle savedInstanceState)
+    protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
         HandleIntent(Intent); // Handle cold start deep link
     }
 
-    protected override void OnNewIntent(Intent intent)
+    protected override void OnNewIntent(Intent? intent)
     {
         base.OnNewIntent(intent);
         HandleIntent(intent); // Handle deep link when app is already running
     }
 
-    private void HandleIntent(Intent intent)
+    private void HandleIntent(Intent? intent)
     {
         var data = intent?.DataString; // This will be the URL, such as groundandgo://auth-callback?token=XYZ&type=recovery
         if (!string.IsNullOrEmpty(data))

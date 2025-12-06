@@ -52,14 +52,14 @@ public partial class PostActivityJournalEntryPage : ContentPage
         }
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
 
         // Use dynamic step counting based on emotion type from database
         // This is actual step 5 for the post-activity journal
-        var (displayStep, totalSteps) = await _progressService.GetDisplayStepAsync(5); 
-        double progress = await _progressService.GetProgressPercentageAsync(5);
+        var (displayStep, totalSteps) = _progressService.GetDisplayStep(5);
+        double progress = _progressService.GetProgressPercentage(5);
         
         this.Title = $"Step {displayStep} of {totalSteps}: Final Reflection";
         ProgressStepLabel.Text = $"Step {displayStep} of {totalSteps}: Write a final reflection";

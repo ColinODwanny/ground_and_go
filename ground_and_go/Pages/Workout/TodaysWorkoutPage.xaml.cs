@@ -57,8 +57,8 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         
         // Use dynamic step counting based on emotion type from database
         // For workout, this is actual Step 4
-        var (displayStep, totalSteps) = await _progressService.GetDisplayStepAsync(4); 
-        double progress = await _progressService.GetProgressPercentageAsync(4);
+        var (displayStep, totalSteps) = _progressService.GetDisplayStep(4); 
+        double progress = _progressService.GetProgressPercentage(4);
         
         this.Title = $"Step {displayStep} of {totalSteps}: Your Workout";
         ProgressStepLabel.Text = $"Step {displayStep} of {totalSteps}: Complete your exercises";
@@ -187,7 +187,7 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
                     
                     // Give UI time to finish rendering before closing popup
                     await Task.Delay(50);
-                } catch (Exception e)
+                } catch (Exception)
                     {
                         await DisplayAlert("Technical Difficulties", "There was an issue loading your workout from the Database", "OK");
                     }
@@ -263,7 +263,7 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         // Debug: Check what exercises we have in the database
         await DebugAvailableExercises();
         
-        foreach (var section in CurrentWorkout.Exercises.Sections)
+        foreach (var section in CurrentWorkout!.Exercises.Sections!)
         {
             // Create a container for this section
             var sectionContainer = new Border

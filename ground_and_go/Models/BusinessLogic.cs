@@ -88,6 +88,10 @@ public class BusinessLogic
     /// <returns>Null if successful, error message otherwise</returns>
     public async Task<string?> ForgotPassword(string email)
     {
+        if (email == "")
+        {
+            return "Please enter your email.";
+        }
         return await Database.ForgotPassword(email);
     }
 

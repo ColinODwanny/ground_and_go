@@ -75,14 +75,14 @@ namespace ground_and_go.Services
             // STEP 2: JOURNAL PAGE (Resume)
             if (isBeforeTemp)
             {
-                double progress = await GetProgressPercentageAsync(2); 
+                double progress = GetProgressPercentage(2); 
                 return new DailyProgressState { Step = 2, Progress = progress, TodaysLog = log };
             }
 
             // STEP 3: MINDFULNESS / SELECTION (Resume)
             if (!string.IsNullOrEmpty(log.BeforeJournal) && !isBeforeTemp && !isAfterTemp && string.IsNullOrEmpty(log.AfterJournal) && (log.WorkoutId == null || log.WorkoutId <= 0))
             {
-                double progress = await GetProgressPercentageAsync(3); 
+                double progress = GetProgressPercentage(3); 
                 return new DailyProgressState { Step = 3, Progress = progress, TodaysLog = log };
             }
 
@@ -95,7 +95,7 @@ namespace ground_and_go.Services
             // STEP 4: WORKOUT IN PROGRESS
             if (log.WorkoutId > 0 && string.IsNullOrEmpty(log.AfterJournal))
             {
-                double progress = await GetProgressPercentageAsync(4);
+                double progress = GetProgressPercentage(4);
                 return new DailyProgressState { Step = 4, Progress = progress, TodaysLog = log };
             }
 
@@ -137,7 +137,7 @@ namespace ground_and_go.Services
             }
         }
 
-        public async Task<bool> RequiresMindfulnessAsync()
+        public bool RequiresMindfulness()
         {
             if (CurrentFeelingResult?.Mood == null) return true;
             string mood = CurrentFeelingResult.Mood;
@@ -153,9 +153,9 @@ namespace ground_and_go.Services
             return !positiveMoods.Contains(mood);
         }
 
-        public async Task<int> GetTotalStepsAsync()
+        public int GetTotalSteps()
         {
-            bool requiresMindfulness = await RequiresMindfulnessAsync();
+            bool requiresMindfulness = RequiresMindfulness();
             
             if (CurrentFlowType == "rest")
             {
@@ -167,10 +167,10 @@ namespace ground_and_go.Services
             return requiresMindfulness ? 5 : 4;
         }
 
-        public async Task<(int displayStep, int totalSteps)> GetDisplayStepAsync(int actualStep)
+        public (int displayStep, int totalSteps) GetDisplayStep(int actualStep)
         {
-            bool requiresMindfulness = await RequiresMindfulnessAsync();
-            int totalSteps = await GetTotalStepsAsync();
+            bool requiresMindfulness = RequiresMindfulness();
+            int totalSteps = GetTotalSteps();
 
             if (actualStep >= 6) return (totalSteps, totalSteps);
             if (actualStep == 5) return (totalSteps, totalSteps);
@@ -190,9 +190,9 @@ namespace ground_and_go.Services
             return (actualStep, totalSteps);
         }
 
-        public async Task<double> GetProgressPercentageAsync(int actualStep)
+        public double GetProgressPercentage(int actualStep)
         {
-            var (displayStep, totalSteps) = await GetDisplayStepAsync(actualStep);
+            var (displayStep, totalSteps) = GetDisplayStep(actualStep);
             if (totalSteps == 0) return 0.0;
             return (double)(displayStep - 1) / totalSteps;
         }

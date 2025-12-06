@@ -59,7 +59,7 @@ public partial class WorkoutOptionsPopup : Popup
         Close();
     }
 
-    private void OnWorkoutTypeClicked(object sender, EventArgs e)
+    private void OnWorkoutTypeClicked(object? sender, EventArgs e)
     {
         if (sender is Button clicked)
         {
@@ -83,7 +83,7 @@ public partial class WorkoutOptionsPopup : Popup
     {
         if (_selectedWorkoutTypeButton == null)
         {
-            Application.Current?.MainPage?.DisplayAlert(
+            await Shell.Current.DisplayAlert(
                 "Missing selection",
                 "Please choose your workout type.",
                 "OK");
@@ -159,11 +159,11 @@ public partial class WorkoutOptionsPopup : Popup
         }
     }
 
-    private void OnSubmit_Clicked(object sender, EventArgs e)
+    private async void OnSubmit_Clicked(object sender, EventArgs e)
     {
         if (_selectedEquipmentButton == null)
         {
-            Application.Current?.MainPage?.DisplayAlert(
+            await Shell.Current.DisplayAlert(
                 "Missing selection",
                 "Please choose your equipment.",
                 "OK");

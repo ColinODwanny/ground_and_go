@@ -4,6 +4,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:ground_and_go.Models"
              x:Class="ground_and_go.Pages.Profile.MyJournalEntriesPage"
+             xmlns:profile="clr-namespace:ground_and_go.Pages.Profile"
+             x:DataType="profile:MyJournalEntriesPage"
              Title="My Journal Entries">
     <Grid>
         <!-- Loading indicator -->

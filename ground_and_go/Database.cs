@@ -659,7 +659,7 @@ namespace ground_and_go
                 {
                     var workoutLogDates = workoutLogsResponse?.Models?
                         .Where(log => log.WorkoutId.HasValue)
-                        .GroupBy(log => log.WorkoutId.Value)
+                        .GroupBy(log => log.WorkoutId!.Value)
                         .ToDictionary(g => g.Key, g => g.OrderByDescending(log => log.DateTime).First().DateTime) ?? new Dictionary<int, DateTime>();
 
                     foreach (var workout in workoutsResponse.Models.OrderBy(w => w.WorkoutId))
@@ -1011,7 +1011,7 @@ namespace ground_and_go
                 // We find the log by its 'log_id' and update only the 'workout_id' column
                 await supabaseClient.From<WorkoutLog>()
                                     .Where(log => log.LogId == logId)
-                                    .Set(log => log.WorkoutId, workoutId)
+                                    .Set(log => log.WorkoutId!, workoutId)
                                     .Update();
             }
             catch (Exception ex)
