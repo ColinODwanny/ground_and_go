@@ -53,8 +53,8 @@ public partial class MindfulnessActivityRestPage : ContentPage
         base.OnAppearing();
         
         // Use dynamic step counting for rest day flow
-        var (displayStep, totalSteps) = await _progressService.GetDisplayStepAsync(3);
-        double progress = await _progressService.GetProgressPercentageAsync(3);
+        var (displayStep, totalSteps) = _progressService.GetDisplayStep(3);
+        double progress = _progressService.GetProgressPercentage(3);
         
         this.Title = $"Step {displayStep} of {totalSteps}: Mindfulness";
         ProgressStepLabel.Text = $"Step {displayStep} of {totalSteps}: Complete this activity";

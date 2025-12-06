@@ -75,14 +75,14 @@ public partial class JournalEntryPage : ContentPage
         await Shell.Current.GoToAsync("//home");
     }
 
-    protected override async void OnAppearing()
+    protected override void OnAppearing()
     {
         base.OnAppearing();
 
         // Use dynamic step counting based on emotion type from database
         // Journal is actual step 2
-        var (displayStep, totalSteps) = await _progressService.GetDisplayStepAsync(2);
-        double progress = await _progressService.GetProgressPercentageAsync(2);
+        var (displayStep, totalSteps) = _progressService.GetDisplayStep(2);
+        double progress = _progressService.GetProgressPercentage(2);
 
         this.Title = $"Step {displayStep} of {totalSteps}: Journal";
         ProgressStepLabel.Text = $"Step {displayStep} of {totalSteps}: Write a reflection";
@@ -133,7 +133,7 @@ public partial class JournalEntryPage : ContentPage
         string currentFlow = _progressService.CurrentFlowType ?? "workout";
         
         // Determine if we need mindfulness based on flow and emotion
-        bool requiresMindfulness = await _progressService.RequiresMindfulnessAsync();
+        bool requiresMindfulness = _progressService.RequiresMindfulness();
 
         if (currentFlow == "workout")
         {

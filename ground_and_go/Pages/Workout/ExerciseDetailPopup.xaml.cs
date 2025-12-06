@@ -26,7 +26,7 @@ public partial class ExerciseDetailPopup : Popup
     
     private void AddExerciseDetails(WorkoutExerciseItem exercise)
     {
-        var mainLayout = (VerticalStackLayout)((Border)Content).Content;
+        var mainLayout = (VerticalStackLayout)((Border)Content!).Content!;
         
         // Find the position to insert details (after title, before buttons)
         int insertIndex = 1;

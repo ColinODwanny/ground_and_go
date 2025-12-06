@@ -20,15 +20,10 @@ public partial class ForgotPasswordPopup : Popup
 
     private async void OnSubmit_Clicked(object sender, EventArgs e)
     {
-        if (UsernameENT.Text == null)
-        {
-            Application.Current.MainPage.DisplayAlert("Error", "Please enter your email.", "OK");
-            return;
-        }
         string? result = await businessLogic.ForgotPassword(UsernameENT.Text);
         if (result != null) //An error occurred
         {
-            Application.Current.MainPage.DisplayAlert("Error", result, "OK");
+            await Shell.Current.DisplayAlert("Error", result, "OK");
             return;
         }
         Close("Success");

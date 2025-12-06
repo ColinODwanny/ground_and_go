@@ -37,7 +37,7 @@ public partial class ProfilePage : ContentPage
     {
         // 1. Confirmation Dialog
         bool answer = await DisplayAlert("Delete Account?", 
-            "Are you sure? This will delete your account and all data (workouts, journals). This action cannot be undone, and the email can not be used again.", 
+            "Are you sure? This will delete your account and all data (workouts, journals). This action cannot be undone, and the email can not be used again!", 
             "Yes, Delete", "Cancel");
 
         if (!answer) return;
@@ -66,7 +66,7 @@ public partial class ProfilePage : ContentPage
                 // await DisplayAlert("Notice", "Local data cleared. Please use the web form to finalize deletion.", "OK");
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await DisplayAlert("Error", "An unexpected error occurred.", "OK");
         }

@@ -79,7 +79,7 @@ public partial class HomePage : ContentPage, INotifyPropertyChanged
 
         // 1. Get Configuration from Service
         // The service has already recovered the FlowType and Mood during GetTodaysProgressAsync
-        bool includesMindfulness = await _progressService.RequiresMindfulnessAsync();
+        bool includesMindfulness = _progressService.RequiresMindfulness();
         string currentFlow = _progressService.CurrentFlowType;
         int currentStep = state.Step;
 

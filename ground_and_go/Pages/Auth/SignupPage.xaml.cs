@@ -20,7 +20,7 @@ public partial class SignupPage : ContentPage
             String? result = await businessLogic.SignUp(UsernameENT.Text, PasswordENT.Text, RepeatPasswordENT.Text);
             if (result == null)
             {
-                await DisplayAlert("Success", "An account was created for the given email", "OK");
+                await DisplayAlert("Success", "An account was created for the given email. Please confirm your email before signing in.", "OK");
                 await Shell.Current.GoToAsync("//login");
             }
             else

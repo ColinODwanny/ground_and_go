@@ -11,7 +11,7 @@ public partial class ForgotPasswordPage : ContentPage
     public ForgotPasswordPage()
     {
         InitializeComponent();
-        _database = IPlatformApplication.Current.Services.GetRequiredService<Database>();
+        _database = IPlatformApplication.Current!.Services.GetRequiredService<Database>();
     }
 
     private async void ChangePasswordClicked(object sender, EventArgs e)
