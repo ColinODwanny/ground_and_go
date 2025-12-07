@@ -49,7 +49,9 @@
                     <Entry x:Name="UsernameENT"
                            Text=""
                            Placeholder="Enter Email"
-                           FontSize="24"/>
+                           FontSize="24"
+                           Keyboard="Email"
+                           TextTransform="None"/>
                 </VerticalStackLayout>
             </Grid>
         </Border>
@@ -82,7 +84,8 @@
                            Text=""
                            IsPassword="True"
                            Placeholder="Create Password"
-                           FontSize="24"/>
+                           FontSize="24"
+                           TextTransform="None"/>
                 </VerticalStackLayout>
             </Grid>
         </Border>
@@ -114,7 +117,8 @@
                            Text=""
                            IsPassword="True"
                            Placeholder="Re-enter Password"
-                           FontSize="24"/>
+                           FontSize="24"
+                           TextTransform="None"/>
                 </VerticalStackLayout>
             </Grid>
         </Border>
