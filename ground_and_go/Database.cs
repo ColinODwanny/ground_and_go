@@ -122,7 +122,15 @@ namespace ground_and_go
                     }
 
                     var sessionJson = JsonSerializer.Serialize(session);
-                    await SecureStorage.SetAsync("login_session", sessionJson);
+                    
+                    try
+                    {
+                        await SecureStorage.SetAsync("login_session", sessionJson);
+                    }
+                    catch (Exception storageEx)
+                    {
+                        Console.WriteLine($"Warning: Could not save session to secure storage: {storageEx.Message}");
+                    }
 
                     Console.WriteLine("Login successful");
                     return null;
