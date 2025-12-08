@@ -49,6 +49,7 @@ public static class MauiProgram
         builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.MindfulnessActivityRestPage>();
         builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.TodaysWorkoutPage>(); 
         builder.Services.AddTransient<ground_and_go.Pages.WorkoutGeneration.PostActivityJournalEntryPage>();
+        builder.Services.AddTransient<ground_and_go.Pages.Workout.VideoPlayer>();
 
 
 #if DEBUG

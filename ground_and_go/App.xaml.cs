@@ -58,7 +58,10 @@ public partial class App : Application
             {
 
                 var db = IPlatformApplication.Current!.Services.GetService<Database>();
-                db?.SetSupabaseSession(token, refreshToken);
+                if (db != null)
+                {
+                    await db.SetSupabaseSession(token, refreshToken);
+                }
 
                 // Navigate to Reset Password page
                 await Shell.Current.GoToAsync("//forgotpassword");
@@ -85,19 +88,55 @@ public partial class App : Application
 
         window.Dispatcher.Dispatch(async () =>
         {
-            var sessionJson = await SecureStorage.GetAsync("login_session"); //Takes the user's login token
-            if (sessionJson != null)
+            try
             {
-                var session = JsonSerializer.Deserialize<Supabase.Gotrue.Session>(sessionJson);
-                if (session != null)
+                Console.WriteLine("Checking for saved session...");
+                var sessionJson = await SecureStorage.GetAsync("login_session");
+                
+                Console.WriteLine($"SecureStorage result: {(string.IsNullOrEmpty(sessionJson) ? "EMPTY/NULL" : $"Found {sessionJson.Length} characters")}");
+                
+                // If SecureStorage is empty, check fallback storage
+                if (string.IsNullOrEmpty(sessionJson))
                 {
-                    db!.SetSupabaseSession(session.AccessToken!, session.RefreshToken!); //Starts a session with Supabase
-                    await Shell.Current.GoToAsync("//home");
-                    return;
+                    sessionJson = Preferences.Get("login_session_fallback", "");
+                    Console.WriteLine($"Fallback storage result: {(string.IsNullOrEmpty(sessionJson) ? "EMPTY/NULL" : $"Found {sessionJson.Length} characters")}");
                 }
+                
+                if (!string.IsNullOrEmpty(sessionJson))
+                {
+                    Console.WriteLine("Found saved session, attempting to restore...");
+                    Console.WriteLine($"Session JSON (first 100 chars): {sessionJson.Substring(0, Math.Min(100, sessionJson.Length))}...");
+                    
+                    var session = JsonSerializer.Deserialize<Supabase.Gotrue.Session>(sessionJson);
+                    Console.WriteLine($"Deserialized session: {(session != null ? "SUCCESS" : "FAILED")}");
+                    
+                    if (session != null && !string.IsNullOrEmpty(session.AccessToken) && !string.IsNullOrEmpty(session.RefreshToken))
+                    {
+                        await db!.EnsureInitializedAsync();
+                        var sessionRestored = await db.SetSupabaseSession(session.AccessToken, session.RefreshToken);
+                        
+                        if (sessionRestored && db.HasValidSession())
+                        {
+                            Console.WriteLine("Session restored successfully, navigating to home");
+                            await Shell.Current.GoToAsync("//home");
+                            return;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Session restoration failed, clearing stored session");
+                            await SecureStorage.SetAsync("login_session", "");
+                        }
+                    }
+                }
+                
+                Console.WriteLine("No valid session found, navigating to login");
+                await Shell.Current.GoToAsync("//login");
             }
-
-            await Shell.Current.GoToAsync("//login");
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during session restoration: {ex.Message}");
+                await Shell.Current.GoToAsync("//login");
+            }
         });
         return window;
     }
