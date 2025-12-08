@@ -7,13 +7,13 @@ namespace ground_and_go.Pages.Workout
     [QueryProperty(nameof(ExerciseName), "exerciseName")]
     public partial class VideoPlayer : ContentPage
     {
-        private Database database;
+        private readonly Database _database;
         public string ExerciseName { get; set; } = string.Empty;
         
-        public VideoPlayer()
+        public VideoPlayer(Database database)
         {
             InitializeComponent();
-            database = new Database();
+            _database = database;
         }
 
         protected override async void OnAppearing()
@@ -32,8 +32,8 @@ namespace ground_and_go.Pages.Workout
 
             try
             {
-                await database.EnsureInitializedAsync();
-                var exercises = await database.GetAllExercises();
+                await _database.EnsureInitializedAsync();
+                var exercises = await _database.GetAllExercises();
                 
                 var exercise = exercises.Values.FirstOrDefault(e => 
                     string.Equals(e.Name, ExerciseName, StringComparison.OrdinalIgnoreCase));

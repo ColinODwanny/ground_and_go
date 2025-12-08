@@ -58,11 +58,38 @@ namespace ground_and_go
         /// </summary>
         /// <param name="accessToken">The accessToken passed from the email link</param>
         /// <param name="refreshToken">The refreshToken passed from the email link</param>
-        public async void SetSupabaseSession(string accessToken, string refreshToken)
+        public async Task<bool> SetSupabaseSession(string accessToken, string refreshToken)
         {
-            if (supabaseClient != null)
+            try
             {
-                await supabaseClient.Auth.SetSession(accessToken, refreshToken, true);
+                if (supabaseClient != null)
+                {
+                    Console.WriteLine("Setting Supabase session...");
+                    Console.WriteLine($"  - Access token (first 20 chars): {accessToken.Substring(0, Math.Min(20, accessToken.Length))}...");
+                    Console.WriteLine($"  - Refresh token (first 20 chars): {refreshToken.Substring(0, Math.Min(20, refreshToken.Length))}...");
+                    
+                    await supabaseClient.Auth.SetSession(accessToken, refreshToken, true);
+                    
+                    // Check if it actually worked
+                    var currentSession = supabaseClient.Auth.CurrentSession;
+                    var currentUser = supabaseClient.Auth.CurrentUser;
+                    
+                    Console.WriteLine($"After SetSession:");
+                    Console.WriteLine($"  - Session exists: {currentSession != null}");
+                    Console.WriteLine($"  - User exists: {currentUser != null}");
+                    Console.WriteLine($"  - User ID: {currentUser?.Id ?? "NULL"}");
+                    
+                    return currentSession != null && currentUser != null;
+                }
+                
+                Console.WriteLine("Supabase client is null");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to restore session: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return false;
             }
         }
 
@@ -83,8 +110,23 @@ namespace ground_and_go
         /// <returns>True if the user has a valid session, false otherwise</returns>
         public bool HasValidSession()
         {
-            supabaseClient!.Auth.LoadSession();
-            return supabaseClient!.Auth.CurrentSession != null;
+            try
+            {
+                var currentSession = supabaseClient?.Auth?.CurrentSession;
+                var currentUser = supabaseClient?.Auth?.CurrentUser;
+                
+                Console.WriteLine($"HasValidSession check:");
+                Console.WriteLine($"  - Current session: {(currentSession != null ? "EXISTS" : "NULL")}");
+                Console.WriteLine($"  - Current user: {(currentUser != null ? "EXISTS" : "NULL")}");
+                Console.WriteLine($"  - User ID: {currentUser?.Id ?? "NULL"}");
+                
+                return currentSession != null && currentUser != null;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error checking session validity: {ex.Message}");
+                return false;
+            }
         }
 
 
@@ -126,10 +168,21 @@ namespace ground_and_go
                     try
                     {
                         await SecureStorage.SetAsync("login_session", sessionJson);
+                        Console.WriteLine("Session saved to SecureStorage successfully");
                     }
                     catch (Exception storageEx)
                     {
                         Console.WriteLine($"Warning: Could not save session to secure storage: {storageEx.Message}");
+                        // Fallback to app preferences (less secure but works)
+                        try
+                        {
+                            Preferences.Set("login_session_fallback", sessionJson);
+                            Console.WriteLine("Session saved to fallback storage (Preferences)");
+                        }
+                        catch (Exception fallbackEx)
+                        {
+                            Console.WriteLine($"Error: Could not save session to fallback storage: {fallbackEx.Message}");
+                        }
                     }
 
                     Console.WriteLine("Login successful");
@@ -183,6 +236,7 @@ namespace ground_and_go
             {
                 await supabaseClient!.Auth.SignOut();
                 SecureStorage.Remove("login_session");
+                Preferences.Remove("login_session_fallback");
                 Console.WriteLine("Logout successful");
             }
             catch (Exception e)
