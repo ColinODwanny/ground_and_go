@@ -6,7 +6,7 @@ using ground_and_go.Services;
 using ground_and_go.Models;
 using ground_and_go.enums;
 using ground_and_go.Components;
-using System.Text.Json; // Needed for JSON
+using System.Text.Json;
 
 namespace ground_and_go.Pages.WorkoutGeneration;
 

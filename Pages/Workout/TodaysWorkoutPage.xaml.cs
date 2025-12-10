@@ -115,7 +115,7 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         }
     }
 
-    // UPDATED: Saves "STATE:Pending" before navigation to fix Resume logic
+    // Saves "STATE:Pending" before navigation to fix Resume logic
     private async void OnCompleteWorkout_Clicked(object? sender, EventArgs e)
     {
         string? logId = _progressService.CurrentLogId;
@@ -246,7 +246,6 @@ public partial class TodaysWorkoutPage : ContentPage, INotifyPropertyChanged
         
         if (hasDirectExercises && !hasSections)
         {
-            // Added Null Coalescing operators (?. and ??) to fix the CS8602 warning
             int count = CurrentWorkout?.Exercises?.Exercises?.Count ?? 0;
             Console.WriteLine($"Loading {count} direct exercises (no sections format)");
             await LoadDirectExercises();
