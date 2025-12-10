@@ -1,6 +1,7 @@
 //Colin O'Dwanny
 using System;
 using ground_and_go.Models;
+using ground_and_go.Services;
 
 namespace ground_and_go.Pages.Workout
 {
@@ -8,12 +9,14 @@ namespace ground_and_go.Pages.Workout
     public partial class VideoPlayer : ContentPage
     {
         private readonly Database _database;
+        private readonly ConfigurationService _configService;
         public string ExerciseName { get; set; } = string.Empty;
         
-        public VideoPlayer(Database database)
+        public VideoPlayer(Database database, ConfigurationService configService)
         {
             InitializeComponent();
             _database = database;
+            _configService = configService;
         }
 
         protected override async void OnAppearing()
@@ -26,7 +29,7 @@ namespace ground_and_go.Pages.Workout
         {
             if (string.IsNullOrEmpty(ExerciseName))
             {
-                VideoWebView.Source = "https://www.youtube.com/shorts/hWbUlkb5Ms4";
+                VideoWebView.Source = _configService.GetDefaultVideoUrl();
                 return;
             }
 
@@ -44,13 +47,13 @@ namespace ground_and_go.Pages.Workout
                 }
                 else
                 {
-                    VideoWebView.Source = "https://www.youtube.com/shorts/hWbUlkb5Ms4";
+                    VideoWebView.Source = _configService.GetDefaultVideoUrl();
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error loading exercise video: {ex.Message}");
-                VideoWebView.Source = "https://www.youtube.com/shorts/hWbUlkb5Ms4";
+                VideoWebView.Source = _configService.GetDefaultVideoUrl();
             }
         }
 
