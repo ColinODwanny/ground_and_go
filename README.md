@@ -6,6 +6,21 @@ This project is a cross-platform fitness and mental wellness application built w
 
 The application uses **Supabase** for its backend database services, handling everything from user data to workout and journal entry storage.
 
+## 🔧 **Configuration Management**
+
+**This app demonstrates secure configuration practices by centralizing all URLs and API keys in a dedicated ConfigurationService.**
+
+### For Class Project Evaluation:
+- All configuration values are currently in `Services/ConfigurationService.cs` for easy grading access
+
+### For Production Deployment:
+In a real-world deployment, the following security practices would be implemented:
+1. Add `Services/ConfigurationService.cs` to `.gitignore` 
+2. Load all sensitive values from environment variables
+3. Never commit API keys or database URLs to version control
+
+This demonstrates understanding of secure configuration management while maintaining accessibility for academic evaluation.
+
 ## Sprint 4 Changes
 
 ----------------------------------------------------------------

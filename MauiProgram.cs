@@ -31,6 +31,9 @@ public static class MauiProgram
 
         // --- Service Registrations ---
 
+        // Configuration service (must be first)
+        builder.Services.AddSingleton<ground_and_go.Services.ConfigurationService>();
+
         // This creates the *one and only* instance of the Database
         builder.Services.AddSingleton<Database>();
         

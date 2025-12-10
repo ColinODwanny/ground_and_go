@@ -12,6 +12,7 @@ using Microsoft.Maui.Graphics.Text;
 using ground_and_go.enums;
 using static Supabase.Postgrest.Constants;
 using System.Text.Json;
+using ground_and_go.Services;
 
 namespace ground_and_go
 {
@@ -19,29 +20,37 @@ namespace ground_and_go
     {
         private Supabase.Client? supabaseClient;
         private Task waitingForInitialization;
+        private readonly ConfigurationService _configService;
 
         public List<WorkoutLog>? WorkoutHistory { get; set; }
         public static Dictionary<int, Exercise>? ExercisesDictionary { get; set; }
 
         public static List<MindfulnessActivity>? MindfulnessActivities { get; set; }
 
+        public Database(ConfigurationService configService)
+        {
+            _configService = configService;
+            waitingForInitialization = InitializeSupabaseSystems();
+        }
 
+        // Parameterless constructor for cases where DI isn't available
         public Database()
         {
+            _configService = new ConfigurationService();
             waitingForInitialization = InitializeSupabaseSystems();
         }
         public Task EnsureInitializedAsync() => waitingForInitialization ?? Task.CompletedTask;
 
         private async Task InitializeSupabaseSystems()
         {
-            var supabaseProjectURL = "https://irekjohmgsjicpszbgus.supabase.co";
-            var supabaseProjectKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlyZWtqb2htZ3NqaWNwc3piZ3VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwODcwMTQsImV4cCI6MjA3NjY2MzAxNH0.vAMY-0u9u2hNbGIcg4h7tdhI6cOW5jUMcMWEP67ChxQ";
+            var supabaseProjectURL = _configService.GetSupabaseUrl();
+            var supabaseProjectKey = _configService.GetSupabaseApiKey();
 
+            Console.WriteLine($"Initializing Supabase with URL: {supabaseProjectURL.Substring(0, Math.Min(30, supabaseProjectURL.Length))}...");
+            
             supabaseClient = new Supabase.Client(supabaseProjectURL, supabaseProjectKey);
             await supabaseClient.InitializeAsync();
-            Console.WriteLine("after supabase client init");
-
-
+            Console.WriteLine("Supabase client initialization completed");
         }
 
         /// <summary>
