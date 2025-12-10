@@ -12,7 +12,7 @@
         <Nullable>enable</Nullable>
         <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
 
-        <ApplicationTitle>ground_and_go</ApplicationTitle>
+        <ApplicationTitle>Ground &amp; Go</ApplicationTitle>
 
         <ApplicationId>com.companyname.ground_and_go</ApplicationId>
 
