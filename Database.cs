@@ -1640,67 +1640,38 @@ namespace ground_and_go
             }
         }
 
-        /// <summary>
-        /// Deletes the user's data (logs and profile) and signs them out.
-        /// Note: This cleans up PUBLIC data. The Auth record remains until an Admin deletes it,
-        /// but this satisfies App Store requirements for "User Initiated Deletion".
-        /// </summary>
-        /// <returns>Null if successful, error message otherwise</returns>
         public async Task<string?> DeleteAccount()
         {
             await EnsureInitializedAsync();
-            if (supabaseClient == null) return "Database not initialized";
+            
+            if (supabaseClient is null) return "Database not initialized";
 
             try
             {
-                // 1. Get the current User ID
-                var userId = GetAuthenticatedMemberId();
+                var userId = supabaseClient.Auth.CurrentUser?.Id;
+                
                 if (string.IsNullOrEmpty(userId))
                 {
                     return "User is not currently logged in.";
                 }
 
-                Console.WriteLine($"DEBUG: Attempting to delete account data for {userId}");
+                Console.WriteLine($"DEBUG: Deleting account for {userId}");
 
-                // 2. Delete Workout Logs (Data Cleanup)
-                try
-                {
-                    await supabaseClient.From<WorkoutLog>()
-                        .Where(x => x.MemberId == userId)
-                        .Delete();
-                    Console.WriteLine("DEBUG: Workout logs deleted.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"WARNING: Could not delete workout logs (RLS Policy?): {ex.Message}");
-                    // Continue anyway - do not stop the logout process
-                }
+                await supabaseClient
+                    .From<Member>()
+                    .Where(x => x.MemberId == userId) 
+                    .Delete();
 
-                // 3. Delete Member Profile (Data Cleanup)
-                try
-                {
-                    await supabaseClient.From<Member>()
-                        .Where(x => x.MemberId == userId)
-                        .Delete();
-                    Console.WriteLine("DEBUG: Member profile deleted.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"WARNING: Could not delete member profile (RLS Policy?): {ex.Message}");
-                    // Continue anyway
-                }
+                Console.WriteLine("DEBUG: Account deleted successfully.");
 
-                // 4. Log Out (The "Kick")
                 await LogOut();
-
-                return null; // Success
+                return null;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"ERROR: DeleteAccount failed: {ex.Message}");
-                // Even if the DB fails, force a local logout so the user feels "Deleted"
-                await LogOut();
-                return null; // We return success so the UI navigates away
+                await LogOut(); 
+                return $"Delete failed: {ex.Message}";
             }
         }
 
