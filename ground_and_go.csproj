@@ -16,8 +16,8 @@
 
         <ApplicationId>com.companyname.ground_and_go</ApplicationId>
 
-        <ApplicationDisplayVersion>1.4</ApplicationDisplayVersion>
-        <ApplicationVersion>5</ApplicationVersion>
+        <ApplicationDisplayVersion>1.5</ApplicationDisplayVersion>
+        <ApplicationVersion>6</ApplicationVersion>
 
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
